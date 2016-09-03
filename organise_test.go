@@ -55,11 +55,28 @@ func (discogsBridge testBridge) getRelease(ID int32) *pbd.Release {
 	return &pbd.Release{Id: ID}
 }
 
+func TestGetReleaseLocationNoRelease(t *testing.T) {
+	testServer := &Server{saveLocation: ".testgetlocation", bridge: testBridge{}, org: &pb.Organisation{}}
+	location := &pb.Location{
+		Name:      "TestName",
+		Units:     1,
+		FolderIds: []int32{10},
+		Sort:      pb.Location_BY_LABEL_CATNO,
+	}
+	testServer.AddLocation(context.Background(), location)
+
+	relLocation, err := testServer.Locate(context.Background(), &pbd.Release{Id: 4})
+
+	if err == nil {
+		t.Errorf("Failed locate has not returned an error: %v", relLocation)
+	}
+}
+
 func TestGetReleaseLocation(t *testing.T) {
 	testServer := &Server{saveLocation: ".testgetlocation", bridge: testBridge{}, org: &pb.Organisation{}}
 	location := &pb.Location{
 		Name:      "TestName",
-		Units:     2,
+		Units:     1,
 		FolderIds: []int32{10},
 		Sort:      pb.Location_BY_LABEL_CATNO,
 	}
@@ -75,19 +92,19 @@ func TestGetReleaseLocation(t *testing.T) {
 		t.Errorf("Err: %v", relLocation)
 	}
 
-	if relLocation.Slot != 2 {
+	if relLocation.Slot != 1 {
 		t.Errorf("Slot has come back wrong: %v", relLocation)
 	}
 
-	if relLocation.Before != nil {
-		t.Errorf("Release location has come back wrong: %v", relLocation)
+	if relLocation.Before == nil || relLocation.Before.Id != 1 {
+		t.Errorf("Release before location has come back wrong: %v", relLocation)
 	}
 	if relLocation.After == nil || relLocation.After.Id != 3 {
-		t.Errorf("Release location has come back wrong: %v", relLocation)
+		t.Errorf("Release after location has come back wrong: %v", relLocation)
 	}
 
 	relLocation, _ = testServer.Locate(context.Background(), &pbd.Release{Id: 1})
-	if relLocation.Before != nil || relLocation.After != nil {
+	if relLocation.Before != nil {
 		t.Errorf("Release location has come back wrong: %v", relLocation)
 	}
 }
@@ -119,6 +136,77 @@ func TestListLocations(t *testing.T) {
 
 func clean(s *Server) {
 	os.RemoveAll(s.saveLocation)
+}
+
+func TestDiffFails(t *testing.T) {
+	testServer := &Server{saveLocation: ".testdiff", bridge: testBridge{}, org: &pb.Organisation{}}
+	clean(testServer)
+	location := &pb.Location{
+		Name:      "TestName",
+		Units:     2,
+		FolderIds: []int32{10},
+		Sort:      pb.Location_BY_LABEL_CATNO,
+	}
+
+	testServer.AddLocation(context.Background(), location)
+	timestamps, err := testServer.GetOrganisations(context.Background(), &pb.Empty{})
+	if err != nil {
+		t.Errorf("Error gettting orgs %v", err)
+	}
+
+	if len(timestamps.GetOrganisations()) != 1 {
+		t.Errorf("Too many organisations present: %v", len(timestamps.GetOrganisations()))
+	}
+
+	diff1, err := testServer.Diff(context.Background(), &pb.DiffRequest{StartTimestamp: 1234, EndTimestamp: timestamps.Organisations[0].Timestamp})
+	if err == nil {
+		t.Errorf("Failure to pull start timestamp bad: %v", diff1)
+	}
+	diff2, err := testServer.Diff(context.Background(), &pb.DiffRequest{EndTimestamp: 1234, StartTimestamp: timestamps.Organisations[0].Timestamp})
+	if err == nil {
+		t.Errorf("Failure to pull start timestamp bad: %v", diff2)
+	}
+}
+
+func TestDiffFailsNamedLocation(t *testing.T) {
+	testServer := &Server{saveLocation: ".testdiff", bridge: testBridge{}, org: &pb.Organisation{}}
+	clean(testServer)
+	location := &pb.Location{
+		Name:      "TestName",
+		Units:     2,
+		FolderIds: []int32{10},
+		Sort:      pb.Location_BY_LABEL_CATNO,
+	}
+
+	testServer.AddLocation(context.Background(), location)
+
+	locationUpdate := &pb.Location{
+		Sort: pb.Location_BY_DATE_ADDED,
+		Name: "TestName",
+	}
+	//Wait 2 seconds to let the timestamps change
+	time.Sleep(time.Second * 2)
+	testServer.UpdateLocation(context.Background(), locationUpdate)
+
+	timestamps, err := testServer.GetOrganisations(context.Background(), &pb.Empty{})
+	if err != nil {
+		t.Errorf("Error gettting orgs %v", err)
+	}
+
+	if len(timestamps.GetOrganisations()) != 2 {
+		t.Errorf("Too many organisations present: %v", len(timestamps.GetOrganisations()))
+	}
+
+	diffRequest := &pb.DiffRequest{
+		StartTimestamp: timestamps.Organisations[0].Timestamp,
+		EndTimestamp:   timestamps.Organisations[1].Timestamp,
+		LocationName:   "TestNameBad",
+		Slot:           1,
+	}
+	_, err = testServer.Diff(context.Background(), diffRequest)
+	if err == nil {
+		t.Errorf("No Error running diff with bad name %v", err)
+	}
 }
 
 func TestDiff(t *testing.T) {
