@@ -121,6 +121,36 @@ func clean(s *Server) {
 	os.RemoveAll(s.saveLocation)
 }
 
+func TestDiffFails(t *testing.T) {
+	testServer := &Server{saveLocation: ".testdiff", bridge: testBridge{}, org: &pb.Organisation{}}
+	clean(testServer)
+	location := &pb.Location{
+		Name:      "TestName",
+		Units:     2,
+		FolderIds: []int32{10},
+		Sort:      pb.Location_BY_LABEL_CATNO,
+	}
+
+	testServer.AddLocation(context.Background(), location)
+	timestamps, err := testServer.GetOrganisations(context.Background(), &pb.Empty{})
+	if err != nil {
+		t.Errorf("Error gettting orgs %v", err)
+	}
+
+	if len(timestamps.GetOrganisations()) != 1 {
+		t.Errorf("Too many organisations present: %v", len(timestamps.GetOrganisations()))
+	}
+
+	diff1, err := testServer.Diff(context.Background(), &pb.DiffRequest{StartTimestamp: 1234, EndTimestamp: timestamps.Organisations[0].Timestamp})
+	if err == nil {
+		t.Errorf("Failure to pull start timestamp bad: %v", diff1)
+	}
+	diff2, err := testServer.Diff(context.Background(), &pb.DiffRequest{EndTimestamp: 1234, StartTimestamp: timestamps.Organisations[0].Timestamp})
+	if err == nil {
+		t.Errorf("Failure to pull start timestamp bad: %v", diff2)
+	}
+}
+
 func TestDiff(t *testing.T) {
 	testServer := &Server{saveLocation: ".testdiff", bridge: testBridge{}, org: &pb.Organisation{}}
 	clean(testServer)
