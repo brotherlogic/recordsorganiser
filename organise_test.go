@@ -59,7 +59,7 @@ func TestGetReleaseLocation(t *testing.T) {
 	testServer := &Server{saveLocation: ".testgetlocation", bridge: testBridge{}, org: &pb.Organisation{}}
 	location := &pb.Location{
 		Name:      "TestName",
-		Units:     2,
+		Units:     1,
 		FolderIds: []int32{10},
 		Sort:      pb.Location_BY_LABEL_CATNO,
 	}
@@ -75,19 +75,19 @@ func TestGetReleaseLocation(t *testing.T) {
 		t.Errorf("Err: %v", relLocation)
 	}
 
-	if relLocation.Slot != 2 {
+	if relLocation.Slot != 1 {
 		t.Errorf("Slot has come back wrong: %v", relLocation)
 	}
 
-	if relLocation.Before != nil {
-		t.Errorf("Release location has come back wrong: %v", relLocation)
+	if relLocation.Before == nil || relLocation.Before.Id != 1 {
+		t.Errorf("Release before location has come back wrong: %v", relLocation)
 	}
 	if relLocation.After == nil || relLocation.After.Id != 3 {
-		t.Errorf("Release location has come back wrong: %v", relLocation)
+		t.Errorf("Release after location has come back wrong: %v", relLocation)
 	}
 
 	relLocation, _ = testServer.Locate(context.Background(), &pbd.Release{Id: 1})
-	if relLocation.Before != nil || relLocation.After != nil {
+	if relLocation.Before != nil {
 		t.Errorf("Release location has come back wrong: %v", relLocation)
 	}
 }
