@@ -55,6 +55,23 @@ func (discogsBridge testBridge) getRelease(ID int32) *pbd.Release {
 	return &pbd.Release{Id: ID}
 }
 
+func TestGetReleaseLocationNoRelease(t *testing.T) {
+	testServer := &Server{saveLocation: ".testgetlocation", bridge: testBridge{}, org: &pb.Organisation{}}
+	location := &pb.Location{
+		Name:      "TestName",
+		Units:     1,
+		FolderIds: []int32{10},
+		Sort:      pb.Location_BY_LABEL_CATNO,
+	}
+	testServer.AddLocation(context.Background(), location)
+
+	relLocation, err := testServer.Locate(context.Background(), &pbd.Release{Id: 4})
+
+	if err == nil {
+		t.Errorf("Failed locate has not returned an error: %v", relLocation)
+	}
+}
+
 func TestGetReleaseLocation(t *testing.T) {
 	testServer := &Server{saveLocation: ".testgetlocation", bridge: testBridge{}, org: &pb.Organisation{}}
 	location := &pb.Location{

@@ -165,7 +165,7 @@ func (s *Server) Locate(ctx context.Context, in *pbd.Release) (*pb.ReleaseLocati
 		}
 	}
 
-	return relLoc, nil
+	return nil, errors.New("Unable to locate id " + strconv.Itoa(int(in.Id)))
 }
 
 // GetOrganisations Gets all the available organisations
