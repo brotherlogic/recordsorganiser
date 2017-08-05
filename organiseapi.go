@@ -158,7 +158,7 @@ func (s Server) load(key string) (*pb.Organisation, error) {
 	return data.(*pb.Organisation), nil
 }
 
-func (s Server) loadLatest() error {
+func (s *Server) loadLatest() error {
 	curr, err := s.load(CurrKey)
 	if err != nil {
 		return err
