@@ -10,25 +10,23 @@ import (
 func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*pbrc.Record {
 	recs := []*pbrc.Record{}
 
+	lPile, err := s.bridge.getReleases(ctx, []int32{812802})
+	if err != nil {
+		return recs
+	}
+
 	// Get potential records from the listening pile
-	for _, loc := range s.org.GetLocations() {
-		if loc.Name == "Listening Pile" {
-			for _, place := range loc.ReleasesLocation {
-				r, err := s.bridge.getRecord(ctx, place.InstanceId)
-				if err == nil {
-					for _, fid := range sloc.FolderIds {
-						if r.GetMetadata().GoalFolder == fid {
-							c := r.GetMetadata().Category
-							if c != pbrc.ReleaseMetadata_UNLISTENED &&
-								c != pbrc.ReleaseMetadata_STAGED &&
-								c != pbrc.ReleaseMetadata_STAGED_TO_SELL &&
-								c != pbrc.ReleaseMetadata_SOLD &&
-								c != pbrc.ReleaseMetadata_PREPARE_TO_SELL &&
-								c != pbrc.ReleaseMetadata_PRE_FRESHMAN {
-								recs = append(recs, r)
-							}
-						}
-					}
+	for _, r := range lPile {
+		for _, fid := range sloc.FolderIds {
+			if r.GetMetadata().GoalFolder == fid {
+				c := r.GetMetadata().Category
+				if c != pbrc.ReleaseMetadata_UNLISTENED &&
+					c != pbrc.ReleaseMetadata_STAGED &&
+					c != pbrc.ReleaseMetadata_STAGED_TO_SELL &&
+					c != pbrc.ReleaseMetadata_SOLD &&
+					c != pbrc.ReleaseMetadata_PREPARE_TO_SELL &&
+					c != pbrc.ReleaseMetadata_PRE_FRESHMAN {
+					recs = append(recs, r)
 				}
 			}
 		}

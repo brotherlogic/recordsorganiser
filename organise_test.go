@@ -2,15 +2,16 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/brotherlogic/goserver"
 	"github.com/brotherlogic/keystore/client"
 	"golang.org/x/net/context"
 
 	pbs "github.com/brotherlogic/discogssyncer/server"
 	pbd "github.com/brotherlogic/godiscogs"
-	"github.com/brotherlogic/goserver"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 )
@@ -129,7 +130,8 @@ func (discogsBridge testBridgeCleverFail) moveToFolder(move *pbs.ReleaseMove) {
 }
 
 type testBridge struct {
-	widthMissing bool
+	widthMissing    bool
+	failGetReleases bool
 }
 
 type testBridgeMove struct {
@@ -174,6 +176,10 @@ func (discogsBridge testBridgeMove) getRecord(ctx context.Context, instanceID in
 }
 
 func (discogsBridge testBridge) getReleases(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
+	if discogsBridge.failGetReleases {
+		return []*pbrc.Record{}, fmt.Errorf("Built to fail")
+	}
+
 	if len(folders) == 1 && folders[0] == 812802 {
 		return []*pbrc.Record{
 			&pbrc.Record{
