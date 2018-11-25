@@ -312,7 +312,8 @@ func main() {
 
 			fmt.Printf("Checking on %v records with the min score being %v\n", len(records), minScore)
 
-			total := len(records) - 40 - 5
+			total := len(records) - int(loc.Quota.NumOfSlots) + 4
+			log.Printf("TOTAL = %v", total)
 			count := 0
 
 			//Sort by release date
