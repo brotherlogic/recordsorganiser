@@ -135,6 +135,33 @@ func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32
 	return result, nil
 }
 
+func (discogsBridge prodBridge) getReleasesWithGoal(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
+	ctx = utils.Trace(ctx, "getReleases", time.Now(), pbt.Milestone_START_FUNCTION, "recordsorganiser")
+	var result []*pbrc.Record
+
+	for _, id := range folders {
+		ip, port := discogsBridge.GetIP("recordcollection")
+		conn, err2 := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
+		if err2 != nil {
+			return result, err2
+		}
+
+		if err2 == nil {
+			defer conn.Close()
+			client := pbrc.NewRecordCollectionServiceClient(conn)
+
+			rel, err3 := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Filter: &pbrc.Record{Release: &pbd.Release{FolderId: id}}})
+			if err3 != nil {
+				return result, err3
+			}
+			result = append(result, rel.GetRecords()...)
+		}
+	}
+
+	utils.Trace(ctx, "getReleases", time.Now(), pbt.Milestone_END_FUNCTION, "recordsorganiser")
+	return result, nil
+}
+
 // DoRegister does RPC registration
 func (s *Server) DoRegister(server *grpc.Server) {
 	pb.RegisterOrganiserServiceServer(server, s)
