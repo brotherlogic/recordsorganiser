@@ -205,5 +205,7 @@ func main() {
 	server.RegisterServer("recordsorganiser", false)
 	server.RegisterRepeatingTask(server.checkQuota, "check_quota", time.Hour)
 	server.RegisterRepeatingTask(server.checkOrg, "check_org", time.Hour)
+
+	server.Log(fmt.Sprintf("Starting %v", server.GoServer.RunningFile))
 	server.Serve()
 }
