@@ -23,6 +23,7 @@ type Server struct {
 	lastOrgTime   time.Duration
 	lastOrgFolder string
 	sortMap       map[int32]*pb.SortMapping
+	lastQuotaTime time.Duration
 }
 
 type gh interface {

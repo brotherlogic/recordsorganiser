@@ -156,12 +156,21 @@ func (s Server) GetState() []*pbgs.State {
 		&pbgs.State{Key: "OrgTime", Text: fmt.Sprintf("%v", s.lastOrgTime)},
 		&pbgs.State{Key: "OrgFold", Text: s.lastOrgFolder},
 		&pbgs.State{Key: "sort_map_size", Value: int64(len(s.sortMap))},
+		&pbgs.State{Key: "last_quota_time", Text: fmt.Sprintf("%v", s.lastQuotaTime)},
 	}
 }
 
 // InitServer builds an initial server
 func InitServer() *Server {
-	server := &Server{&goserver.GoServer{}, prodBridge{}, &pb.Organisation{}, &prodGh{}, time.Second, "", make(map[int32]*pb.SortMapping)}
+	server := &Server{
+		&goserver.GoServer{},
+		prodBridge{},
+		&pb.Organisation{},
+		&prodGh{},
+		time.Second,
+		"",
+		make(map[int32]*pb.SortMapping),
+		0}
 	server.PrepServer()
 	server.bridge = &prodBridge{Resolver: server.GetIP}
 	server.GoServer.KSclient = *keystoreclient.GetClient(server.GetIP)
