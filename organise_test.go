@@ -28,6 +28,11 @@ func (discogsBridge testBridgeFail) getRecord(ctx context.Context, instanceID in
 func (discogsBridge testBridgeFail) getReleases(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
 	return nil, errors.New("Built to fail")
 }
+
+func (discogsBridge testBridgeFail) getReleasesWithGoal(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
+	return nil, errors.New("Built to fail")
+}
+
 func (discogsBridge testBridgeFail) getRelease(ID int32) (*pbd.Release, error) {
 	return nil, errors.New("Built to fail")
 }
@@ -68,6 +73,31 @@ func (discogsBridge testBridgePartialFail) getReleases(ctx context.Context, olde
 
 	return result, nil
 }
+func (discogsBridge testBridgePartialFail) getReleaseWithGoals(ctx context.Context, olders []int32) ([]*pbrc.Record, error) {
+	var result []*pbrc.Record
+
+	result = append(result, &pbrc.Record{Release: &pbd.Release{
+		Id:             1,
+		Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
+		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
+		FormatQuantity: 2,
+	}})
+	result = append(result, &pbrc.Record{Release: &pbd.Release{
+		Id:             2,
+		Labels:         []*pbd.Label{&pbd.Label{Name: "SecondLabel"}},
+		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
+		FormatQuantity: 1,
+	}})
+	result = append(result, &pbrc.Record{Release: &pbd.Release{
+		Id:             3,
+		Labels:         []*pbd.Label{&pbd.Label{Name: "ThirdLabel"}},
+		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"CD"}}},
+		FormatQuantity: 1,
+	}})
+
+	return result, nil
+}
+
 func (discogsBridge testBridgePartialFail) getRelease(ctx context.Context, ID int32) (*pbd.Release, error) {
 	return nil, errors.New("Built to fail")
 }
@@ -122,6 +152,36 @@ func (discogsBridge testBridgeCleverFail) getReleases(ctx context.Context, folde
 
 	return result, nil
 }
+func (discogsBridge testBridgeCleverFail) getReleasesWithGoal(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
+	for _, fold := range folders {
+		if fold != 673768 {
+			return nil, errors.New("Built to fail")
+		}
+	}
+	var result []*pbrc.Record
+
+	result = append(result, &pbrc.Record{Release: &pbd.Release{
+		Id:             1,
+		Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
+		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
+		FormatQuantity: 2,
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().Unix()}})
+	result = append(result, &pbrc.Record{Release: &pbd.Release{
+		Id:             2,
+		Labels:         []*pbd.Label{&pbd.Label{Name: "SecondLabel"}},
+		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
+		FormatQuantity: 1,
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().Unix() - 100}})
+	result = append(result, &pbrc.Record{Release: &pbd.Release{
+		Id:             3,
+		Labels:         []*pbd.Label{&pbd.Label{Name: "ThirdLabel"}},
+		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"CD"}}},
+		FormatQuantity: 1,
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().Unix() + 100}})
+
+	return result, nil
+}
+
 func (discogsBridge testBridgeCleverFail) getRelease(ID int32) (*pbd.Release, error) {
 	return nil, errors.New("Built to fail")
 }
@@ -208,7 +268,101 @@ func (discogsBridge testBridge) getReleases(ctx context.Context, folders []int32
 		Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
 		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 		FormatQuantity: 2,
-	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix()}})
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), SpineWidth: 1}})
+	result = append(result, &pbrc.Record{Release: &pbd.Release{
+		Id:             2,
+		Labels:         []*pbd.Label{&pbd.Label{Name: "SecondLabel"}},
+		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
+		FormatQuantity: 1,
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), SpineWidth: 1}})
+	result = append(result, &pbrc.Record{Release: &pbd.Release{
+		Id:             3,
+		Labels:         []*pbd.Label{&pbd.Label{Name: "ThirdLabel"}},
+		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"CD"}}},
+		FormatQuantity: 1,
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), SpineWidth: 1}})
+
+	if discogsBridge.widthMissing {
+		for _, r := range result {
+			r.Metadata.SpineWidth = 0
+		}
+	}
+
+	return result, nil
+}
+
+func (discogsBridge testBridge) getReleasesWithGoal(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
+	if discogsBridge.failGetReleases {
+		return []*pbrc.Record{}, fmt.Errorf("Built to fail")
+	}
+
+	include25 := false
+	for _, v := range folders {
+		if v == 25 {
+			include25 = true
+		}
+	}
+
+	result := []*pbrc.Record{}
+
+	if include25 {
+		result = append(result, []*pbrc.Record{
+			&pbrc.Record{
+				Release: &pbd.Release{
+					Id:             1,
+					Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
+					Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
+					FormatQuantity: 2,
+				},
+				Metadata: &pbrc.ReleaseMetadata{GoalFolder: 25, SpineWidth: 1}},
+			&pbrc.Record{
+				Release: &pbd.Release{
+					Id:             1,
+					Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
+					Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
+					FormatQuantity: 2,
+				},
+				Metadata: &pbrc.ReleaseMetadata{GoalFolder: 25, SpineWidth: 1}},
+		}...)
+	}
+
+	result = append(result, &pbrc.Record{Release: &pbd.Release{
+		Id:             1,
+		Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
+		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
+		FormatQuantity: 2,
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), GoalFolder: 25, SpineWidth: 1}})
+	result = append(result, &pbrc.Record{Release: &pbd.Release{
+		Id:             2,
+		Labels:         []*pbd.Label{&pbd.Label{Name: "SecondLabel"}},
+		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
+		FormatQuantity: 1,
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), GoalFolder: 25, SpineWidth: 1}})
+	result = append(result, &pbrc.Record{Release: &pbd.Release{
+		Id:             3,
+		Labels:         []*pbd.Label{&pbd.Label{Name: "ThirdLabel"}},
+		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"CD"}}},
+		FormatQuantity: 1,
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), GoalFolder: 25, SpineWidth: 1}})
+
+	if discogsBridge.widthMissing {
+		for _, r := range result {
+			r.Metadata.SpineWidth = 0
+		}
+	}
+
+	return result, nil
+}
+
+func (discogsBridge testBridgeMove) getReleases(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
+	var result []*pbrc.Record
+
+	result = append(result, &pbrc.Record{Release: &pbd.Release{
+		Id:             1,
+		Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
+		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
+		FormatQuantity: 2,
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().Unix() + 100}})
 	result = append(result, &pbrc.Record{Release: &pbd.Release{
 		Id:             2,
 		Labels:         []*pbd.Label{&pbd.Label{Name: "SecondLabel"}},
@@ -217,15 +371,22 @@ func (discogsBridge testBridge) getReleases(ctx context.Context, folders []int32
 	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix()}})
 	result = append(result, &pbrc.Record{Release: &pbd.Release{
 		Id:             3,
+		Labels:         []*pbd.Label{&pbd.Label{Name: "FourthLabel"}},
+		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
+		FormatQuantity: 1,
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix()}})
+	result = append(result, &pbrc.Record{Release: &pbd.Release{
+		Id:             4,
 		Labels:         []*pbd.Label{&pbd.Label{Name: "ThirdLabel"}},
 		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"CD"}}},
 		FormatQuantity: 1,
+		Rating:         5,
 	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix()}})
 
 	return result, nil
 }
 
-func (discogsBridge testBridgeMove) getReleases(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
+func (discogsBridge testBridgeMove) getReleasesWithGoal(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
 	var result []*pbrc.Record
 
 	result = append(result, &pbrc.Record{Release: &pbd.Release{

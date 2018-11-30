@@ -385,10 +385,10 @@ func TestGetOverQuotaNewWidthWithNoWidth(t *testing.T) {
 		t.Fatalf("No releases at the new location")
 	}
 
-	_, err = testServer.GetQuota(context.Background(), &pb.QuotaRequest{FolderId: 10, IncludeRecords: true})
+	recs, err := testServer.GetQuota(context.Background(), &pb.QuotaRequest{FolderId: 10, IncludeRecords: true})
 
 	if err == nil {
-		t.Fatalf("Error getting quota: %v", err)
+		t.Fatalf("Should have Error getting quota: %v", recs)
 	}
 }
 
