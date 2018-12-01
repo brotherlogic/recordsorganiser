@@ -249,7 +249,7 @@ func (discogsBridge testBridge) getReleases(ctx context.Context, folders []int32
 					Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 					FormatQuantity: 2,
 				},
-				Metadata: &pbrc.ReleaseMetadata{GoalFolder: 25}},
+				Metadata: &pbrc.ReleaseMetadata{GoalFolder: 25, Category: pbrc.ReleaseMetadata_GRADUATE}},
 			&pbrc.Record{
 				Release: &pbd.Release{
 					Id:             1,
@@ -268,7 +268,7 @@ func (discogsBridge testBridge) getReleases(ctx context.Context, folders []int32
 		Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
 		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 		FormatQuantity: 2,
-	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), SpineWidth: 1}})
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), SpineWidth: 1, Category: pbrc.ReleaseMetadata_GRADUATE}})
 	result = append(result, &pbrc.Record{Release: &pbd.Release{
 		Id:             2,
 		Labels:         []*pbd.Label{&pbd.Label{Name: "SecondLabel"}},
@@ -314,7 +314,7 @@ func (discogsBridge testBridge) getReleasesWithGoal(ctx context.Context, folders
 					Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 					FormatQuantity: 2,
 				},
-				Metadata: &pbrc.ReleaseMetadata{GoalFolder: 25, SpineWidth: 1}},
+				Metadata: &pbrc.ReleaseMetadata{GoalFolder: 25, SpineWidth: 1, Category: pbrc.ReleaseMetadata_GRADUATE}},
 			&pbrc.Record{
 				Release: &pbd.Release{
 					Id:             1,
@@ -322,7 +322,7 @@ func (discogsBridge testBridge) getReleasesWithGoal(ctx context.Context, folders
 					Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 					FormatQuantity: 2,
 				},
-				Metadata: &pbrc.ReleaseMetadata{GoalFolder: 25, SpineWidth: 1}},
+				Metadata: &pbrc.ReleaseMetadata{GoalFolder: 25, SpineWidth: 1, Category: pbrc.ReleaseMetadata_GRADUATE}},
 		}...)
 	}
 
@@ -331,19 +331,19 @@ func (discogsBridge testBridge) getReleasesWithGoal(ctx context.Context, folders
 		Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
 		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 		FormatQuantity: 2,
-	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), GoalFolder: 25, SpineWidth: 1}})
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), GoalFolder: 25, SpineWidth: 1, Category: pbrc.ReleaseMetadata_GRADUATE}})
 	result = append(result, &pbrc.Record{Release: &pbd.Release{
 		Id:             2,
 		Labels:         []*pbd.Label{&pbd.Label{Name: "SecondLabel"}},
 		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 		FormatQuantity: 1,
-	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), GoalFolder: 25, SpineWidth: 1}})
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), GoalFolder: 25, SpineWidth: 1, Category: pbrc.ReleaseMetadata_GRADUATE}})
 	result = append(result, &pbrc.Record{Release: &pbd.Release{
 		Id:             3,
 		Labels:         []*pbd.Label{&pbd.Label{Name: "ThirdLabel"}},
 		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"CD"}}},
 		FormatQuantity: 1,
-	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), GoalFolder: 25, SpineWidth: 1}})
+	}, Metadata: &pbrc.ReleaseMetadata{DateAdded: time.Now().AddDate(0, -4, 0).Unix(), GoalFolder: 25, SpineWidth: 1, Category: pbrc.ReleaseMetadata_GRADUATE}})
 
 	if discogsBridge.widthMissing {
 		for _, r := range result {

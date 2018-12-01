@@ -12,21 +12,18 @@ import (
 func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*pbrc.Record {
 	recs := []*pbrc.Record{}
 
-	recs, err := s.bridge.getReleasesWithGoal(ctx, sloc.FolderIds)
+	dirtyRecs, err := s.bridge.getReleasesWithGoal(ctx, sloc.FolderIds)
 	if err != nil {
 		return recs
 	}
 
-	s.Log(fmt.Sprintf("Overall %v", len(recs)))
-
 	// Get potential records from the listening pile
-	for _, r := range recs {
+	for _, r := range dirtyRecs {
 		for _, fid := range sloc.FolderIds {
 			if r.GetMetadata().GoalFolder == fid {
 				c := r.GetMetadata().Category
 				if c != pbrc.ReleaseMetadata_UNLISTENED &&
 					c != pbrc.ReleaseMetadata_STAGED &&
-					c != pbrc.ReleaseMetadata_UNLISTENED &&
 					c != pbrc.ReleaseMetadata_DIGITAL &&
 					c != pbrc.ReleaseMetadata_LISTED_TO_SELL &&
 					c != pbrc.ReleaseMetadata_STAGED_TO_SELL &&
@@ -39,7 +36,6 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 		}
 	}
 
-	s.Log(fmt.Sprintf("Found %v records from %v", len(recs), sloc.FolderIds))
 	counts := make(map[string]int)
 	for _, r := range recs {
 		if _, ok := counts[r.GetRelease().Title]; !ok {
