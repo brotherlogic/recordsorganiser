@@ -23,7 +23,8 @@ import (
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 )
 
-type prodGh struct{}
+type prodGh struct {
+}
 
 func (gh *prodGh) alert(ctx context.Context, r *pb.Location) error {
 	host, port, err := utils.Resolve("githubcard")
@@ -46,6 +47,7 @@ func (gh *prodGh) alert(ctx context.Context, r *pb.Location) error {
 // Bridge that accesses discogs syncer server
 type prodBridge struct {
 	Resolver func(string) (string, int)
+	log      func(string)
 }
 
 const (
@@ -139,6 +141,8 @@ func (discogsBridge prodBridge) getReleasesWithGoal(ctx context.Context, folders
 	ctx = utils.Trace(ctx, "getReleases", time.Now(), pbt.Milestone_START_FUNCTION, "recordsorganiser")
 	var result []*pbrc.Record
 
+	discogsBridge.log(fmt.Sprintf("GETTING FOR %v", folders))
+
 	for _, id := range folders {
 		ip, port := discogsBridge.GetIP("recordcollection")
 		conn, err2 := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
@@ -199,7 +203,7 @@ func InitServer() *Server {
 		make(map[int32]*pb.SortMapping),
 		0}
 	server.PrepServer()
-	server.bridge = &prodBridge{Resolver: server.GetIP}
+	server.bridge = &prodBridge{Resolver: server.GetIP, log: server.Log}
 	server.GoServer.KSclient = *keystoreclient.GetClient(server.GetIP)
 
 	server.Register = server
