@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"golang.org/x/net/context"
 
 	pbrc "github.com/brotherlogic/recordcollection/proto"
@@ -28,9 +30,17 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 					c != pbrc.ReleaseMetadata_PRE_FRESHMAN {
 					recs = append(recs, r)
 				}
-
 			}
 		}
+	}
+
+	categoryMap := make(map[string]bool)
+	for _, r := range recs {
+		categoryMap[fmt.Sprintf("%v", r.GetMetadata().Category)] = true
+	}
+
+	for v := range categoryMap {
+		s.Log(fmt.Sprintf("Category = %v", v))
 	}
 
 	return recs
