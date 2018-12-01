@@ -26,6 +26,7 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 					c != pbrc.ReleaseMetadata_STAGED &&
 					c != pbrc.ReleaseMetadata_UNLISTENED &&
 					c != pbrc.ReleaseMetadata_DIGITAL &&
+					c != pbrc.ReleaseMetadata_LISTED_TO_SELL &&
 					c != pbrc.ReleaseMetadata_STAGED_TO_SELL &&
 					c != pbrc.ReleaseMetadata_SOLD &&
 					c != pbrc.ReleaseMetadata_PREPARE_TO_SELL &&
@@ -38,7 +39,7 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 
 	s.Log(fmt.Sprintf("Found %v records from %v", len(recs), sloc.FolderIds))
 	for _, r := range recs {
-		s.Log(fmt.Sprintf("%v is %v", sloc.FolderIds, r.GetRelease().Title))
+		s.Log(fmt.Sprintf("%v is %v (%v)", sloc.FolderIds, r.GetRelease().Title))
 	}
 	return recs
 }
