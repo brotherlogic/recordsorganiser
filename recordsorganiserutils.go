@@ -38,8 +38,19 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 	}
 
 	s.Log(fmt.Sprintf("Found %v records from %v", len(recs), sloc.FolderIds))
+	counts := make(map[string]int)
 	for _, r := range recs {
-		s.Log(fmt.Sprintf("%v is %v (%v)", sloc.FolderIds, r.GetRelease().Title))
+		if _, ok := counts[r.GetRelease().Title]; !ok {
+			counts[r.GetRelease().Title] = 0
+		}
+		counts[r.GetRelease().Title]++
 	}
+
+	for v, c := range counts {
+		if c > 1 {
+			s.Log(fmt.Sprintf("Double count on: %v", v))
+		}
+	}
+
 	return recs
 }
