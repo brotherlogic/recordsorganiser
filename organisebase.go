@@ -161,6 +161,7 @@ func (discogsBridge prodBridge) getReleasesWithGoal(ctx context.Context, folders
 			result = append(result, rel.GetRecords()...)
 		}
 	}
+	discogsBridge.log(fmt.Sprintf("FOUND %v", len(result)))
 
 	utils.Trace(ctx, "getReleases", time.Now(), pbt.Milestone_END_FUNCTION, "recordsorganiser")
 	return result, nil

@@ -17,6 +17,8 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 		return recs
 	}
 
+	s.Log(fmt.Sprintf("Overall %v", len(recs)))
+
 	// Get potential records from the listening pile
 	for _, r := range recs {
 		for _, fid := range sloc.FolderIds {
