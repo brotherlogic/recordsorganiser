@@ -233,7 +233,6 @@ func main() {
 		log.SetFlags(0)
 		log.SetOutput(ioutil.Discard)
 	}
-	log.Printf("Logging is on!")
 
 	server := InitServer()
 
@@ -242,6 +241,5 @@ func main() {
 	server.RegisterRepeatingTask(server.checkQuota, "check_quota", time.Hour)
 	server.RegisterRepeatingTask(server.checkOrg, "check_org", time.Hour)
 
-	server.Log(fmt.Sprintf("Starting %v", server.GoServer.RunningFile))
 	server.Serve()
 }

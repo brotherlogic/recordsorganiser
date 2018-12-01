@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"golang.org/x/net/context"
@@ -114,9 +113,9 @@ func (s *Server) GetQuota(ctx context.Context, req *pb.QuotaRequest) (*pb.QuotaR
 	}
 
 	recs := s.getRecordsForFolder(ctx, loc)
+	s.Log(fmt.Sprintf("Getting Quota with %v records", len(recs)))
 	instanceIDs := []int32{}
 	for _, r := range recs {
-		log.Printf("R: %v", r)
 		instanceIDs = append(instanceIDs, r.GetRelease().InstanceId)
 	}
 
