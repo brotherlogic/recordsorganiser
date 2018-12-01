@@ -29,6 +29,9 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 					c != pbrc.ReleaseMetadata_STAGED_TO_SELL &&
 					c != pbrc.ReleaseMetadata_SOLD &&
 					c != pbrc.ReleaseMetadata_PREPARE_TO_SELL &&
+					c != pbrc.ReleaseMetadata_HIGH_SCHOOL &&
+					c != pbrc.ReleaseMetadata_NO_LABELS &&
+					c != pbrc.ReleaseMetadata_SOLD_ARCHIVE &&
 					c != pbrc.ReleaseMetadata_ASSESS_FOR_SALE &&
 					c != pbrc.ReleaseMetadata_PRE_FRESHMAN {
 					recs = append(recs, r)
