@@ -37,11 +37,21 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 	}
 
 	counts := make(map[string]int)
+	cats := make(map[string]int)
 	for _, r := range recs {
+		cstr := fmt.Sprintf("%v", r.GetMetadata().GetCategory())
 		if _, ok := counts[r.GetRelease().Title]; !ok {
 			counts[r.GetRelease().Title] = 0
 		}
+		if _, ok := cats[cstr]; !ok {
+			cats[cstr] = 0
+		}
+		cats[cstr]++
 		counts[r.GetRelease().Title]++
+	}
+
+	for v, c := range cats {
+		s.Log(fmt.Sprintf("%v -> %v", v, c))
 	}
 
 	done := false
