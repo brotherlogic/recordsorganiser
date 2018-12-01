@@ -48,9 +48,13 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 		counts[r.GetRelease().Title]++
 	}
 
+	done := false
 	for v, c := range counts {
 		if c > 1 {
-			s.Log(fmt.Sprintf("Double count on: %v", v))
+			if !done {
+				done = true
+				s.Log(fmt.Sprintf("Double count on: %v", v))
+			}
 		}
 	}
 
