@@ -36,14 +36,7 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 		}
 	}
 
-	categoryMap := make(map[string]bool)
-	for _, r := range recs {
-		categoryMap[fmt.Sprintf("%v", r.GetMetadata().Category)] = true
-	}
-
-	for v := range categoryMap {
-		s.Log(fmt.Sprintf("Category(%v) = %v", sloc.Name, v))
-	}
+	s.Log(fmt.Sprintf("Found %v records from %v", len(recs), sloc.FolderIds))
 
 	return recs
 }
