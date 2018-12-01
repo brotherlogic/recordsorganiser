@@ -175,7 +175,7 @@ func TestGetOverQuota(t *testing.T) {
 	location := &pb.Location{
 		Name:      "TestName",
 		Slots:     2,
-		FolderIds: []int32{10},
+		FolderIds: []int32{25},
 		Sort:      pb.Location_BY_LABEL_CATNO,
 		Quota:     &pb.Quota{NumOfSlots: 2},
 	}
@@ -189,7 +189,7 @@ func TestGetOverQuota(t *testing.T) {
 		t.Fatalf("No releases at the new location")
 	}
 
-	quota, err := testServer.GetQuota(context.Background(), &pb.QuotaRequest{FolderId: 10, IncludeRecords: true})
+	quota, err := testServer.GetQuota(context.Background(), &pb.QuotaRequest{FolderId: 25, IncludeRecords: true})
 
 	if err != nil {
 		t.Fatalf("Error getting quota: %v", err)
@@ -340,7 +340,7 @@ func TestGetOverQuotaNewSlots(t *testing.T) {
 	location := &pb.Location{
 		Name:      "TestName",
 		Slots:     2,
-		FolderIds: []int32{10},
+		FolderIds: []int32{25},
 		Sort:      pb.Location_BY_LABEL_CATNO,
 		Quota:     &pb.Quota{QuotaType: &pb.Quota_Slots{Slots: 2}},
 	}
@@ -354,7 +354,7 @@ func TestGetOverQuotaNewSlots(t *testing.T) {
 		t.Fatalf("No releases at the new location")
 	}
 
-	quota, err := testServer.GetQuota(context.Background(), &pb.QuotaRequest{FolderId: 10, IncludeRecords: true})
+	quota, err := testServer.GetQuota(context.Background(), &pb.QuotaRequest{FolderId: 25, IncludeRecords: true})
 
 	if err != nil {
 		t.Fatalf("Error getting quota: %v", err)
@@ -371,7 +371,7 @@ func TestGetOverQuotaNewWidthWithNoWidth(t *testing.T) {
 	location := &pb.Location{
 		Name:      "TestName",
 		Slots:     2,
-		FolderIds: []int32{10},
+		FolderIds: []int32{25},
 		Sort:      pb.Location_BY_LABEL_CATNO,
 		Quota:     &pb.Quota{QuotaType: &pb.Quota_Width{Width: 2}},
 	}
@@ -385,7 +385,7 @@ func TestGetOverQuotaNewWidthWithNoWidth(t *testing.T) {
 		t.Fatalf("No releases at the new location")
 	}
 
-	recs, err := testServer.GetQuota(context.Background(), &pb.QuotaRequest{FolderId: 10, IncludeRecords: true})
+	recs, err := testServer.GetQuota(context.Background(), &pb.QuotaRequest{FolderId: 25, IncludeRecords: true})
 
 	if err == nil {
 		t.Fatalf("Should have Error getting quota: %v", recs)
@@ -397,7 +397,7 @@ func TestGetOverQuotaNewWidth(t *testing.T) {
 	location := &pb.Location{
 		Name:      "TestName",
 		Slots:     2,
-		FolderIds: []int32{10},
+		FolderIds: []int32{25},
 		Sort:      pb.Location_BY_LABEL_CATNO,
 		Quota:     &pb.Quota{QuotaType: &pb.Quota_Width{Width: 2}},
 	}
@@ -411,7 +411,7 @@ func TestGetOverQuotaNewWidth(t *testing.T) {
 		t.Fatalf("No releases at the new location")
 	}
 
-	quota, err := testServer.GetQuota(context.Background(), &pb.QuotaRequest{FolderId: 10, IncludeRecords: true})
+	quota, err := testServer.GetQuota(context.Background(), &pb.QuotaRequest{FolderId: 25, IncludeRecords: true})
 
 	if err != nil {
 		t.Fatalf("Error getting quota: %v", err)
