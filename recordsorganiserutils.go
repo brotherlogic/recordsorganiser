@@ -24,6 +24,8 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 				c := r.GetMetadata().Category
 				if c != pbrc.ReleaseMetadata_UNLISTENED &&
 					c != pbrc.ReleaseMetadata_STAGED &&
+					c != pbrc.ReleaseMetadata_UNLISTENED &&
+					c != pbrc.ReleaseMetadata_DIGITAL &&
 					c != pbrc.ReleaseMetadata_STAGED_TO_SELL &&
 					c != pbrc.ReleaseMetadata_SOLD &&
 					c != pbrc.ReleaseMetadata_PREPARE_TO_SELL &&
@@ -40,7 +42,7 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 	}
 
 	for v := range categoryMap {
-		s.Log(fmt.Sprintf("Category = %v", v))
+		s.Log(fmt.Sprintf("Category(%v) = %v", sloc.Name, v))
 	}
 
 	return recs
