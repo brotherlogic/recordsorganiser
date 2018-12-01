@@ -37,6 +37,9 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 	}
 
 	s.Log(fmt.Sprintf("Found %v records from %v", len(recs), sloc.FolderIds))
+	for i := 0; i < 10; i++ {
+		s.Log(fmt.Sprintf("%v is %v", sloc.FolderIds, recs[i].GetRelease().Title))
+	}
 
 	return recs
 }

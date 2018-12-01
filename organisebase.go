@@ -150,7 +150,7 @@ func (discogsBridge prodBridge) getReleasesWithGoal(ctx context.Context, folders
 			defer conn.Close()
 			client := pbrc.NewRecordCollectionServiceClient(conn)
 
-			rel, err3 := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Filter: &pbrc.Record{Release: &pbd.Release{FolderId: id}}})
+			rel, err3 := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Filter: &pbrc.Record{Release: &pbd.Release{}, Metadata: &pbrc.ReleaseMetadata{GoalFolder: id}}})
 			if err3 != nil {
 				return result, err3
 			}
