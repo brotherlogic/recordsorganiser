@@ -34,6 +34,9 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 					c != pbrc.ReleaseMetadata_SOLD_ARCHIVE &&
 					c != pbrc.ReleaseMetadata_ASSESS_FOR_SALE &&
 					c != pbrc.ReleaseMetadata_PRE_FRESHMAN {
+					if r.GetRelease().Id == 12776555 {
+						s.Log(fmt.Sprintf("Found %v -> %v", r.GetRelease().InstanceId, c))
+					}
 					recs = append(recs, r)
 				}
 			}
