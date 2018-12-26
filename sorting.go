@@ -130,7 +130,7 @@ func getFormatWidth(r *pbrc.Record) float64 {
 	gatefold := false
 	boxset := false
 	for _, label := range r.GetRelease().GetLabels() {
-		if label.Name == "Death Waltz Recording Company" {
+		if label.Name == "Death Waltz Recording Company" || label.Name == "Now-Again Records" {
 			deathWaltz = true
 		}
 	}
