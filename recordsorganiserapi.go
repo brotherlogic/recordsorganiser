@@ -17,9 +17,13 @@ import (
 
 // UpdateLocation updates a given location
 func (s *Server) UpdateLocation(ctx context.Context, req *pb.UpdateLocationRequest) (*pb.UpdateLocationResponse, error) {
-	for _, loc := range s.org.GetLocations() {
+	for i, loc := range s.org.GetLocations() {
 		if loc.GetName() == req.GetLocation() {
-			proto.Merge(loc, req.Update)
+			if req.DeleteLocation {
+				s.org.Locations = append(s.org.GetLocations()[:i], s.org.GetLocations()[i+1:]...)
+			} else {
+				proto.Merge(loc, req.Update)
+			}
 		}
 	}
 

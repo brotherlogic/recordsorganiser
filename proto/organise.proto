@@ -159,6 +159,7 @@ message QuotaResponse {
 message UpdateLocationRequest {
   string location = 1;
   Location update = 2;
+  bool delete_location = 3;
 }
 
 message UpdateLocationResponse {

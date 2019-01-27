@@ -80,7 +80,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 	}
 	ctx = s.LogTrace(ctx, "endSort", time.Now(), pbt.Milestone_MARKER)
 
-	records := Split(fr, float64(c.GetSlots()))
+	records := s.Split(fr, float64(c.GetSlots()))
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
 	for slot, recs := range records {
 		for i, rinloc := range recs {

@@ -156,7 +156,7 @@ func getFormatWidth(r *pbrc.Record) float64 {
 }
 
 // Split splits a releases list into buckets
-func Split(releases []*pbrc.Record, n float64) [][]*pbrc.Record {
+func (s *Server) Split(releases []*pbrc.Record, n float64) [][]*pbrc.Record {
 	var solution [][]*pbrc.Record
 
 	var count float64
