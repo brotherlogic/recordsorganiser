@@ -12,7 +12,6 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/brotherlogic/recordsorganiser/proto"
-	pbt "github.com/brotherlogic/tracer/proto"
 )
 
 // UpdateLocation updates a given location
@@ -61,7 +60,6 @@ func (s *Server) AddLocation(ctx context.Context, req *pb.AddLocationRequest) (*
 
 // GetOrganisation gets a given organisation
 func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationRequest) (*pb.GetOrganisationResponse, error) {
-	ctx = s.LogTrace(ctx, "GetOrganisation", time.Now(), pbt.Milestone_START_FUNCTION)
 	locations := make([]*pb.Location, 0)
 	num := int32(0)
 
@@ -72,7 +70,6 @@ func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationReq
 					n, err := s.organiseLocation(ctx, loc)
 					num = n
 					if err != nil {
-						s.LogTrace(ctx, "GetOrganisation", time.Now(), pbt.Milestone_END_FUNCTION)
 						return &pb.GetOrganisationResponse{}, err
 					}
 				}
@@ -90,14 +87,12 @@ func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationReq
 		s.saveOrg(ctx)
 	}
 
-	s.LogTrace(ctx, "GetOrganisation", time.Now(), pbt.Milestone_END_FUNCTION)
 	return &pb.GetOrganisationResponse{Locations: locations, NumberProcessed: num}, nil
 }
 
 // GetQuota fills out the quota response
 func (s *Server) GetQuota(ctx context.Context, req *pb.QuotaRequest) (*pb.QuotaResponse, error) {
 	st := time.Now()
-	ctx = s.LogTrace(ctx, "GetQuota", time.Now(), pbt.Milestone_START_FUNCTION)
 
 	var loc *pb.Location
 	for _, l := range s.org.GetLocations() {
@@ -126,7 +121,6 @@ func (s *Server) GetQuota(ctx context.Context, req *pb.QuotaRequest) (*pb.QuotaR
 	//Old style quota
 	if loc.GetQuota() != nil {
 		if loc.GetQuota().NumOfSlots > 0 {
-			s.LogTrace(ctx, "GetQuota", time.Now(), pbt.Milestone_END_FUNCTION)
 			if len(recs) > int(loc.GetQuota().NumOfSlots) {
 				s.Log(fmt.Sprintf("%v is over quota - raising issue", loc.GetName()))
 				s.RaiseIssue(ctx, "Quota Problem", fmt.Sprintf("%v is over quota", loc.GetName()), false)
@@ -137,7 +131,6 @@ func (s *Server) GetQuota(ctx context.Context, req *pb.QuotaRequest) (*pb.QuotaR
 
 		//New style quota
 		if loc.GetQuota().GetSlots() > 0 {
-			s.LogTrace(ctx, "GetQuota", time.Now(), pbt.Milestone_END_FUNCTION)
 			if len(recs) > int(loc.GetQuota().GetSlots()) {
 				s.RaiseIssue(ctx, "Quota Problem", fmt.Sprintf("%v is over quota", loc.GetName()), false)
 			}
@@ -157,7 +150,6 @@ func (s *Server) GetQuota(ctx context.Context, req *pb.QuotaRequest) (*pb.QuotaR
 				}
 				totalWidth += r.GetMetadata().SpineWidth
 			}
-			s.LogTrace(ctx, "GetQuota", time.Now(), pbt.Milestone_END_FUNCTION)
 			if totalWidth > loc.GetQuota().GetWidth() {
 				s.RaiseIssue(ctx, "Quota Problem", fmt.Sprintf("%v is over quota", loc.GetName()), false)
 			}
@@ -167,7 +159,6 @@ func (s *Server) GetQuota(ctx context.Context, req *pb.QuotaRequest) (*pb.QuotaR
 		}
 	}
 
-	s.LogTrace(ctx, "GetQuota", time.Now(), pbt.Milestone_END_FUNCTION)
 	s.lastQuotaTime = time.Now().Sub(st)
 	return &pb.QuotaResponse{}, status.Error(codes.InvalidArgument, fmt.Sprintf("No quota specified for location (%v)", loc.GetName()))
 }

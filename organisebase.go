@@ -10,7 +10,6 @@ import (
 
 	"github.com/brotherlogic/goserver"
 	"github.com/brotherlogic/keystore/client"
-	pbt "github.com/brotherlogic/tracer/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -111,7 +110,6 @@ func (discogsBridge prodBridge) moveToFolder(move *pbs.ReleaseMove) {
 }
 
 func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
-	ctx = utils.Trace(ctx, "getReleases", time.Now(), pbt.Milestone_START_FUNCTION, "recordsorganiser")
 	var result []*pbrc.Record
 
 	for _, id := range folders {
@@ -133,12 +131,10 @@ func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32
 		}
 	}
 
-	utils.Trace(ctx, "getReleases", time.Now(), pbt.Milestone_END_FUNCTION, "recordsorganiser")
 	return result, nil
 }
 
 func (discogsBridge prodBridge) getReleasesWithGoal(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
-	ctx = utils.Trace(ctx, "getReleases", time.Now(), pbt.Milestone_START_FUNCTION, "recordsorganiser")
 	var result []*pbrc.Record
 
 	discogsBridge.log(fmt.Sprintf("GETTING FOR %v", folders))
@@ -163,13 +159,18 @@ func (discogsBridge prodBridge) getReleasesWithGoal(ctx context.Context, folders
 	}
 	discogsBridge.log(fmt.Sprintf("FOUND %v", len(result)))
 
-	utils.Trace(ctx, "getReleases", time.Now(), pbt.Milestone_END_FUNCTION, "recordsorganiser")
 	return result, nil
 }
 
 // DoRegister does RPC registration
 func (s *Server) DoRegister(server *grpc.Server) {
 	pb.RegisterOrganiserServiceServer(server, s)
+}
+
+// Shutdown the server
+func (s *Server) Shutdown(ctx context.Context) error {
+	s.saveOrg(ctx)
+	return nil
 }
 
 // Mote promotes/demotes this server
