@@ -15,10 +15,8 @@ import (
 	"google.golang.org/grpc"
 
 	pbgd "github.com/brotherlogic/godiscogs"
-	pbgs "github.com/brotherlogic/goserver/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
-	pbt "github.com/brotherlogic/tracer/proto"
 
 	//Needed to pull in gzip encoding init
 	_ "google.golang.org/grpc/encoding/gzip"
@@ -68,7 +66,9 @@ func locateRelease(ctx context.Context, c pb.OrganiserServiceClient, id int32) {
 			for i, r := range location.GetFoundLocation().GetReleasesLocation() {
 				if r.GetInstanceId() == rec.GetRelease().InstanceId {
 					fmt.Printf("Slot %v\n", r.GetSlot())
-					fmt.Printf("%v. %v\n", i-1, getReleaseString(location.GetFoundLocation().GetReleasesLocation()[i-1]))
+					if i > 0 {
+						fmt.Printf("%v. %v\n", i-1, getReleaseString(location.GetFoundLocation().GetReleasesLocation()[i-1]))
+					}
 					fmt.Printf("%v. %v\n", i, getReleaseString(location.GetFoundLocation().GetReleasesLocation()[i]))
 					fmt.Printf("%v. %v\n", i+1, getReleaseString(location.GetFoundLocation().GetReleasesLocation()[i+1]))
 				}
@@ -176,7 +176,7 @@ func main() {
 	}
 
 	client := pb.NewOrganiserServiceClient(conn)
-	ctx, cancel := utils.BuildContext("OrgCLI-"+os.Args[1], "recordsorganiser", pbgs.ContextType_MEDIUM)
+	ctx, cancel := utils.BuildContext("OrgCLI-"+os.Args[1], "recordsorganiser")
 	defer cancel()
 
 	switch os.Args[1] {
@@ -398,6 +398,4 @@ func main() {
 			client.AddExtractor(ctx, &pb.AddExtractorRequest{Extractor: &pb.LabelExtractor{LabelId: int32(*label), Extractor: *reg}})
 		}
 	}
-
-	utils.SendTrace(ctx, "OrgCLI", time.Now(), pbt.Milestone_END, "recordsorganiser")
 }

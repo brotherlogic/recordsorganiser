@@ -11,7 +11,6 @@ import (
 	pbs "github.com/brotherlogic/discogssyncer/server"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
-	pbt "github.com/brotherlogic/tracer/proto"
 )
 
 // Server the configuration for the syncer
@@ -63,7 +62,6 @@ func convert(exs []*pb.LabelExtractor) map[int32]string {
 }
 
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, error) {
-	ctx = s.LogTrace(ctx, "organiseLocation", time.Now(), pbt.Milestone_START_FUNCTION)
 	s.lastOrgFolder = c.Name
 	fr, err := s.bridge.getReleases(ctx, c.GetFolderIds())
 
@@ -71,14 +69,12 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 		return -1, err
 	}
 
-	ctx = s.LogTrace(ctx, "startSort", time.Now(), pbt.Milestone_MARKER)
 	switch c.GetSort() {
 	case pb.Location_BY_DATE_ADDED:
 		sort.Sort(ByDateAdded(fr))
 	case pb.Location_BY_LABEL_CATNO:
 		sort.Sort(ByLabelCat{fr, convert(s.org.GetExtractors()), s.Log})
 	}
-	ctx = s.LogTrace(ctx, "endSort", time.Now(), pbt.Milestone_MARKER)
 
 	records := s.Split(fr, float64(c.GetSlots()))
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
@@ -87,7 +83,6 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 			c.ReleasesLocation = append(c.ReleasesLocation, &pb.ReleasePlacement{Slot: int32(slot + 1), Index: int32(i), InstanceId: rinloc.GetRelease().InstanceId, Title: rinloc.GetRelease().Title})
 		}
 	}
-	s.LogTrace(ctx, "organiseLocation", time.Now(), pbt.Milestone_END_FUNCTION)
 	return int32(len(fr)), nil
 }
 
