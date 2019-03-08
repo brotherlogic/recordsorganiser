@@ -25,6 +25,7 @@ func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*
 				if c != pbrc.ReleaseMetadata_UNLISTENED &&
 					c != pbrc.ReleaseMetadata_STAGED &&
 					c != pbrc.ReleaseMetadata_DIGITAL &&
+					c != pbrc.ReleaseMetadata_STALE_SALES &&
 					c != pbrc.ReleaseMetadata_LISTED_TO_SELL &&
 					c != pbrc.ReleaseMetadata_STAGED_TO_SELL &&
 					c != pbrc.ReleaseMetadata_SOLD &&
