@@ -218,7 +218,7 @@ func (s Server) ReportHealth() bool {
 	return true
 }
 
-func (s *Server) checkOrg(ctx context.Context) {
+func (s *Server) checkOrg(ctx context.Context) error {
 	for _, loc := range s.org.GetLocations() {
 		if loc.ReorgTime == 0 {
 			s.RaiseIssue(ctx, "Add reorg time", fmt.Sprintf("Add a reorg time span for %v", loc.GetName()), false)
@@ -229,6 +229,7 @@ func (s *Server) checkOrg(ctx context.Context) {
 			}
 		}
 	}
+	return nil
 }
 
 func main() {
