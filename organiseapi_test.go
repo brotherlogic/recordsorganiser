@@ -59,6 +59,7 @@ func TestGetLocation(t *testing.T) {
 		Slots:     2,
 		FolderIds: []int32{10},
 		Sort:      pb.Location_BY_LABEL_CATNO,
+		Checking:  pb.Location_REQUIRE_STOCK_CHECK,
 	}
 
 	_, err := testServer.AddLocation(context.Background(), &pb.AddLocationRequest{Add: location})
@@ -178,6 +179,7 @@ func TestGetOverQuota(t *testing.T) {
 		FolderIds: []int32{25},
 		Sort:      pb.Location_BY_LABEL_CATNO,
 		Quota:     &pb.Quota{NumOfSlots: 2},
+		Checking:  pb.Location_REQUIRE_STOCK_CHECK,
 	}
 
 	l, err := testServer.AddLocation(context.Background(), &pb.AddLocationRequest{Add: location})

@@ -358,8 +358,12 @@ func main() {
 		var optOut = updateLocationFlags.Bool("out_out", false, "To opt this location out of quota alerts.")
 		var reorgTime = updateLocationFlags.Int("reorg", 0, "The time needed to do a full reorg.")
 		var delete = updateLocationFlags.Bool("delete", false, "Remove this")
+		var needStock = updateLocationFlags.Bool("stockcheck", false, "Needs a stock check.")
 
 		if err := updateLocationFlags.Parse(os.Args[2:]); err == nil {
+			if *needStock {
+				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{Checking: pb.Location_REQUIRE_STOCK_CHECK}})
+			}
 			if *delete {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, DeleteLocation: true})
 			}

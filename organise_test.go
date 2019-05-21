@@ -54,6 +54,7 @@ func (discogsBridge testBridgePartialFail) getReleases(ctx context.Context, olde
 
 	result = append(result, &pbrc.Record{Release: &pbd.Release{
 		Id:             1,
+		MasterId:       10,
 		Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
 		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 		FormatQuantity: 2,
@@ -78,6 +79,7 @@ func (discogsBridge testBridgePartialFail) getReleaseWithGoals(ctx context.Conte
 
 	result = append(result, &pbrc.Record{Release: &pbd.Release{
 		Id:             1,
+		MasterId:       10,
 		Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
 		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 		FormatQuantity: 2,
@@ -133,6 +135,7 @@ func (discogsBridge testBridgeCleverFail) getReleases(ctx context.Context, folde
 
 	result = append(result, &pbrc.Record{Release: &pbd.Release{
 		Id:             1,
+		MasterId:       10,
 		Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
 		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 		FormatQuantity: 2,
@@ -244,6 +247,7 @@ func (discogsBridge testBridge) getReleases(ctx context.Context, folders []int32
 		return []*pbrc.Record{
 			&pbrc.Record{
 				Release: &pbd.Release{
+					MasterId:       10,
 					Id:             1,
 					Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
 					Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
@@ -265,6 +269,7 @@ func (discogsBridge testBridge) getReleases(ctx context.Context, folders []int32
 
 	result = append(result, &pbrc.Record{Release: &pbd.Release{
 		Id:             1,
+		MasterId:       10,
 		Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
 		Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 		FormatQuantity: 2,
@@ -310,6 +315,7 @@ func (discogsBridge testBridge) getReleasesWithGoal(ctx context.Context, folders
 			&pbrc.Record{
 				Release: &pbd.Release{
 					Id:             1,
+					MasterId:       10,
 					Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
 					Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 					FormatQuantity: 2,
@@ -318,6 +324,7 @@ func (discogsBridge testBridge) getReleasesWithGoal(ctx context.Context, folders
 			&pbrc.Record{
 				Release: &pbd.Release{
 					Id:             1,
+					MasterId:       10,
 					Labels:         []*pbd.Label{&pbd.Label{Name: "FirstLabel"}},
 					Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 					FormatQuantity: 2,
