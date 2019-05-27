@@ -23,11 +23,20 @@ import (
 )
 
 // ByReleaseDate sorts by the given release date
+// but puts matched records up front and keepers in the rear
 type ByReleaseDate []*pbrc.Record
 
 func (a ByReleaseDate) Len() int      { return len(a) }
 func (a ByReleaseDate) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a ByReleaseDate) Less(i, j int) bool {
+	if a[i].GetMetadata().Keep != a[j].GetMetadata().Keep {
+		if a[i].GetMetadata().Keep == pbrc.ReleaseMetadata_KEEPER {
+			return false
+		}
+		if a[j].GetMetadata().Keep == pbrc.ReleaseMetadata_KEEPER {
+			return true
+		}
+	}
 	if a[i].GetRelease().Released != a[j].GetRelease().Released {
 		return a[i].GetRelease().Released > a[j].GetRelease().Released
 	}
