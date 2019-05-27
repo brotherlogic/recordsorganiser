@@ -79,7 +79,9 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 
 	records := s.Split(fr, float64(c.GetSlots()))
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
-	s.scNeeded = 0
+	if c.Checking == pb.Location_REQUIRE_STOCK_CHECK {
+		s.scNeeded = 0
+	}
 	for slot, recs := range records {
 		for i, rinloc := range recs {
 			//Raise the alarm if a record needs a stock check
