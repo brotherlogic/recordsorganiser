@@ -95,6 +95,12 @@ message Location {
   // Time to include reorgs, if < 0 we don't reorg
   int64 reorg_time = 13;
   int64 last_reorg = 14;
+
+  enum Checking {
+    UNKNOWN = 0;
+    REQUIRE_STOCK_CHECK = 1;
+  }
+  Checking checking = 15;
 }
 
 message Organisation {
