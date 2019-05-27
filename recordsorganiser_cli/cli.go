@@ -33,9 +33,7 @@ func (a ByReleaseDate) Less(i, j int) bool {
 		if a[i].GetMetadata().Keep == pbrc.ReleaseMetadata_KEEPER {
 			return false
 		}
-		if a[j].GetMetadata().Keep == pbrc.ReleaseMetadata_KEEPER {
-			return true
-		}
+		return true
 	}
 	if a[i].GetRelease().Released != a[j].GetRelease().Released {
 		return a[i].GetRelease().Released > a[j].GetRelease().Released
