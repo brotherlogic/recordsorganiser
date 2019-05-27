@@ -23,6 +23,7 @@ type Server struct {
 	lastOrgFolder string
 	sortMap       map[int32]*pb.SortMapping
 	lastQuotaTime time.Duration
+	scNeeded      int64
 }
 
 type gh interface {
@@ -78,12 +79,14 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 
 	records := s.Split(fr, float64(c.GetSlots()))
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
+	s.scNeeded = 0
 	for slot, recs := range records {
 		for i, rinloc := range recs {
 			//Raise the alarm if a record needs a stock check
 			if c.Checking == pb.Location_REQUIRE_STOCK_CHECK {
 				if rinloc.GetMetadata().Keep != pbrc.ReleaseMetadata_KEEPER && rinloc.GetRelease().MasterId != 0 {
 					if time.Now().Sub(time.Unix(rinloc.GetMetadata().LastStockCheck, 0)) > time.Hour*24*30*6 {
+						s.scNeeded++
 						s.RaiseIssue(ctx, "Stock Check Needed", fmt.Sprintf("%v is in need of a stock check", rinloc.GetRelease().Title), false)
 					}
 				}
