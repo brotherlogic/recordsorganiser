@@ -97,6 +97,13 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 			c.ReleasesLocation = append(c.ReleasesLocation, &pb.ReleasePlacement{Slot: int32(slot + 1), Index: int32(i), InstanceId: rinloc.GetRelease().InstanceId, Title: rinloc.GetRelease().Title})
 		}
 	}
+
+	if c.GetQuota().GetSlots() > 0 {
+		if len(fr) > int(c.GetQuota().GetSlots()) {
+			s.Log(fmt.Sprintf("%v is over quota", c.GetName()))
+		}
+	}
+
 	return int32(len(fr)), nil
 }
 
