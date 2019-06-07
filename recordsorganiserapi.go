@@ -122,7 +122,6 @@ func (s *Server) GetQuota(ctx context.Context, req *pb.QuotaRequest) (*pb.QuotaR
 	if loc.GetQuota() != nil {
 		if loc.GetQuota().NumOfSlots > 0 {
 			if len(recs) > int(loc.GetQuota().NumOfSlots) {
-				s.Log(fmt.Sprintf("%v is over quota - raising issue", loc.GetName()))
 				s.RaiseIssue(ctx, "Quota Problem", fmt.Sprintf("%v is over quota", loc.GetName()), false)
 			}
 			s.lastQuotaTime = time.Now().Sub(st)
