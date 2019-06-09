@@ -235,6 +235,16 @@ func (s *Server) checkOrg(ctx context.Context) error {
 	return nil
 }
 
+func (s *Server) reOrg(ctx context.Context) error {
+	for _, loc := range s.org.GetLocations() {
+		_, err := s.organiseLocation(ctx, loc)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func main() {
 	var quiet = flag.Bool("quiet", true, "Show log output")
 	flag.Parse()
@@ -250,6 +260,7 @@ func main() {
 	server.RegisterServer("recordsorganiser", false)
 	server.RegisterRepeatingTask(server.checkQuota, "check_quota", time.Hour)
 	server.RegisterRepeatingTask(server.checkOrg, "check_org", time.Hour)
+	server.RegisterRepeatingTask(server.reOrg, "re_org", time.Minute*5)
 
 	server.Serve()
 }
