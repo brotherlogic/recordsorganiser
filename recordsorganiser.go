@@ -74,7 +74,13 @@ func (s *Server) markOverQuota(c *pb.Location, tim int64) {
 
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, error) {
 	s.lastOrgFolder = c.Name
-	fr, err := s.bridge.getReleases(ctx, c.GetFolderIds())
+	tfr, err := s.bridge.getReleases(ctx, c.GetFolderIds())
+	fr := make([]*pbrc.Record, 0)
+	for _, r := range tfr {
+		if r.GetMetadata().Category != pbrc.ReleaseMetadata_ASSESS_FOR_SALE {
+			fr = append(fr, r)
+		}
+	}
 
 	if err != nil {
 		return -1, err
