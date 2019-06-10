@@ -195,6 +195,7 @@ func (discogsBridge testBridgeCleverFail) moveToFolder(move *pbs.ReleaseMove) {
 type testBridge struct {
 	widthMissing    bool
 	failGetReleases bool
+	failGetRecord   bool
 }
 
 type testBridgeMove struct {
@@ -210,6 +211,9 @@ func (discogsBridge testBridge) GetIP(name string) (string, int) {
 }
 
 func (discogsBridge testBridge) getRecord(ctx context.Context, instanceID int32) (*pbrc.Record, error) {
+	if discogsBridge.failGetRecord {
+		return nil, fmt.Errorf("Built to fail")
+	}
 	metadata := &pbrc.ReleaseMetadata{GoalFolder: 25, SpineWidth: 1}
 	if discogsBridge.widthMissing {
 		metadata.SpineWidth = 0
