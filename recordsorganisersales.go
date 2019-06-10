@@ -67,7 +67,8 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 	// Sort the record
 	sort.Sort(BySaleOrder(records))
 
-	s.Log(fmt.Sprintf("Selling %v", records[0].GetRelease().Title))
-
+	for i := 0; i < existing-slots; i++ {
+		s.Log(fmt.Sprintf("Selling %v", records[i].GetRelease().Title))
+	}
 	return nil
 }
