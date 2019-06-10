@@ -106,6 +106,14 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 		}
 	}
 
+	if c.GetQuota().GetNumOfSlots() > 0 {
+		if len(fr) > int(c.GetQuota().GetNumOfSlots()) {
+			s.Log(fmt.Sprintf("%v is over quota", c.GetName()))
+		} else {
+			s.Log(fmt.Sprintf("%v us under quota (%v vs %v)", c.GetName(), len(fr), c.GetQuota().GetSlots()))
+		}
+	}
+
 	return int32(len(fr)), nil
 }
 
