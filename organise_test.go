@@ -525,3 +525,26 @@ func TestRaiseIssue(t *testing.T) {
 
 	testServer.checkQuota(context.Background())
 }
+
+func TestPassQuota(t *testing.T) {
+	testServer := getTestServer(".testRaiseIssue")
+	location := &pb.Location{
+		Name:      "TestName",
+		Slots:     2,
+		FolderIds: []int32{10},
+		Sort:      pb.Location_BY_LABEL_CATNO,
+		Quota: &pb.Quota{
+			QuotaType: &pb.Quota_Slots{Slots: 20},
+		},
+	}
+
+	_, err := testServer.AddLocation(context.Background(), &pb.AddLocationRequest{Add: location})
+	if err != nil {
+		t.Errorf("Error on adding location: %v", err)
+	}
+
+	err = testServer.reOrg(context.Background())
+	if err != nil {
+		t.Errorf("Error on reorg: %v", err)
+	}
+}
