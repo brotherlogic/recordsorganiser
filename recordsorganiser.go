@@ -8,7 +8,6 @@ import (
 	"github.com/brotherlogic/goserver"
 	"golang.org/x/net/context"
 
-	pbs "github.com/brotherlogic/discogssyncer/server"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 )
@@ -34,8 +33,6 @@ type discogsBridge interface {
 	getReleases(ctx context.Context, folders []int32) ([]*pbrc.Record, error)
 	getReleasesWithGoal(ctx context.Context, folders []int32) ([]*pbrc.Record, error)
 	getRecord(ctx context.Context, instanceID int32) (*pbrc.Record, error)
-	moveToFolder(releaseMove *pbs.ReleaseMove)
-	GetIP(string) (string, int)
 }
 
 func (s *Server) prepareForReorg() {

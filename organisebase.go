@@ -13,7 +13,6 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	pbs "github.com/brotherlogic/discogssyncer/server"
 	pbgh "github.com/brotherlogic/githubcard/proto"
 	pbd "github.com/brotherlogic/godiscogs"
 	pbgs "github.com/brotherlogic/goserver/proto"
@@ -45,8 +44,8 @@ func (gh *prodGh) alert(ctx context.Context, r *pb.Location) error {
 
 // Bridge that accesses discogs syncer server
 type prodBridge struct {
-	Resolver func(string) (string, int)
-	log      func(string)
+	dial func(server string) (*grpc.ClientConn, error)
+	log  func(string)
 }
 
 const (
@@ -81,13 +80,8 @@ func (s *Server) saveOrg(ctx context.Context) {
 	s.KSclient.Save(ctx, KEY, s.org)
 }
 
-func (discogsBridge prodBridge) GetIP(name string) (string, int) {
-	return discogsBridge.Resolver(name)
-}
-
 func (discogsBridge prodBridge) getRecord(ctx context.Context, instanceID int32) (*pbrc.Record, error) {
-	ip, port := discogsBridge.GetIP("recordcollection")
-	conn, err2 := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
+	conn, err2 := discogsBridge.dial("recordcollection")
 	if err2 == nil {
 		defer conn.Close()
 		client := pbrc.NewRecordCollectionServiceClient(conn)
@@ -101,20 +95,11 @@ func (discogsBridge prodBridge) getRecord(ctx context.Context, instanceID int32)
 	return nil, fmt.Errorf("Unable to get release metadata: %v", err2)
 }
 
-func (discogsBridge prodBridge) moveToFolder(move *pbs.ReleaseMove) {
-	ip, port := discogsBridge.GetIP("discogssyncer")
-	conn, _ := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
-	defer conn.Close()
-	client := pbs.NewDiscogsServiceClient(conn)
-	client.MoveToFolder(context.Background(), move)
-}
-
 func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
 	var result []*pbrc.Record
 
 	for _, id := range folders {
-		ip, port := discogsBridge.GetIP("recordcollection")
-		conn, err2 := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
+		conn, err2 := discogsBridge.dial("recordcollection")
 		if err2 != nil {
 			return result, err2
 		}
@@ -140,8 +125,7 @@ func (discogsBridge prodBridge) getReleasesWithGoal(ctx context.Context, folders
 	discogsBridge.log(fmt.Sprintf("GETTING FOR %v", folders))
 
 	for _, id := range folders {
-		ip, port := discogsBridge.GetIP("recordcollection")
-		conn, err2 := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
+		conn, err2 := discogsBridge.dial("recordcollection")
 		if err2 != nil {
 			return result, err2
 		}
@@ -208,7 +192,7 @@ func InitServer() *Server {
 		int64(0),
 	}
 	server.PrepServer()
-	server.bridge = &prodBridge{Resolver: server.GetIP, log: server.Log}
+	server.bridge = &prodBridge{dial: server.DialMaster, log: server.Log}
 	server.GoServer.KSclient = *keystoreclient.GetClient(server.GetIP)
 
 	server.Register = server
