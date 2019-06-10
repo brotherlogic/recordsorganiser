@@ -62,6 +62,18 @@ func convert(exs []*pb.LabelExtractor) map[int32]string {
 	return m
 }
 
+func (s *Server) markOverQuota(c *pb.Location, tim int64) {
+	if tim > 0 && c.OverQuotaTime == 0 {
+		s.Log(fmt.Sprintf("Marking %v as over quota", c.Name))
+		c.OverQuotaTime = tim
+	}
+
+	if tim == 0 && c.OverQuotaTime > 0 {
+		s.Log(fmt.Sprintf("Marking %v as within quota", c.Name))
+		c.OverQuotaTime = 0
+	}
+}
+
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, error) {
 	s.lastOrgFolder = c.Name
 	fr, err := s.bridge.getReleases(ctx, c.GetFolderIds())
@@ -100,17 +112,17 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 
 	if c.GetQuota().GetSlots() > 0 {
 		if len(fr) > int(c.GetQuota().GetSlots()) {
-			s.Log(fmt.Sprintf("%v is over quota", c.GetName()))
+			s.markOverQuota(c, time.Now().Unix())
 		} else {
-			s.Log(fmt.Sprintf("%v us under quota (%v vs %v)", c.GetName(), len(fr), c.GetQuota().GetSlots()))
+			s.markOverQuota(c, 0)
 		}
 	}
 
 	if c.GetQuota().GetNumOfSlots() > 0 {
 		if len(fr) > int(c.GetQuota().GetNumOfSlots()) {
-			s.Log(fmt.Sprintf("%v is over slot quota", c.GetName()))
+			s.markOverQuota(c, time.Now().Unix())
 		} else {
-			s.Log(fmt.Sprintf("%v us under slot quota (%v vs %v)", c.GetName(), len(fr), c.GetQuota().GetSlots()))
+			s.markOverQuota(c, 0)
 		}
 	}
 
