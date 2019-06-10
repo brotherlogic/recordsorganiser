@@ -13,6 +13,13 @@ import (
 //BySaleOrder - the order in which we sell things
 type BySaleOrder []*pbrc.Record
 
+func getScore(r *pbrc.Record) int32 {
+	if r.GetRelease().Rating != 0 {
+		return r.GetRelease().Rating
+	}
+	return int32(r.GetMetadata().OverallScore)
+}
+
 func (a BySaleOrder) Len() int      { return len(a) }
 func (a BySaleOrder) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a BySaleOrder) Less(i, j int) bool {
@@ -29,6 +36,11 @@ func (a BySaleOrder) Less(i, j int) bool {
 
 	if a[i].GetRelease().Released != a[j].GetRelease().Released {
 		return a[i].GetRelease().Released > a[j].GetRelease().Released
+	}
+
+	// Sort by score
+	if getScore(a[i]) != getScore(a[j]) {
+		return getScore(a[i]) < getScore(a[j])
 	}
 
 	return strings.Compare(a[i].GetRelease().Title, a[j].GetRelease().Title) < 0

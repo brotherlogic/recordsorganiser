@@ -18,6 +18,29 @@ var orderData = []struct {
 	out []*pbrc.Record
 }{
 	{
+		// Lower scores before higher
+		[]*pbrc.Record{
+			&pbrc.Record{Release: &pbgd.Release{Rating: 5}},
+			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{OverallScore: 4}},
+		},
+		[]*pbrc.Record{
+			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{OverallScore: 4}},
+			&pbrc.Record{Release: &pbgd.Release{Rating: 5}},
+		},
+	},
+	{
+		// Lower scores before higher
+		[]*pbrc.Record{
+			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{OverallScore: 4}},
+			&pbrc.Record{Release: &pbgd.Release{Rating: 5}},
+		},
+		[]*pbrc.Record{
+			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{OverallScore: 4}},
+			&pbrc.Record{Release: &pbgd.Release{Rating: 5}},
+		},
+	},
+
+	{
 		// Later releases should be placed before earlier ones
 		[]*pbrc.Record{
 			&pbrc.Record{Release: &pbgd.Release{Released: "2001"}},
