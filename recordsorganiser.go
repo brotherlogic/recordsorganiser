@@ -33,6 +33,7 @@ type discogsBridge interface {
 	getReleases(ctx context.Context, folders []int32) ([]*pbrc.Record, error)
 	getReleasesWithGoal(ctx context.Context, folders []int32) ([]*pbrc.Record, error)
 	getRecord(ctx context.Context, instanceID int32) (*pbrc.Record, error)
+	updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error)
 }
 
 func (s *Server) prepareForReorg() {
