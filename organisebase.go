@@ -94,6 +94,16 @@ func (discogsBridge prodBridge) getRecord(ctx context.Context, instanceID int32)
 
 	return nil, fmt.Errorf("Unable to get release metadata: %v", err2)
 }
+func (discogsBridge prodBridge) updateRecord(ctx context.Context, update *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
+	conn, err2 := discogsBridge.dial("recordcollection")
+	if err2 == nil {
+		defer conn.Close()
+		client := pbrc.NewRecordCollectionServiceClient(conn)
+		return client.UpdateRecord(ctx, update)
+	}
+
+	return nil, fmt.Errorf("Unable to dial recordcollection: %v", err2)
+}
 
 func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
 	var result []*pbrc.Record

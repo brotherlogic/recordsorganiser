@@ -5,8 +5,10 @@ import (
 	"sort"
 	"strings"
 
+	pbgd "github.com/brotherlogic/godiscogs"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
+
 	"golang.org/x/net/context"
 )
 
@@ -68,7 +70,8 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 	sort.Sort(BySaleOrder(records))
 
 	for i := 0; i < existing-slots; i++ {
-		s.Log(fmt.Sprintf("Selling %v", records[i].GetRelease().Title))
+		up := &pbrc.UpdateRecordRequest{Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[i].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
+		s.bridge.updateRecord(ctx, up)
 	}
 	return nil
 }

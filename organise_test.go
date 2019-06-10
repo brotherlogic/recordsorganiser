@@ -40,6 +40,10 @@ func (discogsBridge testBridgeFail) moveToFolder(move *pbs.ReleaseMove) {
 	//Do nothing
 }
 
+func (discogsBridge testBridgeFail) updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
+	return nil, fmt.Errorf("Built to fail")
+}
+
 type testBridgePartialFail struct{}
 
 func (discogsBridge testBridgePartialFail) GetIP(name string) (string, int) {
@@ -105,6 +109,10 @@ func (discogsBridge testBridgePartialFail) getRelease(ctx context.Context, ID in
 }
 func (discogsBridge testBridgePartialFail) moveToFolder(move *pbs.ReleaseMove) {
 	//Do nothing
+}
+
+func (discogsBridge testBridgePartialFail) updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
+	return nil, fmt.Errorf("Built to fail")
 }
 
 type testBridgeCleverFail struct{}
@@ -190,6 +198,10 @@ func (discogsBridge testBridgeCleverFail) getRelease(ID int32) (*pbd.Release, er
 }
 func (discogsBridge testBridgeCleverFail) moveToFolder(move *pbs.ReleaseMove) {
 	//Do nothing
+}
+
+func (discogsBridge testBridgeCleverFail) updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
+	return nil, fmt.Errorf("Built to fail")
 }
 
 type testBridge struct {
@@ -447,8 +459,16 @@ func (discogsBridge testBridge) moveToFolder(move *pbs.ReleaseMove) {
 	//Do nothing
 }
 
+func (discogsBridge testBridge) updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
+	return &pbrc.UpdateRecordsResponse{}, nil
+}
+
 func (discogsBridge testBridgeMove) moveToFolder(move *pbs.ReleaseMove) {
 	//Do nothing
+}
+
+func (discogsBridge testBridgeMove) updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
+	return &pbrc.UpdateRecordsResponse{}, nil
 }
 
 func getTestServer(dir string) *Server {
