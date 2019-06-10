@@ -34,13 +34,15 @@ func (a BySaleOrder) Less(i, j int) bool {
 		}
 	}
 
-	if a[i].GetRelease().Released != a[j].GetRelease().Released {
-		return a[i].GetRelease().Released > a[j].GetRelease().Released
+	// Sort by score
+	if a[i].GetMetadata() != nil && a[j].GetMetadata() != nil {
+		if getScore(a[i]) != getScore(a[j]) {
+			return getScore(a[i]) < getScore(a[j])
+		}
 	}
 
-	// Sort by score
-	if getScore(a[i]) != getScore(a[j]) {
-		return getScore(a[i]) < getScore(a[j])
+	if a[i].GetRelease().Released != a[j].GetRelease().Released {
+		return a[i].GetRelease().Released > a[j].GetRelease().Released
 	}
 
 	return strings.Compare(a[i].GetRelease().Title, a[j].GetRelease().Title) < 0

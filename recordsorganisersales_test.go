@@ -18,48 +18,58 @@ var orderData = []struct {
 	out []*pbrc.Record
 }{
 	{
+		// Scores before rating
+		[]*pbrc.Record{
+			&pbrc.Record{Release: &pbgd.Release{Rating: 5, Released: "2002"}, Metadata: &pbrc.ReleaseMetadata{}},
+			&pbrc.Record{Release: &pbgd.Release{Released: "2001"}, Metadata: &pbrc.ReleaseMetadata{OverallScore: 4}},
+		},
+		[]*pbrc.Record{
+			&pbrc.Record{Release: &pbgd.Release{Released: "2001"}, Metadata: &pbrc.ReleaseMetadata{OverallScore: 4}},
+			&pbrc.Record{Release: &pbgd.Release{Released: "2002", Rating: 5}, Metadata: &pbrc.ReleaseMetadata{}},
+		},
+	},
+	{
 		// Lower scores before higher
 		[]*pbrc.Record{
-			&pbrc.Record{Release: &pbgd.Release{Rating: 5}},
+			&pbrc.Record{Release: &pbgd.Release{Rating: 5}, Metadata: &pbrc.ReleaseMetadata{}},
 			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{OverallScore: 4}},
 		},
 		[]*pbrc.Record{
 			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{OverallScore: 4}},
-			&pbrc.Record{Release: &pbgd.Release{Rating: 5}},
+			&pbrc.Record{Release: &pbgd.Release{Rating: 5}, Metadata: &pbrc.ReleaseMetadata{}},
 		},
 	},
 	{
 		// Lower scores before higher
 		[]*pbrc.Record{
 			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{OverallScore: 4}},
-			&pbrc.Record{Release: &pbgd.Release{Rating: 5}},
+			&pbrc.Record{Release: &pbgd.Release{Rating: 5}, Metadata: &pbrc.ReleaseMetadata{}},
 		},
 		[]*pbrc.Record{
 			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{OverallScore: 4}},
-			&pbrc.Record{Release: &pbgd.Release{Rating: 5}},
+			&pbrc.Record{Release: &pbgd.Release{Rating: 5}, Metadata: &pbrc.ReleaseMetadata{}},
 		},
 	},
-
 	{
 		// Later releases should be placed before earlier ones
 		[]*pbrc.Record{
-			&pbrc.Record{Release: &pbgd.Release{Released: "2001"}},
-			&pbrc.Record{Release: &pbgd.Release{Released: "2002"}},
+			&pbrc.Record{Release: &pbgd.Release{Released: "2001"}, Metadata: &pbrc.ReleaseMetadata{}},
+			&pbrc.Record{Release: &pbgd.Release{Released: "2002"}, Metadata: &pbrc.ReleaseMetadata{}},
 		},
 		[]*pbrc.Record{
-			&pbrc.Record{Release: &pbgd.Release{Released: "2002"}},
-			&pbrc.Record{Release: &pbgd.Release{Released: "2001"}},
+			&pbrc.Record{Release: &pbgd.Release{Released: "2002"}, Metadata: &pbrc.ReleaseMetadata{}},
+			&pbrc.Record{Release: &pbgd.Release{Released: "2001"}, Metadata: &pbrc.ReleaseMetadata{}},
 		},
 	},
 	{
 		// Later releases should be placed before earlier ones
 		[]*pbrc.Record{
-			&pbrc.Record{Release: &pbgd.Release{Released: "2002"}},
-			&pbrc.Record{Release: &pbgd.Release{Released: "2001"}},
+			&pbrc.Record{Release: &pbgd.Release{Released: "2002"}, Metadata: &pbrc.ReleaseMetadata{}},
+			&pbrc.Record{Release: &pbgd.Release{Released: "2001"}, Metadata: &pbrc.ReleaseMetadata{}},
 		},
 		[]*pbrc.Record{
-			&pbrc.Record{Release: &pbgd.Release{Released: "2002"}},
-			&pbrc.Record{Release: &pbgd.Release{Released: "2001"}},
+			&pbrc.Record{Release: &pbgd.Release{Released: "2002"}, Metadata: &pbrc.ReleaseMetadata{}},
+			&pbrc.Record{Release: &pbgd.Release{Released: "2001"}, Metadata: &pbrc.ReleaseMetadata{}},
 		},
 	},
 	{
