@@ -101,6 +101,8 @@ message Location {
     REQUIRE_STOCK_CHECK = 1;
   }
   Checking checking = 15;
+
+  int64 over_quota_time = 16;
 }
 
 message Organisation {
