@@ -43,6 +43,17 @@ func (a BySaleOrder) Less(i, j int) bool {
 		}
 	}
 
+	if a[i].GetMetadata() != nil && a[j].GetMetadata() != nil {
+		if a[i].GetMetadata().Match != a[j].GetMetadata().Match {
+			if a[i].GetMetadata().Match == pbrc.ReleaseMetadata_FULL_MATCH {
+				return true
+			}
+			if a[j].GetMetadata().Match == pbrc.ReleaseMetadata_FULL_MATCH {
+				return false
+			}
+		}
+	}
+
 	if a[i].GetRelease().Released != a[j].GetRelease().Released {
 		return a[i].GetRelease().Released > a[j].GetRelease().Released
 	}
