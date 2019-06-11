@@ -73,6 +73,28 @@ var orderData = []struct {
 		},
 	},
 	{
+		// MATCH_UNKNOWN shoule come after FULL_MATCH
+		[]*pbrc.Record{
+			&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Match: pbrc.ReleaseMetadata_FULL_MATCH}, Release: &pbgd.Release{}},
+			&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Match: pbrc.ReleaseMetadata_MATCH_UNKNOWN}, Release: &pbgd.Release{}},
+		},
+		[]*pbrc.Record{
+			&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Match: pbrc.ReleaseMetadata_FULL_MATCH}, Release: &pbgd.Release{}},
+			&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Match: pbrc.ReleaseMetadata_MATCH_UNKNOWN}, Release: &pbgd.Release{}},
+		},
+	},
+	{
+		// MATCH_UNKNOWN shoule come after FULL_MATCH
+		[]*pbrc.Record{
+			&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Match: pbrc.ReleaseMetadata_MATCH_UNKNOWN}, Release: &pbgd.Release{}},
+			&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Match: pbrc.ReleaseMetadata_FULL_MATCH}, Release: &pbgd.Release{}},
+		},
+		[]*pbrc.Record{
+			&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Match: pbrc.ReleaseMetadata_FULL_MATCH}, Release: &pbgd.Release{}},
+			&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Match: pbrc.ReleaseMetadata_MATCH_UNKNOWN}, Release: &pbgd.Release{}},
+		},
+	},
+	{
 		// NOT_KEEPER should come before KEEPER
 		[]*pbrc.Record{
 			&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Keep: pbrc.ReleaseMetadata_KEEPER}},
