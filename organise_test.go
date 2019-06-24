@@ -269,7 +269,7 @@ func (discogsBridge testBridge) getReleases(ctx context.Context, folders []int32
 					Formats:        []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}},
 					FormatQuantity: 2,
 				},
-				Metadata: &pbrc.ReleaseMetadata{GoalFolder: 25, Category: pbrc.ReleaseMetadata_GRADUATE}},
+				Metadata: &pbrc.ReleaseMetadata{GoalFolder: 25, Category: pbrc.ReleaseMetadata_ASSESS_FOR_SALE}},
 			&pbrc.Record{
 				Release: &pbd.Release{
 					Id:             1,
