@@ -77,7 +77,9 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 	tfr, err := s.bridge.getReleases(ctx, c.GetFolderIds())
 	fr := make([]*pbrc.Record, 0)
 	for _, r := range tfr {
-		if r.GetMetadata().Category != pbrc.ReleaseMetadata_ASSESS_FOR_SALE && r.GetMetadata().Category != pbrc.ReleaseMetadata_PREPARE_TO_SELL && r.GetMetadata().Category != pbrc.ReleaseMetadata_STAGED_TO_SELL {
+		if r.GetMetadata().Category != pbrc.ReleaseMetadata_ASSESS_FOR_SALE &&
+			r.GetMetadata().Category != pbrc.ReleaseMetadata_PREPARE_TO_SELL &&
+			r.GetMetadata().Category != pbrc.ReleaseMetadata_STAGED_TO_SELL {
 			fr = append(fr, r)
 		}
 	}
