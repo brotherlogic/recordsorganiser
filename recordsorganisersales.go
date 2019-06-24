@@ -82,6 +82,7 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 
 	for i := 0; i < existing-slots; i++ {
 		up := &pbrc.UpdateRecordRequest{Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[i].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
+		s.Log(fmt.Sprintf("Selling %v (%v)", records[i].GetRelease().Title, records[i].GetRelease().InstanceId))
 		s.bridge.updateRecord(ctx, up)
 	}
 	return nil
