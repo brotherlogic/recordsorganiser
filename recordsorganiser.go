@@ -75,12 +75,12 @@ func (s *Server) markOverQuota(c *pb.Location, tim int64) {
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, error) {
 	s.lastOrgFolder = c.Name
 	tfr, err := s.bridge.getReleases(ctx, c.GetFolderIds())
-	fr := make([]*pbrc.Record, 0)
+	adjustment := 0
 	for _, r := range tfr {
-		if r.GetMetadata().Category != pbrc.ReleaseMetadata_ASSESS_FOR_SALE &&
-			r.GetMetadata().Category != pbrc.ReleaseMetadata_PREPARE_TO_SELL &&
-			r.GetMetadata().Category != pbrc.ReleaseMetadata_STAGED_TO_SELL {
-			fr = append(fr, r)
+		if r.GetMetadata().Category == pbrc.ReleaseMetadata_ASSESS_FOR_SALE ||
+			r.GetMetadata().Category == pbrc.ReleaseMetadata_PREPARE_TO_SELL ||
+			r.GetMetadata().Category == pbrc.ReleaseMetadata_STAGED_TO_SELL {
+			adjustment++
 		}
 	}
 
@@ -90,12 +90,12 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 
 	switch c.GetSort() {
 	case pb.Location_BY_DATE_ADDED:
-		sort.Sort(ByDateAdded(fr))
+		sort.Sort(ByDateAdded(tfr))
 	case pb.Location_BY_LABEL_CATNO:
-		sort.Sort(ByLabelCat{fr, convert(s.org.GetExtractors()), s.Log})
+		sort.Sort(ByLabelCat{tfr, convert(s.org.GetExtractors()), s.Log})
 	}
 
-	records := s.Split(fr, float64(c.GetSlots()))
+	records := s.Split(tfr, float64(c.GetSlots()))
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
 	if c.Checking == pb.Location_REQUIRE_STOCK_CHECK {
 		s.scNeeded = 0
@@ -117,7 +117,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 	}
 
 	if c.GetQuota().GetSlots() > 0 {
-		if len(fr) > int(c.GetQuota().GetSlots()) {
+		if len(tfr)-adjustment > int(c.GetQuota().GetSlots()) {
 			s.markOverQuota(c, time.Now().Unix())
 		} else {
 			s.markOverQuota(c, 0)
@@ -125,14 +125,14 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 	}
 
 	if c.GetQuota().GetNumOfSlots() > 0 {
-		if len(fr) > int(c.GetQuota().GetNumOfSlots()) {
+		if len(tfr)-adjustment > int(c.GetQuota().GetNumOfSlots()) {
 			s.markOverQuota(c, time.Now().Unix())
 		} else {
 			s.markOverQuota(c, 0)
 		}
 	}
 
-	return int32(len(fr)), nil
+	return int32(len(tfr)), nil
 }
 
 func (s *Server) checkQuota(ctx context.Context) error {
