@@ -18,6 +18,29 @@ var orderData = []struct {
 	out []*pbrc.Record
 }{
 	{
+		// Lower priced records before higher
+		[]*pbrc.Record{
+			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{CurrentSalePrice: 100}},
+			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{CurrentSalePrice: 50}},
+		},
+		[]*pbrc.Record{
+			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{CurrentSalePrice: 50}},
+			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{CurrentSalePrice: 100}},
+		},
+	},
+	{
+		// Later priced record before higher
+		[]*pbrc.Record{
+			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{CurrentSalePrice: 50}},
+			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{CurrentSalePrice: 100}},
+		},
+		[]*pbrc.Record{
+			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{CurrentSalePrice: 50}},
+			&pbrc.Record{Release: &pbgd.Release{}, Metadata: &pbrc.ReleaseMetadata{CurrentSalePrice: 100}},
+		},
+	},
+
+	{
 		// Scores before rating
 		[]*pbrc.Record{
 			&pbrc.Record{Release: &pbgd.Release{Rating: 5, Released: "2002"}, Metadata: &pbrc.ReleaseMetadata{}},
