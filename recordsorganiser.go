@@ -22,7 +22,7 @@ type Server struct {
 	lastOrgFolder string
 	sortMap       map[int32]*pb.SortMapping
 	lastQuotaTime time.Duration
-	scNeeded      int64
+	scNeeded      map[string]int64
 	scExample     int64
 }
 
@@ -99,7 +99,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 	records := s.Split(tfr, float64(c.GetSlots()))
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
 	if c.Checking == pb.Location_REQUIRE_STOCK_CHECK {
-		s.scNeeded = 0
+		s.scNeeded[c.Name] = 0
 	}
 	for slot, recs := range records {
 		for i, rinloc := range recs {
@@ -107,7 +107,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 			if c.Checking == pb.Location_REQUIRE_STOCK_CHECK {
 				if rinloc.GetMetadata().Keep != pbrc.ReleaseMetadata_KEEPER && rinloc.GetRelease().MasterId != 0 {
 					if time.Now().Sub(time.Unix(rinloc.GetMetadata().LastStockCheck, 0)) > time.Hour*24*30*6 {
-						s.scNeeded++
+						s.scNeeded[c.Name]++
 						s.scExample = int64(rinloc.GetRelease().InstanceId)
 						s.RaiseIssue(ctx, "Stock Check Needed", fmt.Sprintf("%v is in need of a stock check", rinloc.GetRelease().Title), false)
 					}
