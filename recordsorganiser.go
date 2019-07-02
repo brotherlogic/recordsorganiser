@@ -23,6 +23,7 @@ type Server struct {
 	sortMap       map[int32]*pb.SortMapping
 	lastQuotaTime time.Duration
 	scNeeded      int64
+	scExample     int64
 }
 
 type gh interface {
@@ -107,6 +108,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 				if rinloc.GetMetadata().Keep != pbrc.ReleaseMetadata_KEEPER && rinloc.GetRelease().MasterId != 0 {
 					if time.Now().Sub(time.Unix(rinloc.GetMetadata().LastStockCheck, 0)) > time.Hour*24*30*6 {
 						s.scNeeded++
+						s.scExample = int64(rinloc.GetRelease().InstanceId)
 						s.RaiseIssue(ctx, "Stock Check Needed", fmt.Sprintf("%v is in need of a stock check", rinloc.GetRelease().Title), false)
 					}
 				}
