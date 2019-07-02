@@ -477,6 +477,7 @@ func getTestServer(dir string) *Server {
 	testServer.GoServer.KSclient = *keystoreclient.GetTestClient(dir)
 	testServer.SkipLog = true
 	testServer.org.Extractors = append(testServer.org.Extractors, &pb.LabelExtractor{LabelId: 123, Extractor: "\\d\\d"})
+	testServer.scNeeded = make(map[string]int64)
 	return testServer
 }
 
