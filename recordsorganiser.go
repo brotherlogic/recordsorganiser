@@ -101,6 +101,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 	if c.Checking == pb.Location_REQUIRE_STOCK_CHECK {
 		s.scNeeded[c.Name] = 0
 	}
+	stocks := ""
 	for slot, recs := range records {
 		for i, rinloc := range recs {
 			//Raise the alarm if a record needs a stock check
@@ -109,13 +110,17 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 					if time.Now().Sub(time.Unix(rinloc.GetMetadata().LastStockCheck, 0)) > time.Hour*24*30*6 {
 						s.scNeeded[c.Name]++
 						s.scExample = int64(rinloc.GetRelease().InstanceId)
-						s.RaiseIssue(ctx, "Stock Check Needed", fmt.Sprintf("%v [%v] is in need of a stock check", rinloc.GetRelease().Title, rinloc.GetRelease().Id), false)
+						stocks += fmt.Sprintf("%v [%v]\n", rinloc.GetRelease().Title, rinloc.GetRelease().Id)
 					}
 				}
 			}
 
 			c.ReleasesLocation = append(c.ReleasesLocation, &pb.ReleasePlacement{Slot: int32(slot + 1), Index: int32(i), InstanceId: rinloc.GetRelease().InstanceId, Title: rinloc.GetRelease().Title})
 		}
+	}
+
+	if len(stocks) > 0 {
+		s.RaiseIssue(ctx, "Stock Checks Needed", stocks, false)
 	}
 
 	if c.GetQuota().GetSlots() > 0 {
