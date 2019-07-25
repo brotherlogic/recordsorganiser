@@ -205,7 +205,7 @@ func InitServer() *Server {
 	}
 	server.PrepServer()
 	server.bridge = &prodBridge{dial: server.DialMaster, log: server.Log}
-	server.GoServer.KSclient = *keystoreclient.GetClient(server.GetIP)
+	server.GoServer.KSclient = *keystoreclient.GetClient(server.DialMaster)
 
 	server.Register = server
 
