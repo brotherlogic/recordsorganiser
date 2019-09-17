@@ -10,7 +10,6 @@ import (
 	"github.com/brotherlogic/keystore/client"
 	"golang.org/x/net/context"
 
-	pbs "github.com/brotherlogic/discogssyncer/server"
 	pbd "github.com/brotherlogic/godiscogs"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
@@ -35,9 +34,6 @@ func (discogsBridge testBridgeFail) getReleasesWithGoal(ctx context.Context, fol
 
 func (discogsBridge testBridgeFail) getRelease(ID int32) (*pbd.Release, error) {
 	return nil, errors.New("Built to fail")
-}
-func (discogsBridge testBridgeFail) moveToFolder(move *pbs.ReleaseMove) {
-	//Do nothing
 }
 
 func (discogsBridge testBridgeFail) updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
@@ -106,9 +102,6 @@ func (discogsBridge testBridgePartialFail) getReleaseWithGoals(ctx context.Conte
 
 func (discogsBridge testBridgePartialFail) getRelease(ctx context.Context, ID int32) (*pbd.Release, error) {
 	return nil, errors.New("Built to fail")
-}
-func (discogsBridge testBridgePartialFail) moveToFolder(move *pbs.ReleaseMove) {
-	//Do nothing
 }
 
 func (discogsBridge testBridgePartialFail) updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
@@ -195,9 +188,6 @@ func (discogsBridge testBridgeCleverFail) getReleasesWithGoal(ctx context.Contex
 
 func (discogsBridge testBridgeCleverFail) getRelease(ID int32) (*pbd.Release, error) {
 	return nil, errors.New("Built to fail")
-}
-func (discogsBridge testBridgeCleverFail) moveToFolder(move *pbs.ReleaseMove) {
-	//Do nothing
 }
 
 func (discogsBridge testBridgeCleverFail) updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
@@ -455,16 +445,8 @@ func (discogsBridge testBridgeMove) getRelease(ID int32) (*pbd.Release, error) {
 	return &pbd.Release{Id: ID, Formats: []*pbd.Format{&pbd.Format{Descriptions: []string{"CD"}}}, Labels: []*pbd.Label{&pbd.Label{Name: "Numero"}}}, nil
 }
 
-func (discogsBridge testBridge) moveToFolder(move *pbs.ReleaseMove) {
-	//Do nothing
-}
-
 func (discogsBridge testBridge) updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
 	return &pbrc.UpdateRecordsResponse{}, nil
-}
-
-func (discogsBridge testBridgeMove) moveToFolder(move *pbs.ReleaseMove) {
-	//Do nothing
 }
 
 func (discogsBridge testBridgeMove) updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
