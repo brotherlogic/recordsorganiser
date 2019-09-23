@@ -44,7 +44,7 @@ func (a ByReleaseDate) Less(i, j int) bool {
 }
 
 func locateRelease(ctx context.Context, c pb.OrganiserServiceClient, id int32) {
-	host, port, err := utils.Resolve("recordcollection")
+	host, port, err := utils.Resolve("recordcollection", "orgcli-locate")
 	if err != nil {
 		log.Fatalf("Unable to reach collection: %v", err)
 	}
@@ -91,7 +91,7 @@ func getReleaseString(loc *pb.ReleasePlacement) string {
 }
 
 func isTwelve(ctx context.Context, instanceID int32) bool {
-	host, port, err := utils.Resolve("recordcollection")
+	host, port, err := utils.Resolve("recordcollection", "recorg-12")
 	if err != nil {
 		log.Fatalf("Unable to reach collection: %v", err)
 	}
@@ -173,7 +173,7 @@ func add(ctx context.Context, client pb.OrganiserServiceClient, name string, fol
 }
 
 func main() {
-	host, port, err := utils.Resolve("recordsorganiser")
+	host, port, err := utils.Resolve("recordsorganiser", "recorg-main")
 	if err != nil {
 		log.Fatalf("Unable to reach organiser: %v", err)
 	}
@@ -242,7 +242,7 @@ func main() {
 			if quot.GetOverQuota() && *show {
 				fmt.Printf("%v is over quota by %v\n", *name, len(quot.InstanceId))
 				for _, id := range quot.InstanceId {
-					host, port, err := utils.Resolve("recordcollection")
+					host, port, err := utils.Resolve("recordcollection", "recorg-what")
 					if err != nil {
 						log.Fatalf("Unable to reach collection: %v", err)
 					}
@@ -274,7 +274,7 @@ func main() {
 		var limit = sellFlags.Int("limit", -1, "Limit to include")
 
 		if err := sellFlags.Parse(os.Args[2:]); err == nil {
-			host, port, err := utils.Resolve("recordcollection")
+			host, port, err := utils.Resolve("recordcollection", "record-sell")
 			if err != nil {
 				log.Fatalf("Unable to reach collection: %v", err)
 			}
