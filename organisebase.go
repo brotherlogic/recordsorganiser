@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/brotherlogic/goserver"
@@ -16,26 +15,20 @@ import (
 	pbgh "github.com/brotherlogic/githubcard/proto"
 	pbd "github.com/brotherlogic/godiscogs"
 	pbgs "github.com/brotherlogic/goserver/proto"
-	"github.com/brotherlogic/goserver/utils"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 )
 
 type prodGh struct {
+	dial func(server string) (*grpc.ClientConn, error)
 }
 
 func (gh *prodGh) alert(ctx context.Context, r *pb.Location) error {
-	host, port, err := utils.Resolve("githubcard")
-
+	conn, err := gh.dial("githubcard")
 	if err != nil {
 		return err
 	}
-
-	conn, err := grpc.Dial(host+":"+strconv.Itoa(int(port)), grpc.WithInsecure())
 	defer conn.Close()
-	if err != nil {
-		return err
-	}
 
 	client := pbgh.NewGithubClient(conn)
 	_, err = client.AddIssue(ctx, &pbgh.Issue{Title: "Quota Issue", Body: fmt.Sprintf("%v is out of quota", r.GetName()), Service: "recordsorganiser"})
@@ -205,6 +198,7 @@ func InitServer() *Server {
 	}
 	server.PrepServer()
 	server.bridge = &prodBridge{dial: server.DialMaster, log: server.Log}
+	server.gh = &prodGh{dial: server.DialMaster}
 	server.GoServer.KSclient = *keystoreclient.GetClient(server.DialMaster)
 
 	server.Register = server
