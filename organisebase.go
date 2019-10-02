@@ -60,6 +60,18 @@ func (s *Server) readOrg(ctx context.Context) error {
 		s.sortMap[mapping.InstanceId] = mapping
 	}
 
+	// Verify that all locations have their play settings set
+	locations := []string{}
+	for _, location := range s.org.Locations {
+		if location.InPlay == pb.Location_PLAY_UNKNOWN {
+			locations = append(locations, location.Name)
+		}
+	}
+
+	if len(locations) > 0 {
+		s.RaiseIssue(ctx, "Missing Play State", fmt.Sprintf("These locations: %v are missing play states", locations), false)
+	}
+
 	return nil
 }
 

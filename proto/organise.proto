@@ -103,6 +103,14 @@ message Location {
   Checking checking = 15;
 
   int64 over_quota_time = 16;
+
+  enum InPlay {
+    PLAY_UNKNOWN = 0;
+    IN_PLAY = 1;
+    NOT_IN_PLAY = 2;
+  }
+
+  InPlay in_play = 17;
 }
 
 message Organisation {

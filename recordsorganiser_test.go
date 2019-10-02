@@ -30,7 +30,7 @@ func TestOrdering(t *testing.T) {
 	for _, entry := range data {
 		sort.Sort(BySaleOrder(entry.in))
 		for i := range entry.in {
-			if !utils.FuzzyMatch(entry.in[i], entry.out[i]) {
+			if utils.FuzzyMatch(entry.in[i], entry.out[i]) != nil {
 				t.Errorf("Sorting error: %v vs %v", entry.in[i], entry.out[i])
 			}
 		}
