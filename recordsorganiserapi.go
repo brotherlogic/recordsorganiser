@@ -63,6 +63,10 @@ func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationReq
 	locations := make([]*pb.Location, 0)
 	num := int32(0)
 
+	if len(req.GetLocations()) == 0 {
+		locations = s.org.GetLocations()
+	}
+
 	for _, rloc := range req.GetLocations() {
 		for _, loc := range s.org.GetLocations() {
 			if utils.FuzzyMatch(rloc, loc) == nil {
