@@ -45,4 +45,13 @@ func TestDeleteLocation(t *testing.T) {
 		t.Errorf("Bad location response: %v", resp)
 	}
 
+	resp, err = testServer.GetOrganisation(context.Background(), &pb.GetOrganisationRequest{})
+	if err != nil {
+		t.Fatalf("Unable to get organisation %v", err)
+	}
+
+	if len(resp.GetLocations()) != 0 {
+		t.Errorf("Bad location response: %v", resp)
+	}
+
 }

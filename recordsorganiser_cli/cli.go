@@ -368,6 +368,7 @@ func main() {
 		var reorgTime = updateLocationFlags.Int("reorg", 0, "The time needed to do a full reorg.")
 		var delete = updateLocationFlags.Bool("delete", false, "Remove this")
 		var needStock = updateLocationFlags.Bool("stockcheck", false, "Needs a stock check.")
+		var inPlay = updateLocationFlags.Bool("inplay", false, "Is in play")
 
 		if err := updateLocationFlags.Parse(os.Args[2:]); err == nil {
 			if *needStock {
@@ -401,7 +402,12 @@ func main() {
 			}
 			if *reorgTime != 0 {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{ReorgTime: int64(*reorgTime)}})
+
 			}
+			if *inPlay {
+				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{InPlay: pb.Location_NOT_IN_PLAY}})
+			}
+
 		}
 	case "extractor":
 		extractFlags := flag.NewFlagSet("Extract", flag.ExitOnError)
