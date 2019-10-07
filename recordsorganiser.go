@@ -31,7 +31,7 @@ type gh interface {
 }
 
 type discogsBridge interface {
-	getReleases(ctx context.Context, folders []int32) ([]*pbrc.Record, error)
+	getReleases(ctx context.Context, folders []int32) ([]int32, error)
 	getReleasesWithGoal(ctx context.Context, folders []int32) ([]*pbrc.Record, error)
 	getRecord(ctx context.Context, instanceID int32) (*pbrc.Record, error)
 	updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error)
@@ -75,18 +75,25 @@ func (s *Server) markOverQuota(c *pb.Location, tim int64) {
 
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, error) {
 	s.lastOrgFolder = c.Name
-	tfr, err := s.bridge.getReleases(ctx, c.GetFolderIds())
+	ids, err := s.bridge.getReleases(ctx, c.GetFolderIds())
+	if err != nil {
+		return -1, err
+	}
+
 	adjustment := 0
-	for _, r := range tfr {
+	tfr := []*pbrc.Record{}
+	for _, id := range ids {
+		r, err := s.bridge.getRecord(ctx, id)
+		if err != nil {
+			return -1, err
+		}
 		if r.GetMetadata().Category == pbrc.ReleaseMetadata_ASSESS_FOR_SALE ||
 			r.GetMetadata().Category == pbrc.ReleaseMetadata_PREPARE_TO_SELL ||
 			r.GetMetadata().Category == pbrc.ReleaseMetadata_STAGED_TO_SELL {
 			adjustment++
 		}
-	}
 
-	if err != nil {
-		return -1, err
+		tfr = append(tfr, r)
 	}
 
 	switch c.GetSort() {

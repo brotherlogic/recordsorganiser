@@ -56,7 +56,7 @@ func locateRelease(ctx context.Context, c pb.OrganiserServiceClient, id int32) {
 	}
 
 	client := pbrc.NewRecordCollectionServiceClient(conn)
-	recs, err := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Filter: &pbrc.Record{Release: &pbgd.Release{Id: id}}})
+	recs, err := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Caller: "recordsorg-cli", Filter: &pbrc.Record{Release: &pbgd.Release{Id: id}}})
 	if err != nil {
 		log.Fatalf("Unable to get record %v -> %v", id, err)
 	}
@@ -76,18 +76,42 @@ func locateRelease(ctx context.Context, c pb.OrganiserServiceClient, id int32) {
 				if r.GetInstanceId() == rec.GetRelease().InstanceId {
 					fmt.Printf("Slot %v\n", r.GetSlot())
 					if i > 0 {
-						fmt.Printf("%v. %v\n", i-1, getReleaseString(location.GetFoundLocation().GetReleasesLocation()[i-1]))
+						fmt.Printf("%v. %v\n", i-1, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i-1]))
 					}
-					fmt.Printf("%v. %v\n", i, getReleaseString(location.GetFoundLocation().GetReleasesLocation()[i]))
-					fmt.Printf("%v. %v\n", i+1, getReleaseString(location.GetFoundLocation().GetReleasesLocation()[i+1]))
+					fmt.Printf("%v. %v\n", i, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i]))
+					fmt.Printf("%v. %v\n", i+1, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i+1]))
 				}
 			}
 		}
 	}
 }
 
-func getReleaseString(loc *pb.ReleasePlacement) string {
-	return loc.Title + " [" + strconv.Itoa(int(loc.InstanceId)) + "]"
+func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement) string {
+	rec, err := getRecord(ctx, loc.InstanceId)
+	if err != nil {
+		return fmt.Sprintf("%v", err)
+	}
+	return loc.Title + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory())
+}
+
+func getRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
+	host, port, err := utils.Resolve("recordcollection", "recorg-12")
+	if err != nil {
+		log.Fatalf("Unable to reach collection: %v", err)
+	}
+	conn, err := grpc.Dial(host+":"+strconv.Itoa(int(port)), grpc.WithInsecure())
+	defer conn.Close()
+
+	if err != nil {
+		log.Fatalf("Unable to dial: %v", err)
+	}
+
+	client := pbrc.NewRecordCollectionServiceClient(conn)
+	val, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: id})
+	if err != nil {
+		return nil, err
+	}
+	return val.GetRecord(), err
 }
 
 func isTwelve(ctx context.Context, instanceID int32) bool {
@@ -126,7 +150,8 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 
 	lastSlot := int32(1)
 	for _, loc := range locs.GetLocations() {
-		fmt.Printf("%v (%v) -> %v [%v] with %v (%v) %v [Last reorg: %v from %v]\n", loc.GetName(), len(loc.GetReleasesLocation()), loc.GetFolderIds(), loc.GetQuota(), loc.Sort.String(), loc.GetNoAlert(), loc.GetSpillFolder(), time.Unix(loc.LastReorg, 0), loc.ReorgTime)
+		fmt.Printf("%v (%v) -> %v [%v] with %v (%v) %v [Last reorg: %v from %v] (%v)\n", loc.GetName(), len(loc.GetReleasesLocation()), loc.GetFolderIds(), loc.GetQuota(), loc.Sort.String(), loc.GetNoAlert(), loc.GetSpillFolder(), time.Unix(loc.LastReorg, 0), loc.ReorgTime, loc.InPlay)
+
 		for j, rloc := range loc.GetReleasesLocation() {
 			if slot < 0 || rloc.GetSlot() == slot {
 				if !twelves || isTwelve(ctx, rloc.GetInstanceId()) {
@@ -134,7 +159,7 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 						fmt.Printf("\n")
 						lastSlot = rloc.GetSlot()
 					}
-					fmt.Printf("%v [%v]. %v\n", j, rloc.GetSlot(), getReleaseString(rloc))
+					fmt.Printf("%v [%v]. %v\n", j, rloc.GetSlot(), getReleaseString(ctx, rloc))
 				}
 			}
 		}
