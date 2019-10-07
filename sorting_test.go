@@ -216,3 +216,14 @@ func TestExtractorSplitNoCandidates(t *testing.T) {
 		t.Errorf("Bad extraction: %v", vals)
 	}
 }
+
+func TestBasicSplit(t *testing.T) {
+	releases := []*pbrc.Record{&pbrc.Record{Release: &pbd.Release{FormatQuantity: 1}}, &pbrc.Record{Release: &pbd.Release{FormatQuantity: 1}}}
+
+	s := getTestServer(".testbasicsplit")
+	splits := s.Split(releases, 2)
+
+	if len(splits) != 2 {
+		t.Errorf("Bad split: %v", len(splits))
+	}
+}

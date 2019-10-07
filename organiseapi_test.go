@@ -123,8 +123,7 @@ func TestGetLocationOrgFail(t *testing.T) {
 		t.Fatalf("Unable to add location: %v", err)
 	}
 
-	testServer.bridge = testBridgeFail{}
-
+	testServer.bridge = &testBridge{failGetReleases: true}
 	_, err = testServer.GetOrganisation(context.Background(), &pb.GetOrganisationRequest{ForceReorg: true, Locations: []*pb.Location{&pb.Location{Name: "TestName"}}})
 	if err == nil {
 		t.Fatalf("Failing bridge did not fail reorg %v", err)

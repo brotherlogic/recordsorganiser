@@ -110,8 +110,8 @@ func (discogsBridge prodBridge) updateRecord(ctx context.Context, update *pbrc.U
 	return nil, fmt.Errorf("Unable to dial recordcollection: %v", err2)
 }
 
-func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
-	var result []*pbrc.Record
+func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32) ([]int32, error) {
+	var result []int32
 
 	for _, id := range folders {
 		conn, err2 := discogsBridge.dial("recordcollection")
@@ -123,11 +123,11 @@ func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32
 			defer conn.Close()
 			client := pbrc.NewRecordCollectionServiceClient(conn)
 
-			rel, err3 := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Caller: "org_get_release", Filter: &pbrc.Record{Release: &pbd.Release{FolderId: id}}})
+			rel, err3 := client.QueryRecords(ctx, &pbrc.QueryRecordsRequest{Query: &pbrc.QueryRecordsRequest_FolderId{id}})
 			if err3 != nil {
 				return result, err3
 			}
-			result = append(result, rel.GetRecords()...)
+			result = append(result, rel.GetInstanceIds()...)
 		}
 	}
 
