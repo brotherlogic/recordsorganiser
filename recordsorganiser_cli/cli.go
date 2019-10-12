@@ -56,24 +56,29 @@ func locateRelease(ctx context.Context, c pb.OrganiserServiceClient, id int32) {
 	}
 
 	client := pbrc.NewRecordCollectionServiceClient(conn)
-	recs, err := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Caller: "recordsorg-cli", Filter: &pbrc.Record{Release: &pbgd.Release{Id: id}}})
+	ids, err := client.QueryRecords(ctx, &pbrc.QueryRecordsRequest{Query: &pbrc.QueryRecordsRequest_ReleaseId{int32(id)}})
 	if err != nil {
 		log.Fatalf("Unable to get record %v -> %v", id, err)
 	}
 
-	if len(recs.GetRecords()) == 0 {
+	if len(ids.GetInstanceIds()) == 0 {
 		fmt.Printf("No records with that id\n")
 	}
 
-	for _, rec := range recs.GetRecords() {
-		location, err := c.Locate(ctx, &pb.LocateRequest{InstanceId: rec.GetRelease().InstanceId})
+	for _, id := range ids.GetInstanceIds() {
+		location, err := c.Locate(ctx, &pb.LocateRequest{InstanceId: id})
 		if err != nil {
-			fmt.Printf("Unable to locate instance (%v) of %v because %v\n", rec.GetRelease().InstanceId, rec.GetRelease().Title, err)
+			fmt.Printf("Unable to locate instance (%v) of %V because %v\n", id, id, err)
 		} else {
-			fmt.Printf("%v (%v) is in %v\n", rec.GetRelease().Title, rec.GetRelease().InstanceId, location.GetFoundLocation().GetName())
+			rec, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: id})
+			if err != nil {
+				fmt.Printf("Error getting record: %v", err)
+				return
+			}
+			fmt.Printf("%v (%v) is in %v\n", rec.GetRecord().GetRelease().Title, rec.GetRecord().GetRelease().InstanceId, location.GetFoundLocation().GetName())
 
 			for i, r := range location.GetFoundLocation().GetReleasesLocation() {
-				if r.GetInstanceId() == rec.GetRelease().InstanceId {
+				if r.GetInstanceId() == id {
 					fmt.Printf("Slot %v\n", r.GetSlot())
 					if i > 0 {
 						fmt.Printf("%v. %v\n", i-1, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i-1]))
@@ -129,11 +134,11 @@ func isTwelve(ctx context.Context, instanceID int32) bool {
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
-	rel, err := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Filter: &pbrc.Record{Release: &pbgd.Release{InstanceId: instanceID}}})
+	rel, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: instanceID})
 	if err != nil {
 		log.Fatalf("unable to get record (%v): %v", instanceID, err)
 	}
-	for _, f := range rel.GetRecords()[0].GetRelease().Formats {
+	for _, f := range rel.GetRecord().GetRelease().Formats {
 		if f.Name == "LP" || f.Name == "Vinyl" {
 			return true
 		}
@@ -279,15 +284,12 @@ func main() {
 					}
 
 					client := pbrc.NewRecordCollectionServiceClient(conn)
-					recs, err := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Filter: &pbrc.Record{Release: &pbgd.Release{InstanceId: id}}})
+					recs, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: id})
 					if err != nil {
 						log.Fatalf("Unable to get record %v -> %v", id, err)
 					}
 
-					if len(recs.GetRecords()) == 0 {
-						log.Fatalf("No records found", id)
-					}
-					fmt.Printf("%v\n", recs.GetRecords()[0].GetMetadata().Category)
+					fmt.Printf("%v\n", recs.GetRecord().GetMetadata().Category)
 				}
 			}
 		}
@@ -323,20 +325,19 @@ func main() {
 				ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 				defer cancel()
 
-				recs, err := rclient.GetRecords(ctx, &pbrc.GetRecordsRequest{Filter: &pbrc.Record{Release: &pbgd.Release{InstanceId: i}}})
+				recs, err := rclient.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: i})
 				if err != nil {
 					log.Fatalf("Error : %v", err)
 				}
 
-				for _, r := range recs.GetRecords() {
-					records = append(records, r)
-					score := float64(r.GetRelease().Rating)
-					if score == 0 {
-						score = float64(r.GetMetadata().OverallScore)
-					}
-					if score > 0.0 && score < minScore {
-						minScore = score
-					}
+				r := recs.GetRecord()
+				records = append(records, r)
+				score := float64(r.GetRelease().Rating)
+				if score == 0 {
+					score = float64(r.GetMetadata().OverallScore)
+				}
+				if score > 0.0 && score < minScore {
+					minScore = score
 				}
 			}
 

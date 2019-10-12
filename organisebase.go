@@ -13,7 +13,6 @@ import (
 	"google.golang.org/grpc"
 
 	pbgh "github.com/brotherlogic/githubcard/proto"
-	pbd "github.com/brotherlogic/godiscogs"
 	pbgs "github.com/brotherlogic/goserver/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
@@ -86,18 +85,19 @@ func (s *Server) saveOrg(ctx context.Context) {
 }
 
 func (discogsBridge prodBridge) getRecord(ctx context.Context, instanceID int32) (*pbrc.Record, error) {
-	conn, err2 := discogsBridge.dial("recordcollection")
-	if err2 == nil {
-		defer conn.Close()
-		client := pbrc.NewRecordCollectionServiceClient(conn)
-		meta, err3 := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Caller: "org_get_record", Filter: &pbrc.Record{Release: &pbd.Release{InstanceId: instanceID}}})
-		if err3 == nil && meta != nil && len(meta.Records) == 1 && meta.Records[0].Metadata != nil {
-			return meta.Records[0], nil
-		}
-		return nil, fmt.Errorf("Problem getting meta %v and %v", err3, meta)
+	conn, err := discogsBridge.dial("recordcollection")
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+	client := pbrc.NewRecordCollectionServiceClient(conn)
+
+	rec, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: instanceID})
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, fmt.Errorf("Unable to get release metadata: %v", err2)
+	return rec.GetRecord(), err
 }
 func (discogsBridge prodBridge) updateRecord(ctx context.Context, update *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
 	conn, err2 := discogsBridge.dial("recordcollection")
@@ -130,33 +130,6 @@ func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32
 			result = append(result, rel.GetInstanceIds()...)
 		}
 	}
-
-	return result, nil
-}
-
-func (discogsBridge prodBridge) getReleasesWithGoal(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
-	var result []*pbrc.Record
-
-	discogsBridge.log(fmt.Sprintf("GETTING FOR %v", folders))
-
-	for _, id := range folders {
-		conn, err2 := discogsBridge.dial("recordcollection")
-		if err2 != nil {
-			return result, err2
-		}
-
-		if err2 == nil {
-			defer conn.Close()
-			client := pbrc.NewRecordCollectionServiceClient(conn)
-
-			rel, err3 := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Caller: "org_get_rel_with_goal", Filter: &pbrc.Record{Release: &pbd.Release{}, Metadata: &pbrc.ReleaseMetadata{GoalFolder: id}}})
-			if err3 != nil {
-				return result, err3
-			}
-			result = append(result, rel.GetRecords()...)
-		}
-	}
-	discogsBridge.log(fmt.Sprintf("FOUND %v", len(result)))
 
 	return result, nil
 }
