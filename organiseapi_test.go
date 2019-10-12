@@ -234,11 +234,7 @@ func TestGetOverQuotaWithListeningPile(t *testing.T) {
 	quota, err := testServer.GetQuota(context.Background(), &pb.QuotaRequest{FolderId: 25, IncludeRecords: true})
 
 	if err != nil {
-		t.Fatalf("Error getting quota: %v", err)
-	}
-
-	if !quota.GetOverQuota() {
-		t.Errorf("Reported under quota?: %v", quota)
+		t.Fatalf("Error getting quota: %v ->%v", err, quota)
 	}
 }
 
