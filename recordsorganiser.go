@@ -116,7 +116,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 					if time.Now().Sub(time.Unix(rinloc.GetMetadata().LastStockCheck, 0)) > time.Hour*24*30*6 {
 						s.scNeeded[c.Name]++
 						s.scExample = int64(rinloc.GetRelease().InstanceId)
-						stocks += fmt.Sprintf("%v [%v]\n", rinloc.GetRelease().Title, rinloc.GetRelease().Id)
+						stocks += fmt.Sprintf("%v [%v]\n", rinloc.GetRelease().Title, rinloc.GetRelease().InstanceId)
 					}
 				}
 			}
