@@ -100,6 +100,8 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 		sort.Sort(ByDateAdded(tfr))
 	case pb.Location_BY_LABEL_CATNO:
 		sort.Sort(ByLabelCat{tfr, convert(s.org.GetExtractors()), s.Log})
+	case pb.Location_BY_FOLDER_THEN_DATE:
+		sort.Sort(ByFolderThenRelease(tfr))
 	}
 
 	records := s.Split(tfr, float64(c.GetSlots()))

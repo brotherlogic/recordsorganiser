@@ -160,6 +160,25 @@ func TestSortByMasterReleaseDate(t *testing.T) {
 	}
 }
 
+func TestSortByFolderThenMasterReleaseDate(t *testing.T) {
+	releases := []*pbrc.Record{
+		&pbrc.Record{Release: &pbd.Release{Id: 2, FolderId: 1, EarliestReleaseDate: 15}},
+		&pbrc.Record{Release: &pbd.Release{Id: 3, FolderId: 1, EarliestReleaseDate: 10}},
+		&pbrc.Record{Release: &pbd.Release{Id: 4, FolderId: 2, EarliestReleaseDate: 20}},
+		&pbrc.Record{Release: &pbd.Release{Id: 5, FolderId: 2, Title: "yay", EarliestReleaseDate: 15}},
+		&pbrc.Record{Release: &pbd.Release{Id: 6, FolderId: 2, Title: "nay", EarliestReleaseDate: 15}},
+	}
+
+	sort.Sort(ByFolderThenRelease(releases))
+
+	if releases[0].GetRelease().Id != 3 ||
+		releases[1].GetRelease().Id != 2 ||
+		releases[2].GetRelease().Id != 6 ||
+		releases[3].GetRelease().Id != 5 {
+		t.Errorf("Releases are not correctly ordered: %v", releases)
+	}
+}
+
 func TestGetFormatWidth(t *testing.T) {
 	v := getFormatWidth(&pbrc.Record{Release: &pbd.Release{FormatQuantity: 1, Labels: []*pbd.Label{&pbd.Label{Name: "Death Waltz Recording Company"}}}})
 	if v != 2.0 {

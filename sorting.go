@@ -122,6 +122,22 @@ func (a ByEarliestReleaseDate) Less(i, j int) bool {
 	return strings.Compare(a[i].Title, a[j].Title) < 0
 }
 
+// ByFolderThenRelease allows sorting by the earliest release date
+type ByFolderThenRelease []*pbrc.Record
+
+func (a ByFolderThenRelease) Len() int      { return len(a) }
+func (a ByFolderThenRelease) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByFolderThenRelease) Less(i, j int) bool {
+	if a[i].GetRelease().FolderId != a[j].GetRelease().FolderId {
+		return a[i].GetRelease().FolderId < a[j].GetRelease().FolderId
+	}
+
+	if a[i].GetRelease().EarliestReleaseDate != a[j].GetRelease().EarliestReleaseDate {
+		return a[i].GetRelease().EarliestReleaseDate < a[j].GetRelease().EarliestReleaseDate
+	}
+	return strings.Compare(a[i].GetRelease().Title, a[j].GetRelease().Title) < 0
+}
+
 func getFormatWidth(r *pbrc.Record) float64 {
 	v := float64(r.GetRelease().FormatQuantity)
 
