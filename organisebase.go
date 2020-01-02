@@ -245,7 +245,11 @@ func main() {
 	server := InitServer()
 
 	server.GoServer.Killme = true
-	server.RegisterServer("recordsorganiser", false)
+	err := server.RegisterServerV2("recordsorganiser", false, false)
+	if err != nil {
+		return
+	}
+
 	server.RegisterRepeatingTask(server.checkQuota, "check_quota", time.Hour)
 	server.RegisterRepeatingTask(server.checkOrg, "check_org", time.Hour)
 	server.RegisterRepeatingTask(server.reOrg, "re_org", time.Minute*5)

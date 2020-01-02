@@ -68,7 +68,7 @@ func locateRelease(ctx context.Context, c pb.OrganiserServiceClient, id int32) {
 	for _, id := range ids.GetInstanceIds() {
 		location, err := c.Locate(ctx, &pb.LocateRequest{InstanceId: id})
 		if err != nil {
-			fmt.Printf("Unable to locate instance (%v) of %V because %v\n", id, id, err)
+			fmt.Printf("Unable to locate instance (%v) of %v because %v\n", id, id, err)
 		} else {
 			rec, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: id})
 			if err != nil {
@@ -412,6 +412,9 @@ func main() {
 			if len(*sort) > 0 {
 				if *sort == "time" {
 					client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{Sort: pb.Location_BY_DATE_ADDED}})
+				}
+				if *sort == "folder" {
+					client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{Sort: pb.Location_BY_FOLDER_THEN_DATE}})
 				}
 			}
 			if !*alert {
