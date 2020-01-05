@@ -128,7 +128,11 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 	}
 
 	if len(stocks) > 0 {
-		s.RaiseIssue(ctx, "Stock Checks Needed", stocks, false)
+		mv := len(stocks)
+		if mv > 5 {
+			mv = 5
+		}
+		s.RaiseIssue(ctx, "Stock Checks Needed", stocks[0:mv], false)
 	}
 
 	if c.GetQuota().GetSlots() > 0 {
