@@ -20,7 +20,12 @@ import (
 
 	//Needed to pull in gzip encoding init
 	_ "google.golang.org/grpc/encoding/gzip"
+	"google.golang.org/grpc/resolver"
 )
+
+func init() {
+	resolver.Register(&utils.DiscoveryClientResolverBuilder{})
+}
 
 // ByReleaseDate sorts by the given release date
 // but puts matched records up front and keepers in the rear
@@ -100,16 +105,12 @@ func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement) string {
 }
 
 func getRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
-	host, port, err := utils.Resolve("recordcollection", "recorg-12")
-	if err != nil {
-		log.Fatalf("Unable to reach collection: %v", err)
-	}
-	conn, err := grpc.Dial(host+":"+strconv.Itoa(int(port)), grpc.WithInsecure())
-	defer conn.Close()
+	conn, err := grpc.Dial("discovery:///recordcollection", grpc.WithInsecure(), grpc.WithBalancerName("my_pick_first"))
 
 	if err != nil {
 		log.Fatalf("Unable to dial: %v", err)
 	}
+	defer conn.Close()
 
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 	val, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: id})
@@ -203,16 +204,11 @@ func add(ctx context.Context, client pb.OrganiserServiceClient, name string, fol
 }
 
 func main() {
-	host, port, err := utils.Resolve("recordsorganiser", "recorg-main")
-	if err != nil {
-		log.Fatalf("Unable to reach organiser: %v", err)
-	}
-	conn, err := grpc.Dial(host+":"+strconv.Itoa(int(port)), grpc.WithInsecure())
-	defer conn.Close()
-
+	conn, err := grpc.Dial("discovery:///recordsorganiser", grpc.WithInsecure(), grpc.WithBalancerName("my_pick_first"))
 	if err != nil {
 		log.Fatalf("Unable to dial: %v", err)
 	}
+	defer conn.Close()
 
 	client := pb.NewOrganiserServiceClient(conn)
 	ctx, cancel := utils.BuildContext("OrgCLI-"+os.Args[1], "recordsorganiser")
