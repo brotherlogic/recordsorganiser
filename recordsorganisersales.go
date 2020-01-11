@@ -36,13 +36,7 @@ func (a BySaleOrder) Less(i, j int) bool {
 		}
 	}
 
-	// Sort by score
-	if a[i].GetMetadata() != nil && a[j].GetMetadata() != nil {
-		if getScore(a[i]) != getScore(a[j]) {
-			return getScore(a[i]) < getScore(a[j])
-		}
-	}
-
+	// Push FULL_MATCH first
 	if a[i].GetMetadata() != nil && a[j].GetMetadata() != nil {
 		if a[i].GetMetadata().Match != a[j].GetMetadata().Match {
 			if a[i].GetMetadata().Match == pbrc.ReleaseMetadata_FULL_MATCH {
@@ -51,6 +45,13 @@ func (a BySaleOrder) Less(i, j int) bool {
 			if a[j].GetMetadata().Match == pbrc.ReleaseMetadata_FULL_MATCH {
 				return false
 			}
+		}
+	}
+
+	// Sort by score
+	if a[i].GetMetadata() != nil && a[j].GetMetadata() != nil {
+		if getScore(a[i]) != getScore(a[j]) {
+			return getScore(a[i]) < getScore(a[j])
 		}
 	}
 
