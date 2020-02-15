@@ -40,7 +40,7 @@ func (s *Server) Locate(ctx context.Context, req *pb.LocateRequest) (*pb.LocateR
 		}
 	}
 
-	return &pb.LocateResponse{}, fmt.Errorf("Unable to locate %v in collection", req.GetInstanceId())
+	return &pb.LocateResponse{}, status.Errorf(codes.NotFound, "Unable to locate %v in collection", req.GetInstanceId())
 }
 
 //AddLocation adds a location
