@@ -38,6 +38,11 @@ func (s *Server) Locate(ctx context.Context, req *pb.LocateRequest) (*pb.LocateR
 				return &pb.LocateResponse{FoundLocation: loc}, nil
 			}
 		}
+		for _, f := range loc.GetFolderIds() {
+			if f == req.GetFolderId() {
+				return &pb.LocateResponse{FoundLocation: loc}, nil
+			}
+		}
 	}
 
 	return &pb.LocateResponse{}, status.Errorf(codes.NotFound, "Unable to locate %v in collection", req.GetInstanceId())
