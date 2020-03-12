@@ -22,6 +22,7 @@ func TestLocate(t *testing.T) {
 	testServer.org.Locations = append(testServer.org.Locations, location)
 
 	f, err := testServer.Locate(context.Background(), &pb.LocateRequest{InstanceId: 1234})
+	f2, err := testServer.Locate(context.Background(), &pb.LocateRequest{FolderId: 10})
 
 	if err != nil {
 		t.Fatalf("Error locating record: %v", err)
@@ -29,6 +30,10 @@ func TestLocate(t *testing.T) {
 
 	if f.FoundLocation.GetName() != "TestName" {
 		t.Errorf("Error on spotted location: %v", f)
+	}
+
+	if f2.FoundLocation.GetName() != "TestName" {
+		t.Errorf("Bad location : %v", f2)
 	}
 }
 
