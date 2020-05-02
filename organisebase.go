@@ -158,8 +158,8 @@ func (s *Server) Mote(ctx context.Context, master bool) error {
 // GetState gets the state of the server
 func (s Server) GetState() []*pbgs.State {
 	return []*pbgs.State{
-		&pbgs.State{Key: "stocks", Text: fmt.Sprintf("%v", s.scNeeded)},
 		&pbgs.State{Key: "stock", Value: s.scExample},
+		&pbgs.State{Key: "stocks", Text: fmt.Sprintf("%v", s.scNeeded)},
 		&pbgs.State{Key: "org_time", Text: fmt.Sprintf("%v", s.lastOrgTime)},
 		&pbgs.State{Key: "org_fold", Text: s.lastOrgFolder},
 		&pbgs.State{Key: "sort_map_size", Value: int64(len(s.sortMap))},

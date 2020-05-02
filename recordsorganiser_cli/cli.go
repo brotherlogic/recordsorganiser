@@ -139,6 +139,11 @@ func isTwelve(ctx context.Context, instanceID int32) bool {
 	if err != nil {
 		log.Fatalf("unable to get record (%v): %v", instanceID, err)
 	}
+
+	if rel.GetRecord().GetMetadata().GetGoalFolder() == 1782105 {
+		return false
+	}
+
 	for _, f := range rel.GetRecord().GetRelease().Formats {
 		if f.Name == "LP" || f.Name == "Vinyl" {
 			return true
