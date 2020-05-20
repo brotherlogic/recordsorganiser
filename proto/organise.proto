@@ -112,6 +112,15 @@ message Location {
   }
 
   InPlay in_play = 17;
+
+  enum MediaType {
+    UNKNOWN_TYPE = 0;
+    PHYSICAL = 1;
+    DIGITAL = 2;
+    MIX = 3;
+  }
+
+  MediaType media_type = 18;
 }
 
 message Organisation {
