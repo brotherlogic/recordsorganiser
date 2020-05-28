@@ -396,6 +396,7 @@ func main() {
 		var delete = updateLocationFlags.Bool("delete", false, "Remove this")
 		var needStock = updateLocationFlags.Bool("stockcheck", false, "Needs a stock check.")
 		var inPlay = updateLocationFlags.Bool("inplay", false, "Is in play")
+		var physical = updateLocationFlags.Bool("physical", false, "Has physical media")
 
 		if err := updateLocationFlags.Parse(os.Args[2:]); err == nil {
 			if *needStock {
@@ -436,6 +437,9 @@ func main() {
 			}
 			if *inPlay {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{InPlay: pb.Location_NOT_IN_PLAY}})
+			}
+			if *physical {
+				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{MediaType: pb.Location_PHYSICAL}})
 			}
 
 		}

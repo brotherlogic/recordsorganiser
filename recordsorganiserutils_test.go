@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"testing"
 
 	"golang.org/x/net/context"
@@ -38,5 +39,39 @@ func TestReleaseGet(t *testing.T) {
 
 	if len(recs) != 3 {
 		t.Errorf("Not enough records returned: %v -> %v", recs, len(recs))
+	}
+}
+
+func TestSaleQuota(t *testing.T) {
+	testLocation := &pb.Location{
+		Name: "testing",
+		Quota: &pb.Quota{
+			NumOfSlots: 1,
+		},
+		ReleasesLocation: []*pb.ReleasePlacement{
+			&pb.ReleasePlacement{},
+			&pb.ReleasePlacement{},
+		}}
+	s := getTestServer(".testsalequota")
+	s.processQuota(context.Background(), testLocation)
+}
+
+func TestFailRecordPull(t *testing.T) {
+	testLocation := &pb.Location{
+		Name: "testing",
+		Quota: &pb.Quota{
+			NumOfSlots: 1,
+		},
+		ReleasesLocation: []*pb.ReleasePlacement{
+			&pb.ReleasePlacement{InstanceId: 1234},
+			&pb.ReleasePlacement{},
+		}}
+	s := getTestServer(".testsalequota")
+	s.bridge = &testBridge{failGetRecord: true}
+	err := s.processQuota(context.Background(), testLocation)
+
+	log.Printf("Boing %v", err)
+	if err == nil {
+		t.Errorf("Test Did not fail")
 	}
 }
