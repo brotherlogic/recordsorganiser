@@ -1,25 +1,19 @@
-package main
+package sales
 
 import (
-	"fmt"
-	"sort"
 	"strings"
 
-	pbgd "github.com/brotherlogic/godiscogs"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
-	pb "github.com/brotherlogic/recordsorganiser/proto"
-
-	"golang.org/x/net/context"
 )
 
 //BySaleOrder - the order in which we sell things
 type BySaleOrder []*pbrc.Record
 
-func getScore(r *pbrc.Record) int32 {
+func getScore(r *pbrc.Record) float32 {
 	if r.GetRelease().Rating != 0 {
-		return r.GetRelease().Rating
+		return float32(r.GetRelease().Rating)
 	}
-	return int32(r.GetMetadata().OverallScore)
+	return r.GetMetadata().OverallScore
 }
 
 func (a BySaleOrder) Len() int      { return len(a) }
@@ -63,35 +57,9 @@ func (a BySaleOrder) Less(i, j int) bool {
 	}
 
 	if a[i].GetRelease().Released != a[j].GetRelease().Released {
+
 		return a[i].GetRelease().Released > a[j].GetRelease().Released
 	}
 
 	return strings.Compare(a[i].GetRelease().Title, a[j].GetRelease().Title) < 0
-}
-
-func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
-	slots := int(c.GetQuota().GetNumOfSlots())
-	existing := len(c.ReleasesLocation)
-
-	s.Log(fmt.Sprintf("Processing %v - selling %v records", c.Name, existing-slots))
-	c.OverQuotaTime = 0
-
-	records := []*pbrc.Record{}
-	for _, rp := range c.ReleasesLocation {
-		rec, err := s.bridge.getRecord(ctx, rp.InstanceId)
-		if err != nil {
-			return err
-		}
-		records = append(records, rec)
-	}
-
-	// Sort the record
-	sort.Sort(BySaleOrder(records))
-
-	for i := 0; i < existing-slots; i++ {
-		up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[i].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
-		s.Log(fmt.Sprintf("Selling %v (%v)", records[i].GetRelease().Title, records[i].GetRelease().InstanceId))
-		s.bridge.updateRecord(ctx, up)
-	}
-	return nil
 }

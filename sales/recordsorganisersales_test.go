@@ -1,16 +1,16 @@
-package main
+package sales
 
 import (
+	"io/ioutil"
 	"log"
 	"sort"
 	"testing"
 
 	pbgd "github.com/brotherlogic/godiscogs"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
-	pb "github.com/brotherlogic/recordsorganiser/proto"
+	"github.com/golang/protobuf/proto"
 
 	"github.com/brotherlogic/goserver/utils"
-	"golang.org/x/net/context"
 )
 
 var orderData = []struct {
@@ -151,36 +151,54 @@ func TestSaleOrdering(t *testing.T) {
 	}
 }
 
-func TestSaleQuota(t *testing.T) {
-	testLocation := &pb.Location{
-		Name: "testing",
-		Quota: &pb.Quota{
-			NumOfSlots: 1,
-		},
-		ReleasesLocation: []*pb.ReleasePlacement{
-			&pb.ReleasePlacement{},
-			&pb.ReleasePlacement{},
-		}}
-	s := getTestServer(".testsalequota")
-	s.processQuota(context.Background(), testLocation)
+func TestSaleSpecificOrdering(t *testing.T) {
+	data, _ := ioutil.ReadFile("testdata/11427909.data")
+	data2, _ := ioutil.ReadFile("testdata/13180489.data")
+
+	record1 := &pbrc.Record{}
+	record2 := &pbrc.Record{}
+	err := proto.Unmarshal(data, record1)
+	if err != nil {
+		t.Fatalf("Cannot read data :%v", err)
+	}
+	log.Printf("Found %v", record1)
+
+	err = proto.Unmarshal(data2, record2)
+	if err != nil {
+		t.Fatalf("Cannot read data :%v", err)
+	}
+
+	records := []*pbrc.Record{record1, record2}
+	log.Printf("%v", records[0].GetRelease().GetId())
+	sort.Sort(BySaleOrder(records))
+	log.Printf("%v", records[0].GetRelease().GetId())
+
+	if records[0].GetRelease().GetId() == 11427909 {
+		t.Errorf("Bad ordering")
+	}
 }
 
-func TestFailRecordPull(t *testing.T) {
-	testLocation := &pb.Location{
-		Name: "testing",
-		Quota: &pb.Quota{
-			NumOfSlots: 1,
-		},
-		ReleasesLocation: []*pb.ReleasePlacement{
-			&pb.ReleasePlacement{InstanceId: 1234},
-			&pb.ReleasePlacement{},
-		}}
-	s := getTestServer(".testsalequota")
-	s.bridge = &testBridge{failGetRecord: true}
-	err := s.processQuota(context.Background(), testLocation)
+func TestSaleSpecificOrderingpart2(t *testing.T) {
+	data, _ := ioutil.ReadFile("testdata/3077034.data")
+	data2, _ := ioutil.ReadFile("testdata/13180489.data")
 
-	log.Printf("Boing %v", err)
-	if err == nil {
-		t.Errorf("Test Did not fail")
+	record1 := &pbrc.Record{}
+	record2 := &pbrc.Record{}
+	err := proto.Unmarshal(data, record1)
+	if err != nil {
+		t.Fatalf("Cannot read data :%v", err)
+	}
+	err = proto.Unmarshal(data2, record2)
+	if err != nil {
+		t.Fatalf("Cannot read data :%v", err)
+	}
+
+	records := []*pbrc.Record{record1, record2}
+	log.Printf("BEF %v", record1)
+	sort.Sort(BySaleOrder(records))
+	log.Printf("AFT %v", records[0].GetRelease().GetId())
+
+	if records[0].GetRelease().GetId() != 13180489 {
+		t.Errorf("Bad ordering")
 	}
 }

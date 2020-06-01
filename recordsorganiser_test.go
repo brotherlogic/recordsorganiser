@@ -8,6 +8,7 @@ import (
 	"github.com/brotherlogic/goserver/utils"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
+	"github.com/brotherlogic/recordsorganiser/sales"
 )
 
 var data = []struct {
@@ -28,7 +29,7 @@ var data = []struct {
 
 func TestOrdering(t *testing.T) {
 	for _, entry := range data {
-		sort.Sort(BySaleOrder(entry.in))
+		sort.Sort(sales.BySaleOrder(entry.in))
 		for i := range entry.in {
 			if utils.FuzzyMatch(entry.in[i], entry.out[i]) != nil {
 				t.Errorf("Sorting error: %v vs %v", entry.in[i], entry.out[i])
