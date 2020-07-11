@@ -184,12 +184,14 @@ func (discogsBridge testBridge) updateRecord(ctx context.Context, req *pbrc.Upda
 }
 
 func getTestServer(dir string) *Server {
-	testServer := &Server{GoServer: &goserver.GoServer{}, bridge: testBridge{}, org: &pb.Organisation{}, gh: &testgh{}}
+	testServer := &Server{GoServer: &goserver.GoServer{}, bridge: testBridge{}}
 	testServer.Register = testServer
 	testServer.GoServer.KSclient = *keystoreclient.GetTestClient(dir)
 	testServer.SkipLog = true
-	testServer.org.Extractors = append(testServer.org.Extractors, &pb.LabelExtractor{LabelId: 123, Extractor: "\\d\\d"})
-	testServer.scNeeded = make(map[string]int64)
+	testServer.SkipIssue = true
+	org := &pb.Organisation{}
+	org.Extractors = append(org.Extractors, &pb.LabelExtractor{LabelId: 123, Extractor: "\\d\\d"})
+	testServer.GoServer.KSclient.Save(context.Background(), KEY, org)
 	return testServer
 }
 
@@ -251,8 +253,6 @@ func TestRaiseIssue(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error on adding location: %v", err)
 	}
-
-	testServer.checkQuota(context.Background())
 }
 
 func TestPassQuota(t *testing.T) {
@@ -270,10 +270,5 @@ func TestPassQuota(t *testing.T) {
 	_, err := testServer.AddLocation(context.Background(), &pb.AddLocationRequest{Add: location})
 	if err != nil {
 		t.Errorf("Error on adding location: %v", err)
-	}
-
-	err = testServer.reOrg(context.Background())
-	if err != nil {
-		t.Errorf("Error on reorg: %v", err)
 	}
 }
