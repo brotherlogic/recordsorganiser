@@ -16,23 +16,32 @@ import (
 
 // UpdateLocation updates a given location
 func (s *Server) UpdateLocation(ctx context.Context, req *pb.UpdateLocationRequest) (*pb.UpdateLocationResponse, error) {
-	for i, loc := range s.org.GetLocations() {
+	org, err := s.readOrg(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, loc := range org.GetLocations() {
 		if loc.GetName() == req.GetLocation() {
 			if req.DeleteLocation {
-				s.org.Locations = append(s.org.GetLocations()[:i], s.org.GetLocations()[i+1:]...)
+				org.Locations = append(org.GetLocations()[:i], org.GetLocations()[i+1:]...)
 			} else {
 				proto.Merge(loc, req.Update)
 			}
 		}
 	}
 
-	s.saveOrg(ctx)
-	return &pb.UpdateLocationResponse{}, nil
+	return &pb.UpdateLocationResponse{}, s.saveOrg(ctx, org)
 }
 
 //Locate finds a record in the collection
 func (s *Server) Locate(ctx context.Context, req *pb.LocateRequest) (*pb.LocateResponse, error) {
-	for _, loc := range s.org.GetLocations() {
+	org, err := s.readOrg(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, loc := range org.GetLocations() {
 		for _, r := range loc.GetReleasesLocation() {
 			if r.GetInstanceId() == req.GetInstanceId() {
 				return &pb.LocateResponse{FoundLocation: loc}, nil
@@ -50,33 +59,44 @@ func (s *Server) Locate(ctx context.Context, req *pb.LocateRequest) (*pb.LocateR
 
 //AddLocation adds a location
 func (s *Server) AddLocation(ctx context.Context, req *pb.AddLocationRequest) (*pb.AddLocationResponse, error) {
-	s.prepareForReorg()
-	s.org.Locations = append(s.org.Locations, req.GetAdd())
-	s.saveOrg(ctx)
-
-	_, err := s.organise(s.org)
-
+	org, err := s.readOrg(ctx)
 	if err != nil {
-		return &pb.AddLocationResponse{}, err
+		return nil, err
 	}
 
-	return &pb.AddLocationResponse{Now: s.org}, nil
+	org.Locations = append(org.Locations, req.GetAdd())
+	err = s.saveOrg(ctx, org)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.organiseLocation(ctx, req.GetAdd(), org)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.AddLocationResponse{Now: org}, nil
 }
 
 // GetOrganisation gets a given organisation
 func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationRequest) (*pb.GetOrganisationResponse, error) {
+	org, err := s.readOrg(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	locations := make([]*pb.Location, 0)
 	num := int32(0)
 
 	if len(req.GetLocations()) == 0 {
-		locations = s.org.GetLocations()
+		locations = org.GetLocations()
 	}
 
 	for _, rloc := range req.GetLocations() {
-		for _, loc := range s.org.GetLocations() {
+		for _, loc := range org.GetLocations() {
 			if utils.FuzzyMatch(rloc, loc) == nil {
 				if req.ForceReorg {
-					n, err := s.organiseLocation(ctx, loc)
+					n, err := s.organiseLocation(ctx, loc, org)
 					num = n
 					if err != nil {
 						return &pb.GetOrganisationResponse{}, err
@@ -93,7 +113,10 @@ func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationReq
 	}
 
 	if req.GetForceReorg() {
-		s.saveOrg(ctx)
+		err := s.saveOrg(ctx, org)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &pb.GetOrganisationResponse{Locations: locations, NumberProcessed: num}, nil
@@ -101,10 +124,13 @@ func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationReq
 
 // GetQuota fills out the quota response
 func (s *Server) GetQuota(ctx context.Context, req *pb.QuotaRequest) (*pb.QuotaResponse, error) {
-	st := time.Now()
+	org, err := s.readOrg(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	var loc *pb.Location
-	for _, l := range s.org.GetLocations() {
+	for _, l := range org.GetLocations() {
 		if l.Name == req.Name {
 			loc = l
 		}
@@ -116,7 +142,6 @@ func (s *Server) GetQuota(ctx context.Context, req *pb.QuotaRequest) (*pb.QuotaR
 	}
 
 	if loc == nil {
-		s.lastQuotaTime = time.Now().Sub(st)
 		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("Unable to find folder with name '%v' or id %v", req.Name, req.FolderId))
 	}
 
@@ -131,19 +156,17 @@ func (s *Server) GetQuota(ctx context.Context, req *pb.QuotaRequest) (*pb.QuotaR
 	if loc.GetQuota() != nil {
 		if loc.GetQuota().NumOfSlots > 0 {
 			if len(recs) > int(loc.GetQuota().NumOfSlots) {
-				s.RaiseIssue(ctx, "Quota Problem", fmt.Sprintf("%v is over quota", loc.GetName()), false)
+				s.RaiseIssue("Quota Problem", fmt.Sprintf("%v is over quota", loc.GetName()))
 			}
-			s.lastQuotaTime = time.Now().Sub(st)
 			return &pb.QuotaResponse{OverQuota: len(recs) > int(loc.GetQuota().NumOfSlots), LocationName: loc.GetName(), InstanceId: instanceIDs, Quota: loc.GetQuota()}, nil
 		}
 
 		//New style quota
 		if loc.GetQuota().GetSlots() > 0 {
 			if len(recs) > int(loc.GetQuota().GetSlots()) {
-				s.RaiseIssue(ctx, "Quota Problem", fmt.Sprintf("%v is over quota", loc.GetName()), false)
+				s.RaiseIssue("Quota Problem", fmt.Sprintf("%v is over quota", loc.GetName()))
 			}
 
-			s.lastQuotaTime = time.Now().Sub(st)
 			return &pb.QuotaResponse{OverQuota: len(recs) > int(loc.GetQuota().GetSlots()), LocationName: loc.GetName(), InstanceId: instanceIDs, Quota: loc.GetQuota()}, nil
 		}
 
@@ -152,28 +175,29 @@ func (s *Server) GetQuota(ctx context.Context, req *pb.QuotaRequest) (*pb.QuotaR
 			totalWidth := int32(0)
 			for _, r := range recs {
 				if r.GetMetadata().SpineWidth <= 0 {
-					s.RaiseIssue(ctx, "Missing Spine Width", fmt.Sprintf("Record %v is missing spine width (%v)", r.GetRelease().Title, r.GetRelease().Id), false)
-					s.lastQuotaTime = time.Now().Sub(st)
+					s.RaiseIssue("Missing Spine Width", fmt.Sprintf("Record %v is missing spine width (%v)", r.GetRelease().Title, r.GetRelease().Id))
 					return nil, fmt.Errorf("Unable to compute quota - missing width")
 				}
 				totalWidth += r.GetMetadata().SpineWidth
 			}
 			if totalWidth > loc.GetQuota().GetWidth() {
-				s.RaiseIssue(ctx, "Quota Problem", fmt.Sprintf("%v is over quota", loc.GetName()), false)
+				s.RaiseIssue("Quota Problem", fmt.Sprintf("%v is over quota", loc.GetName()))
 			}
 
-			s.lastQuotaTime = time.Now().Sub(st)
 			return &pb.QuotaResponse{OverQuota: totalWidth > loc.GetQuota().GetWidth(), LocationName: loc.GetName(), InstanceId: instanceIDs, Quota: loc.GetQuota()}, nil
 		}
 	}
 
-	s.lastQuotaTime = time.Now().Sub(st)
 	return &pb.QuotaResponse{}, status.Error(codes.InvalidArgument, fmt.Sprintf("No quota specified for location (%v)", loc.GetName()))
 }
 
 // AddExtractor adds an extractor
 func (s *Server) AddExtractor(ctx context.Context, req *pb.AddExtractorRequest) (*pb.AddExtractorResponse, error) {
-	s.org.Extractors = append(s.org.Extractors, req.Extractor)
-	s.saveOrg(ctx)
-	return &pb.AddExtractorResponse{}, nil
+	org, err := s.readOrg(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	org.Extractors = append(org.Extractors, req.GetExtractor())
+	return &pb.AddExtractorResponse{}, s.saveOrg(ctx, org)
 }

@@ -15,41 +15,13 @@ import (
 // Server the configuration for the syncer
 type Server struct {
 	*goserver.GoServer
-	bridge        discogsBridge
-	org           *pb.Organisation
-	gh            gh
-	lastOrgTime   time.Duration
-	lastOrgFolder string
-	sortMap       map[int32]*pb.SortMapping
-	lastQuotaTime time.Duration
-	scNeeded      map[string]int64
-	scExample     int64
-}
-
-type gh interface {
-	alert(ctx context.Context, r *pb.Location) error
+	bridge discogsBridge
 }
 
 type discogsBridge interface {
 	getReleases(ctx context.Context, folders []int32) ([]int32, error)
 	getRecord(ctx context.Context, instanceID int32) (*pbrc.Record, error)
 	updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error)
-}
-
-func (s *Server) prepareForReorg() {
-
-}
-
-func (s *Server) organise(c *pb.Organisation) (int32, error) {
-	num := int32(0)
-	for _, l := range s.org.Locations {
-		n, err := s.organiseLocation(context.Background(), l)
-		if err != nil {
-			return -1, err
-		}
-		num += n
-	}
-	return num, nil
 }
 
 func convert(exs []*pb.LabelExtractor) map[int32]string {
@@ -72,8 +44,7 @@ func (s *Server) markOverQuota(c *pb.Location, tim int64) {
 	}
 }
 
-func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, error) {
-	s.lastOrgFolder = c.Name
+func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.Organisation) (int32, error) {
 	ids, err := s.bridge.getReleases(ctx, c.GetFolderIds())
 	if err != nil {
 		return -1, err
@@ -99,16 +70,13 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 	case pb.Location_BY_DATE_ADDED:
 		sort.Sort(ByDateAdded(tfr))
 	case pb.Location_BY_LABEL_CATNO:
-		sort.Sort(ByLabelCat{tfr, convert(s.org.GetExtractors()), s.Log})
+		sort.Sort(ByLabelCat{tfr, convert(org.GetExtractors()), s.Log})
 	case pb.Location_BY_FOLDER_THEN_DATE:
 		sort.Sort(ByFolderThenRelease(tfr))
 	}
 
 	records := s.Split(tfr, float64(c.GetSlots()))
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
-	if c.Checking == pb.Location_REQUIRE_STOCK_CHECK {
-		s.scNeeded[c.Name] = 0
-	}
 	stocks := ""
 	count := 0
 	for slot, recs := range records {
@@ -117,8 +85,6 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 			if c.Checking == pb.Location_REQUIRE_STOCK_CHECK {
 				if rinloc.GetMetadata().Keep != pbrc.ReleaseMetadata_KEEPER && rinloc.GetRelease().MasterId != 0 {
 					if time.Now().Sub(time.Unix(rinloc.GetMetadata().LastStockCheck, 0)) > time.Hour*24*30*6 && !rinloc.GetMetadata().GetOthers() && count < 10 && rinloc.GetMetadata().GetGoalFolder() != 1782105 {
-						s.scNeeded[c.Name]++
-						s.scExample = int64(rinloc.GetRelease().InstanceId)
 						stocks += fmt.Sprintf("%v [%v]\n", rinloc.GetRelease().Title, rinloc.GetRelease().InstanceId)
 						count++
 					}
@@ -130,7 +96,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 	}
 
 	if len(stocks) > 0 {
-		s.RaiseIssue(ctx, "Stock Checks Needed", stocks, false)
+		s.RaiseIssue("Stock Checks Needed", stocks)
 	}
 
 	if c.GetQuota().GetSlots() > 0 {
@@ -150,13 +116,4 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location) (int32, e
 	}
 
 	return int32(len(tfr)), nil
-}
-
-func (s *Server) checkQuota(ctx context.Context) error {
-	for _, loc := range s.org.Locations {
-		if loc.GetQuota() == nil && !loc.OptOutQuotaChecks {
-			s.RaiseIssue(ctx, "Need Quota", fmt.Sprintf("%v needs to have some quota", loc.Name), false)
-		}
-	}
-	return nil
 }

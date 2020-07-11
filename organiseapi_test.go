@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"testing"
 
 	"golang.org/x/net/context"
@@ -19,7 +20,9 @@ func TestLocate(t *testing.T) {
 			&pb.ReleasePlacement{InstanceId: 1234, Index: 1, Slot: 1},
 		},
 	}
-	testServer.org.Locations = append(testServer.org.Locations, location)
+	log.Printf("NEWLOC: %v", location)
+	testServer.AddLocation(context.Background(), &pb.AddLocationRequest{Add: location})
+	//testServer.org.Locations = append(testServer.org.Locations, location)
 
 	f, err := testServer.Locate(context.Background(), &pb.LocateRequest{InstanceId: 1234})
 	f2, err := testServer.Locate(context.Background(), &pb.LocateRequest{FolderId: 10})
@@ -48,7 +51,8 @@ func TestLocateFail(t *testing.T) {
 			&pb.ReleasePlacement{InstanceId: 1234, Index: 1, Slot: 1},
 		},
 	}
-	testServer.org.Locations = append(testServer.org.Locations, location)
+	log.Printf("NEWLOC: %v", location)
+	//testServer.org.Locations = append(testServer.org.Locations, location)
 
 	f, err := testServer.Locate(context.Background(), &pb.LocateRequest{InstanceId: 12345})
 
