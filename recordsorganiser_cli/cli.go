@@ -105,7 +105,7 @@ func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement) string {
 }
 
 func getRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
-	conn, err := grpc.Dial("discovery:///recordcollection", grpc.WithInsecure(), grpc.WithBalancerName("my_pick_first"))
+	conn, err := utils.LFDialServer(ctx, "recordcollection")
 
 	if err != nil {
 		log.Fatalf("Unable to dial: %v", err)
@@ -121,11 +121,7 @@ func getRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
 }
 
 func isTwelve(ctx context.Context, instanceID int32) bool {
-	host, port, err := utils.Resolve("recordcollection", "recorg-12")
-	if err != nil {
-		log.Fatalf("Unable to reach collection: %v", err)
-	}
-	conn, err := grpc.Dial(host+":"+strconv.Itoa(int(port)), grpc.WithInsecure())
+	conn, err := utils.LFDialServer(ctx, "recordcollection")
 	defer conn.Close()
 
 	if err != nil {
@@ -209,15 +205,16 @@ func add(ctx context.Context, client pb.OrganiserServiceClient, name string, fol
 }
 
 func main() {
-	conn, err := grpc.Dial("discovery:///recordsorganiser", grpc.WithInsecure(), grpc.WithBalancerName("my_pick_first"))
+	ctx, cancel := utils.BuildContext("OrgCLI-"+os.Args[1], "recordsorganiser")
+	defer cancel()
+
+	conn, err := utils.LFDialServer(ctx, "recordsorganiser")
 	if err != nil {
 		log.Fatalf("Unable to dial: %v", err)
 	}
 	defer conn.Close()
 
 	client := pb.NewOrganiserServiceClient(conn)
-	ctx, cancel := utils.BuildContext("OrgCLI-"+os.Args[1], "recordsorganiser")
-	defer cancel()
 
 	switch os.Args[1] {
 	case "list":

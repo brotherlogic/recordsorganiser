@@ -13,6 +13,7 @@ import (
 
 	pbgs "github.com/brotherlogic/goserver/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
+	rcpb "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 )
 
@@ -108,6 +109,7 @@ func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32
 // DoRegister does RPC registration
 func (s *Server) DoRegister(server *grpc.Server) {
 	pb.RegisterOrganiserServiceServer(server, s)
+	rcpb.RegisterClientUpdateServiceServer(server, s)
 }
 
 // Shutdown the server

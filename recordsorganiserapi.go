@@ -11,6 +11,7 @@ import (
 	"github.com/brotherlogic/goserver/utils"
 	"github.com/golang/protobuf/proto"
 
+	rcpb "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 )
 
@@ -200,4 +201,22 @@ func (s *Server) AddExtractor(ctx context.Context, req *pb.AddExtractorRequest) 
 
 	org.Extractors = append(org.Extractors, req.GetExtractor())
 	return &pb.AddExtractorResponse{}, s.saveOrg(ctx, org)
+}
+
+//ClientUpdate on an updated record
+func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest) (*rcpb.ClientUpdateResponse, error) {
+	org, err := s.readOrg(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, loc := range org.GetLocations() {
+		for _, place := range loc.GetReleasesLocation() {
+			if place.GetInstanceId() == req.GetInstanceId() {
+				s.Log(fmt.Sprintf("Found instance: %v", place))
+			}
+		}
+	}
+
+	return &rcpb.ClientUpdateResponse{}, nil
 }
