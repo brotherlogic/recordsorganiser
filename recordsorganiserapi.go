@@ -213,7 +213,20 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 	for _, loc := range org.GetLocations() {
 		for _, place := range loc.GetReleasesLocation() {
 			if place.GetInstanceId() == req.GetInstanceId() {
-				s.Log(fmt.Sprintf("Found instance: %v", place))
+
+				record, err := s.bridge.getRecord(ctx, req.GetInstanceId())
+				if err != nil {
+					return nil, err
+				}
+				inFolder := false
+				for _, folder := range loc.GetFolderIds() {
+					if folder == record.GetRelease().GetFolderId() {
+						inFolder = true
+					}
+				}
+
+				s.Log(fmt.Sprintf("Now in folder: %v %v (%v)", inFolder, place, record.GetRelease().GetFolderId()))
+
 				return &rcpb.ClientUpdateResponse{}, nil
 			}
 		}
