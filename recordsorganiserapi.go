@@ -214,9 +214,12 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 		for _, place := range loc.GetReleasesLocation() {
 			if place.GetInstanceId() == req.GetInstanceId() {
 				s.Log(fmt.Sprintf("Found instance: %v", place))
+				return &rcpb.ClientUpdateResponse{}, nil
 			}
 		}
 	}
+
+	s.Log(fmt.Sprintf("Cannot find: %v", req))
 
 	return &rcpb.ClientUpdateResponse{}, nil
 }
