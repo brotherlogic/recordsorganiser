@@ -11,6 +11,7 @@ import (
 	"github.com/brotherlogic/goserver/utils"
 	"github.com/golang/protobuf/proto"
 
+	pbgd "github.com/brotherlogic/godiscogs"
 	rcpb "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 )
@@ -210,29 +211,53 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 		return nil, err
 	}
 
+	record, err := s.bridge.getRecord(ctx, req.GetInstanceId())
+	if err != nil {
+		return nil, err
+	}
+
+	oldLoc := &pb.Location{}
+	newLoc := &pb.Location{}
 	for _, loc := range org.GetLocations() {
 		for _, place := range loc.GetReleasesLocation() {
 			if place.GetInstanceId() == req.GetInstanceId() {
+				oldLoc = loc
+			}
+		}
 
-				record, err := s.bridge.getRecord(ctx, req.GetInstanceId())
-				if err != nil {
-					return nil, err
-				}
-				inFolder := false
-				for _, folder := range loc.GetFolderIds() {
-					if folder == record.GetRelease().GetFolderId() {
-						inFolder = true
-					}
-				}
-
-				s.Log(fmt.Sprintf("Now in folder: %v %v (%v)", inFolder, place, record.GetRelease().GetFolderId()))
-
-				return &rcpb.ClientUpdateResponse{}, nil
+		for _, folder := range loc.GetFolderIds() {
+			if folder == record.GetRelease().GetFolderId() {
+				newLoc = loc
 			}
 		}
 	}
 
-	s.Log(fmt.Sprintf("Cannot find: %v", req))
+	if oldLoc.GetName() != newLoc.GetName() {
+		if len(oldLoc.GetName()) > 0 {
+			_, err := s.organiseLocation(ctx, oldLoc, org)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			s.Log(fmt.Sprintf("No old location: %v", req))
+		}
+
+		if len(newLoc.GetName()) > 0 {
+			_, err := s.organiseLocation(ctx, newLoc, org)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			s.Log(fmt.Sprintf("No new location: %v", req))
+		}
+
+		if len(oldLoc.GetName()) > 0 || len(newLoc.GetName()) > 0 {
+			_, err := s.bridge.updateRecord(ctx, &rcpb.UpdateRecordRequest{Update: &rcpb.Record{Release: &pbgd.Release{InstanceId: req.GetInstanceId()}}})
+			return &rcpb.ClientUpdateResponse{}, err
+		}
+	}
+
+	s.Log(fmt.Sprintf("Cannot find or no update needed: %v", req))
 
 	return &rcpb.ClientUpdateResponse{}, nil
 }
