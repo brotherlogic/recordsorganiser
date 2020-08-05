@@ -45,6 +45,7 @@ func (s *Server) markOverQuota(c *pb.Location, tim int64) {
 }
 
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.Organisation) (int32, error) {
+	s.Log(fmt.Sprintf("Organising %v", c.GetName()))
 	ids, err := s.bridge.getReleases(ctx, c.GetFolderIds())
 	if err != nil {
 		return -1, err
