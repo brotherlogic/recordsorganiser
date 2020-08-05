@@ -253,7 +253,7 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 
 		if len(oldLoc.GetName()) > 0 || len(newLoc.GetName()) > 0 {
 			s.Log(fmt.Sprintf("Updating due to org move: %v", req))
-			_, err := s.bridge.updateRecord(ctx, &rcpb.UpdateRecordRequest{Update: &rcpb.Record{Release: &pbgd.Release{InstanceId: req.GetInstanceId()}}})
+			_, err := s.bridge.updateRecord(ctx, &rcpb.UpdateRecordRequest{Reason: "Org Move Update", Update: &rcpb.Record{Release: &pbgd.Release{InstanceId: req.GetInstanceId()}}})
 			return &rcpb.ClientUpdateResponse{}, err
 		}
 	}
