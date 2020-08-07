@@ -116,5 +116,5 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		}
 	}
 
-	return int32(len(tfr)), nil
+	return int32(len(tfr)), s.saveOrg(ctx, org)
 }

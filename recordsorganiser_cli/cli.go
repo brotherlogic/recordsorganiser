@@ -20,12 +20,7 @@ import (
 
 	//Needed to pull in gzip encoding init
 	_ "google.golang.org/grpc/encoding/gzip"
-	"google.golang.org/grpc/resolver"
 )
-
-func init() {
-	resolver.Register(&utils.DiscoveryClientResolverBuilder{})
-}
 
 // ByReleaseDate sorts by the given release date
 // but puts matched records up front and keepers in the rear
@@ -49,16 +44,12 @@ func (a ByReleaseDate) Less(i, j int) bool {
 }
 
 func locateRelease(ctx context.Context, c pb.OrganiserServiceClient, id int32) {
-	host, port, err := utils.Resolve("recordcollection", "orgcli-locate")
-	if err != nil {
-		log.Fatalf("Unable to reach collection: %v", err)
-	}
-	conn, err := grpc.Dial(host+":"+strconv.Itoa(int(port)), grpc.WithInsecure())
-	defer conn.Close()
+	conn, err := utils.LFDialServer(ctx, "recordcollection")
 
 	if err != nil {
 		log.Fatalf("Unable to dial: %v", err)
 	}
+	defer conn.Close()
 
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 	ids, err := client.QueryRecords(ctx, &pbrc.QueryRecordsRequest{Query: &pbrc.QueryRecordsRequest_ReleaseId{int32(id)}})
