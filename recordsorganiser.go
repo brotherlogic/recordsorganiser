@@ -32,7 +32,7 @@ func convert(exs []*pb.LabelExtractor) map[int32]string {
 	return m
 }
 
-func (s *Server) markOverQuota(c *pb.Location, tim int64) {
+func (s *Server) markOverQuota(ctx context.Context, c *pb.Location, tim int64) error {
 	if tim > 0 && c.OverQuotaTime == 0 {
 		s.Log(fmt.Sprintf("Marking %v as over quota", c.Name))
 		c.OverQuotaTime = tim
@@ -42,6 +42,8 @@ func (s *Server) markOverQuota(c *pb.Location, tim int64) {
 		s.Log(fmt.Sprintf("Marking %v as within quota", c.Name))
 		c.OverQuotaTime = 0
 	}
+
+	return s.processQuota(ctx, c)
 }
 
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.Organisation) (int32, error) {
@@ -102,17 +104,17 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 
 	if c.GetQuota().GetSlots() > 0 {
 		if len(tfr)-adjustment > int(c.GetQuota().GetSlots()) {
-			s.markOverQuota(c, time.Now().Unix())
+			s.markOverQuota(ctx, c, time.Now().Unix())
 		} else {
-			s.markOverQuota(c, 0)
+			s.markOverQuota(ctx, c, 0)
 		}
 	}
 
 	if c.GetQuota().GetNumOfSlots() > 0 {
 		if len(tfr)-adjustment > int(c.GetQuota().GetNumOfSlots()) {
-			s.markOverQuota(c, time.Now().Unix())
+			s.markOverQuota(ctx, c, time.Now().Unix())
 		} else {
-			s.markOverQuota(c, 0)
+			s.markOverQuota(ctx, c, 0)
 		}
 	}
 

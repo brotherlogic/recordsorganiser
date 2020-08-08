@@ -9,6 +9,7 @@ import (
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 	"github.com/brotherlogic/recordsorganiser/sales"
+	"golang.org/x/net/context"
 )
 
 var data = []struct {
@@ -41,7 +42,7 @@ func TestOrdering(t *testing.T) {
 func TestMarkWithinQuota(t *testing.T) {
 	s := getTestServer(".makrWithinQuota")
 	c := &pb.Location{OverQuotaTime: time.Now().Unix()}
-	s.markOverQuota(c, 0)
+	s.markOverQuota(context.Background(), c, 0)
 
 	if c.OverQuotaTime > 0 {
 		t.Errorf("Quota has not been nulled out: %v", c)
