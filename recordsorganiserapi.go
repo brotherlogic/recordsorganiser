@@ -240,6 +240,7 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 			}
 		} else {
 			s.Log(fmt.Sprintf("No old location: %v", req))
+			time.Sleep(time.Second * 2)
 		}
 
 		if len(newLoc.GetName()) > 0 {
