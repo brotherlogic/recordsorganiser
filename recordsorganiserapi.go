@@ -96,6 +96,9 @@ func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationReq
 
 	for _, rloc := range req.GetLocations() {
 		for _, loc := range org.GetLocations() {
+			if loc.GetName() == "Keepers" {
+				s.Log(fmt.Sprintf("KEEP %v", loc))
+			}
 			if utils.FuzzyMatch(rloc, loc) == nil {
 				if req.ForceReorg {
 					n, err := s.organiseLocation(ctx, loc, org)
