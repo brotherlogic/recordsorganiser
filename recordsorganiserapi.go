@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/brotherlogic/goserver/utils"
 	"github.com/golang/protobuf/proto"
 
 	pbgd "github.com/brotherlogic/godiscogs"
@@ -94,6 +93,7 @@ func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationReq
 		locations = org.GetLocations()
 	}
 
+	s.Log(fmt.Sprintf("Evaluating %v against %v orgs", req, len(org.GetLocations())))
 	for _, rloc := range req.GetLocations() {
 		for _, loc := range org.GetLocations() {
 			if rloc.GetName() == loc.GetName() || rloc.GetName() == "" {
@@ -110,8 +110,6 @@ func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationReq
 				}
 
 				locations = append(locations, loc)
-			} else {
-				s.Log(fmt.Sprintf("MATCH %v", utils.FuzzyMatch(rloc, loc)))
 			}
 		}
 	}
