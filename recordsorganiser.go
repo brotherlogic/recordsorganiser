@@ -78,7 +78,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		sort.Sort(ByFolderThenRelease(tfr))
 	}
 
-	records := s.Split(tfr, float64(c.GetSlots()))
+	records := s.Split(tfr, float32(c.GetSlots()))
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
 	stocks := ""
 	count := 0
