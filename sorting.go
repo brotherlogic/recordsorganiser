@@ -138,44 +138,36 @@ func (a ByFolderThenRelease) Less(i, j int) bool {
 	return strings.Compare(a[i].GetRelease().Title, a[j].GetRelease().Title) < 0
 }
 
-func getFormatWidth(r *pbrc.Record) float64 {
-	v := float64(r.GetRelease().FormatQuantity)
+func getFormatWidth(r *pbrc.Record) float32 {
+	// Use the spine width if we have it
+	if r.GetMetadata().GetRecordWidth() > 0 {
+		return r.GetMetadata().GetRecordWidth()
+	}
 
 	// Death Waltz release are thicker than average
-	deathWaltz := false
-	gatefold := false
-	boxset := false
 	for _, label := range r.GetRelease().GetLabels() {
 		if label.Name == "Death Waltz Recording Company" || label.Name == "Now-Again Records" {
-			deathWaltz = true
+			return 12.2
 		}
 	}
 	for _, format := range r.GetRelease().GetFormats() {
 		if strings.Contains(format.Text, "Gatefold") {
-			gatefold = true
+			return 6.0
 		}
 		if strings.Contains(format.Text, "Box") {
-			boxset = true
+			return 18.0
 		}
 	}
-	if deathWaltz {
-		v++
-	}
-	if boxset {
-		v++
-	}
-	if gatefold {
-		v++
-	}
 
-	return v
+	//Regular record size
+	return 3.7
 }
 
 // Split splits a releases list into buckets
-func (s *Server) Split(releases []*pbrc.Record, n float64) [][]*pbrc.Record {
+func (s *Server) Split(releases []*pbrc.Record, n float32) [][]*pbrc.Record {
 	var solution [][]*pbrc.Record
 
-	var count float64
+	var count float32
 	count = 0
 	for _, rel := range releases {
 		count += getFormatWidth(rel)
@@ -183,7 +175,7 @@ func (s *Server) Split(releases []*pbrc.Record, n float64) [][]*pbrc.Record {
 
 	boundaryAccumulator := count / n
 	boundaryValue := boundaryAccumulator
-	currentValue := 0.0
+	currentValue := float32(0.0)
 	var currentReleases []*pbrc.Record
 	for _, rel := range releases {
 		if currentValue+getFormatWidth(rel) > boundaryValue {

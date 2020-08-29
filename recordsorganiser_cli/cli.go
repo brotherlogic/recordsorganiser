@@ -148,7 +148,7 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 
 	lastSlot := int32(1)
 	for _, loc := range locs.GetLocations() {
-		fmt.Printf("%v (%v) -> %v [%v] with %v (%v) %v [Last reorg: %v from %v] (%v)\n", loc.GetName(), len(loc.GetReleasesLocation()), loc.GetFolderIds(), loc.GetQuota(), loc.Sort.String(), loc.GetNoAlert(), loc.GetSpillFolder(), time.Unix(loc.LastReorg, 0), loc.ReorgTime, loc.InPlay)
+		fmt.Printf("%v (%v) -> %v [%v] with %v (%v) %v [Last reorg: %v from %v] (%v)\n", loc.GetName(), len(loc.GetReleasesLocation()), loc.GetFolderIds(), loc.GetQuota(), loc.Sort.String(), loc.GetSlots(), loc.GetSpillFolder(), time.Unix(loc.LastReorg, 0), loc.ReorgTime, loc.InPlay)
 
 		for j, rloc := range loc.GetReleasesLocation() {
 			if slot < 0 || rloc.GetSlot() == slot {
