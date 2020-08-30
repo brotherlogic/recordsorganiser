@@ -152,7 +152,7 @@ func getFormatWidth(r *pbrc.Record) float32 {
 	}
 	for _, format := range r.GetRelease().GetFormats() {
 		if strings.Contains(format.Text, "Gatefold") {
-			return 6.0
+			return 8.7
 		}
 		if strings.Contains(format.Text, "Box") {
 			return 18.0
