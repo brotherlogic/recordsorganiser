@@ -92,7 +92,7 @@ func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement) string {
 	if err != nil {
 		return fmt.Sprintf("%v", err)
 	}
-	return loc.Title + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory())
+	return loc.Title + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", rec.GetMetadata().GetRecordWidth()) + "}"
 }
 
 func getRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
