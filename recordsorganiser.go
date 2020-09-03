@@ -80,26 +80,10 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 
 	records := s.Split(tfr, float32(c.GetSlots()))
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
-	stocks := ""
-	count := 0
 	for slot, recs := range records {
 		for i, rinloc := range recs {
-			//Raise the alarm if a record needs a stock check
-			if c.Checking == pb.Location_REQUIRE_STOCK_CHECK {
-				if rinloc.GetMetadata().Keep != pbrc.ReleaseMetadata_KEEPER && rinloc.GetRelease().MasterId != 0 {
-					if time.Now().Sub(time.Unix(rinloc.GetMetadata().LastStockCheck, 0)) > time.Hour*24*30*6 && !rinloc.GetMetadata().GetOthers() && count < 10 && rinloc.GetMetadata().GetGoalFolder() != 1782105 {
-						stocks += fmt.Sprintf("%v [%v]\n", rinloc.GetRelease().Title, rinloc.GetRelease().InstanceId)
-						count++
-					}
-				}
-			}
-
 			c.ReleasesLocation = append(c.ReleasesLocation, &pb.ReleasePlacement{Slot: int32(slot + 1), Index: int32(i), InstanceId: rinloc.GetRelease().InstanceId, Title: rinloc.GetRelease().Title})
 		}
-	}
-
-	if len(stocks) > 0 {
-		s.RaiseIssue("Stock Checks Needed", stocks)
 	}
 
 	if c.GetQuota().GetSlots() > 0 {
