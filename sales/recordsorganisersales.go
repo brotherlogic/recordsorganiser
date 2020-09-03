@@ -1,6 +1,7 @@
 package sales
 
 import (
+	"math"
 	"strings"
 
 	pbrc "github.com/brotherlogic/recordcollection/proto"
@@ -13,6 +14,12 @@ func getScore(r *pbrc.Record) float32 {
 	if r.GetRelease().Rating != 0 {
 		return float32(r.GetRelease().Rating)
 	}
+
+	// Treat NaN as a zero score
+	if math.IsNaN(float64(r.GetMetadata().OverallScore)) {
+		return 0
+	}
+
 	return r.GetMetadata().OverallScore
 }
 
