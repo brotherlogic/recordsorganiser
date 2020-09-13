@@ -93,7 +93,6 @@ func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationReq
 		locations = org.GetLocations()
 	}
 
-	s.Log(fmt.Sprintf("Evaluating %v against %v orgs", req, len(org.GetLocations())))
 	for _, rloc := range req.GetLocations() {
 		for _, loc := range org.GetLocations() {
 			if rloc.GetName() == loc.GetName() || rloc.GetName() == "" {

@@ -59,3 +59,33 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 	}
 	return nil
 }
+
+func (s *Server) processWidthQuota(ctx context.Context, c *pb.Location) error {
+	for slot := 0; slot <= int(c.GetSlots()); slot++ {
+		totalWidth := float32(0)
+		records := []*pbrc.Record{}
+		for _, rp := range c.GetReleasesLocation() {
+			if int(rp.GetSlot()) == slot {
+				rec, err := s.bridge.getRecord(ctx, rp.GetInstanceId())
+				if err != nil {
+					return err
+				}
+				totalWidth += rec.GetMetadata().GetRecordWidth()
+				records = append(records, rec)
+			}
+		}
+
+		// Sort the record
+		sort.Sort(sales.BySaleOrder(records))
+		pointer := 0
+		for pointer < len(records) && totalWidth > c.GetQuota().GetTotalWidth() {
+			s.Log(fmt.Sprintf("Selling %v because of width %v -> %v", records[pointer].GetRelease().GetInstanceId(), totalWidth, c.GetQuota().GetTotalWidth()))
+			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[pointer].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
+			s.bridge.updateRecord(ctx, up)
+			totalWidth -= records[pointer].GetMetadata().GetRecordWidth()
+			pointer++
+		}
+	}
+
+	return nil
+}

@@ -33,16 +33,9 @@ func convert(exs []*pb.LabelExtractor) map[int32]string {
 }
 
 func (s *Server) markOverQuota(ctx context.Context, c *pb.Location, tim int64) error {
-	if tim > 0 && c.OverQuotaTime == 0 {
-		s.Log(fmt.Sprintf("Marking %v as over quota", c.Name))
-		c.OverQuotaTime = tim
+	if c.GetQuota().GetTotalWidth() > 0 {
+		return s.processWidthQuota(ctx, c)
 	}
-
-	if tim == 0 && c.OverQuotaTime > 0 {
-		s.Log(fmt.Sprintf("Marking %v as within quota", c.Name))
-		c.OverQuotaTime = 0
-	}
-
 	return s.processQuota(ctx, c)
 }
 
