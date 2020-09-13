@@ -1,6 +1,8 @@
 syntax = "proto3";
 
-package proto;
+package recordsorganiser;
+
+option go_package = "github.com/brotherlogic/recordsorganiser/proto";
 
 message Empty {}
 
@@ -38,15 +40,15 @@ message Quota {
   // The number of allowed units
   int32 num_of_slots = 1;
   
-  // The total width of the set
-  int32 total_width = 2;
+  // The total width of each slot
+  float total_width = 2;
   
   oneof quota_type {
     // The number of allowed units
     int32 slots = 3;
     
     // The total width of the set
-    int32 width = 4;
+    float width = 4;
   }
 }
 

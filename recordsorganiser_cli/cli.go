@@ -147,6 +147,7 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 	}
 
 	lastSlot := int32(1)
+	total := float32(0)
 	for _, loc := range locs.GetLocations() {
 		fmt.Printf("%v (%v) -> %v [%v] with %v (%v) %v [Last reorg: %v from %v] (%v)\n", loc.GetName(), len(loc.GetReleasesLocation()), loc.GetFolderIds(), loc.GetQuota(), loc.Sort.String(), loc.GetSlots(), loc.GetSpillFolder(), time.Unix(loc.LastReorg, 0), loc.ReorgTime, loc.InPlay)
 
@@ -158,12 +159,18 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 						lastSlot = rloc.GetSlot()
 					}
 					fmt.Printf("%v [%v]. %v\n", j, rloc.GetSlot(), getReleaseString(ctx, rloc))
+					rec, err := getRecord(ctx, rloc.InstanceId)
+					if err != nil {
+						log.Fatalf("ARFH: %v", err)
+					}
+					total += rec.GetMetadata().GetRecordWidth()
+
 				}
 			}
 		}
 	}
 
-	fmt.Printf("Summary: %v\n", locs.GetNumberProcessed())
+	fmt.Printf("Summary: %v [%v]\n", locs.GetNumberProcessed(), total)
 
 	if len(locs.GetLocations()) == 0 {
 		fmt.Printf("No Locations Found!\n")
@@ -375,6 +382,7 @@ func main() {
 		var name = updateLocationFlags.String("name", "", "The name of the new location")
 		var folder = updateLocationFlags.Int("folder", 0, "The folder to add to the location")
 		var quota = updateLocationFlags.Int("quota", 0, "The new quota to add to the location")
+		var maxWidth = updateLocationFlags.Int("width", 0, "The max width per slot")
 		var sort = updateLocationFlags.String("sort", "", "The new sorting mechanism")
 		var alert = updateLocationFlags.Bool("alert", true, "Whether we should alert on this location")
 		var spill = updateLocationFlags.Int("spill", 0, "The spill folder for this location")
@@ -399,6 +407,10 @@ func main() {
 			if *quota != 0 {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{Quota: &pb.Quota{NumOfSlots: int32(*quota)}}})
 			}
+			if *maxWidth != 0 {
+				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{Quota: &pb.Quota{TotalWidth: float32(*maxWidth)}}})
+			}
+
 			if len(*sort) > 0 {
 				if *sort == "time" {
 					client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{Sort: pb.Location_BY_DATE_ADDED}})
