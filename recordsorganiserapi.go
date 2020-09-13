@@ -174,13 +174,13 @@ func (s *Server) GetQuota(ctx context.Context, req *pb.QuotaRequest) (*pb.QuotaR
 
 		// New Style quota part 2
 		if loc.GetQuota().GetWidth() > 0 {
-			totalWidth := int32(0)
+			totalWidth := float32(0)
 			for _, r := range recs {
-				if r.GetMetadata().SpineWidth <= 0 {
+				if r.GetMetadata().RecordWidth <= 0 {
 					s.RaiseIssue("Missing Spine Width", fmt.Sprintf("Record %v is missing spine width (%v)", r.GetRelease().Title, r.GetRelease().Id))
 					return nil, fmt.Errorf("Unable to compute quota - missing width")
 				}
-				totalWidth += r.GetMetadata().SpineWidth
+				totalWidth += r.GetMetadata().RecordWidth
 			}
 			if totalWidth > loc.GetQuota().GetWidth() {
 				s.RaiseIssue("Quota Problem", fmt.Sprintf("%v is over quota", loc.GetName()))
