@@ -37,7 +37,7 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 	slots := int(c.GetQuota().GetNumOfSlots())
 	existing := len(c.ReleasesLocation)
 
-	s.Log(fmt.Sprintf("Processing %v - selling %v records", c.Name, existing-slots))
+	s.Log(fmt.Sprintf("SALES:  since we're over numeric quota %v - selling %v records", c.Name, existing-slots))
 	c.OverQuotaTime = 0
 
 	records := []*pbrc.Record{}
@@ -79,7 +79,7 @@ func (s *Server) processWidthQuota(ctx context.Context, c *pb.Location) error {
 		sort.Sort(sales.BySaleOrder(records))
 		pointer := 0
 		for pointer < len(records) && totalWidth > c.GetQuota().GetTotalWidth() {
-			s.Log(fmt.Sprintf("Selling %v because of width %v -> %v", records[pointer].GetRelease().GetInstanceId(), totalWidth, c.GetQuota().GetTotalWidth()))
+			s.Log(fmt.Sprintf("SALES %v because of width %v -> %v", records[pointer].GetRelease().GetInstanceId(), totalWidth, c.GetQuota().GetTotalWidth()))
 			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[pointer].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
 			s.bridge.updateRecord(ctx, up)
 			totalWidth -= records[pointer].GetMetadata().GetRecordWidth()

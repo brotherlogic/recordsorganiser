@@ -184,7 +184,7 @@ func list(ctx context.Context, client pb.OrganiserServiceClient) {
 	}
 
 	for i, loc := range locs.GetLocations() {
-		fmt.Printf("%v. %v\n", i, loc.GetName())
+		fmt.Printf("%v. %v [%v]\n", i, loc.GetName(), loc.GetInPlay())
 	}
 
 	if len(locs.GetLocations()) == 0 {
@@ -215,6 +215,12 @@ func main() {
 	client := pb.NewOrganiserServiceClient(conn)
 
 	switch os.Args[1] {
+	case "cupdate":
+		val, _ := strconv.Atoi(os.Args[2])
+		client := pbrc.NewClientUpdateServiceClient(conn)
+		resp, err := client.ClientUpdate(ctx, &pbrc.ClientUpdateRequest{InstanceId: int32(val)})
+
+		fmt.Printf("%v and %v\n", resp, err)
 	case "list":
 		list(ctx, client)
 	case "get":
@@ -436,7 +442,7 @@ func main() {
 
 			}
 			if *inPlay {
-				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{InPlay: pb.Location_NOT_IN_PLAY}})
+				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{InPlay: pb.Location_IN_PLAY}})
 			}
 			if *physical {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{MediaType: pb.Location_PHYSICAL}})

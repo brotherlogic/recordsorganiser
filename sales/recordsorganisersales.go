@@ -10,7 +10,8 @@ import (
 //BySaleOrder - the order in which we sell things
 type BySaleOrder []*pbrc.Record
 
-func getScore(r *pbrc.Record) float32 {
+// Get The Score
+func GetScore(r *pbrc.Record) float32 {
 	if r.GetRelease().Rating != 0 {
 		return float32(r.GetRelease().Rating)
 	}
@@ -51,8 +52,8 @@ func (a BySaleOrder) Less(i, j int) bool {
 
 	// Sort by score
 	if a[i].GetMetadata() != nil && a[j].GetMetadata() != nil {
-		if getScore(a[i]) != getScore(a[j]) {
-			return getScore(a[i]) < getScore(a[j])
+		if GetScore(a[i]) != GetScore(a[j]) {
+			return GetScore(a[i]) < GetScore(a[j])
 		}
 	}
 
