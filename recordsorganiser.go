@@ -7,6 +7,8 @@ import (
 
 	"github.com/brotherlogic/goserver"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
@@ -50,16 +52,18 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 	tfr := []*pbrc.Record{}
 	for _, id := range ids {
 		r, err := s.bridge.getRecord(ctx, id)
-		if err != nil {
-			return -1, err
-		}
-		if r.GetMetadata().Category == pbrc.ReleaseMetadata_ASSESS_FOR_SALE ||
-			r.GetMetadata().Category == pbrc.ReleaseMetadata_PREPARE_TO_SELL ||
-			r.GetMetadata().Category == pbrc.ReleaseMetadata_STAGED_TO_SELL {
-			adjustment++
-		}
+		if status.Convert(err).Code() != codes.OutOfRange {
+			if err != nil {
+				return -1, err
+			}
+			if r.GetMetadata().Category == pbrc.ReleaseMetadata_ASSESS_FOR_SALE ||
+				r.GetMetadata().Category == pbrc.ReleaseMetadata_PREPARE_TO_SELL ||
+				r.GetMetadata().Category == pbrc.ReleaseMetadata_STAGED_TO_SELL {
+				adjustment++
+			}
 
-		tfr = append(tfr, r)
+			tfr = append(tfr, r)
+		}
 	}
 
 	switch c.GetSort() {
