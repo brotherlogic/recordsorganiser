@@ -70,7 +70,7 @@ func sortByLabelCat(rel1, rel2 *pb.Release, extractors map[int32]string, logger 
 	label1 := pb.GetMainLabel(rel1.Labels)
 	label2 := pb.GetMainLabel(rel2.Labels)
 
-	labelSort := strings.Compare(label1.Name, label2.Name)
+	labelSort := strings.Compare(strings.ToLower(label1.GetName()), strings.ToLower(label2.GetName()))
 	if labelSort != 0 {
 		return labelSort
 	}
