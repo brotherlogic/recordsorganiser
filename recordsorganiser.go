@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"sort"
-	"time"
 
 	"github.com/brotherlogic/goserver"
 	"golang.org/x/net/context"
@@ -34,7 +33,7 @@ func convert(exs []*pb.LabelExtractor) map[int32]string {
 	return m
 }
 
-func (s *Server) markOverQuota(ctx context.Context, c *pb.Location, tim int64) error {
+func (s *Server) markOverQuota(ctx context.Context, c *pb.Location) error {
 	if c.GetQuota().GetTotalWidth() > 0 {
 		return s.processWidthQuota(ctx, c)
 	}
@@ -83,21 +82,8 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		}
 	}
 
-	if c.GetQuota().GetSlots() > 0 {
-		if len(tfr)-adjustment > int(c.GetQuota().GetSlots()) {
-			s.markOverQuota(ctx, c, time.Now().Unix())
-		} else {
-			s.markOverQuota(ctx, c, 0)
-		}
-	}
-
-	if c.GetQuota().GetNumOfSlots() > 0 {
-		if len(tfr)-adjustment > int(c.GetQuota().GetNumOfSlots()) {
-			s.markOverQuota(ctx, c, time.Now().Unix())
-		} else {
-			s.markOverQuota(ctx, c, 0)
-		}
-	}
+	//Make any quota adjustments
+	s.markOverQuota(ctx, c)
 
 	return int32(len(tfr)), s.saveOrg(ctx, org)
 }

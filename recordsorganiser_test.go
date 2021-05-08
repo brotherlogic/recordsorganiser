@@ -42,7 +42,7 @@ func TestOrdering(t *testing.T) {
 func TestMarkWithinQuota(t *testing.T) {
 	s := getTestServer(".makrWithinQuota")
 	c := &pb.Location{OverQuotaTime: time.Now().Unix()}
-	s.markOverQuota(context.Background(), c, 0)
+	s.markOverQuota(context.Background(), c)
 
 	if c.OverQuotaTime > 0 {
 		t.Errorf("Quota has not been nulled out: %v", c)
