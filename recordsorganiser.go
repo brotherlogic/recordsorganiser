@@ -82,8 +82,10 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		}
 	}
 
-	//Make any quota adjustments
-	s.markOverQuota(ctx, c)
+	//Make any quota adjustments - we only do width ajdustments
+	if c.GetQuota().GetTotalWidth() > 0 {
+		s.markOverQuota(ctx, c)
+	}
 
 	return int32(len(tfr)), s.saveOrg(ctx, org)
 }
