@@ -456,6 +456,10 @@ func main() {
 				if *sort == "folder" {
 					client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{Sort: pb.Location_BY_FOLDER_THEN_DATE}})
 				}
+
+				if *sort == "move" {
+					client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{Sort: pb.Location_BY_MOVE_TIME}})
+				}
 			}
 			if !*alert {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{NoAlert: true}})

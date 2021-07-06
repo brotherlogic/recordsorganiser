@@ -23,6 +23,18 @@ func (a ByDateAdded) Less(i, j int) bool {
 	return strings.Compare(a[i].Release.Title, a[j].Release.Title) < 0
 }
 
+// ByDateMoved allows sorting of releases by the date they were added
+type ByDateMoved []*pbrc.Record
+
+func (a ByDateMoved) Len() int      { return len(a) }
+func (a ByDateMoved) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByDateMoved) Less(i, j int) bool {
+	if a[i].Metadata.LastMoveTime != a[j].Metadata.LastMoveTime {
+		return a[i].Metadata.LastMoveTime < a[j].Metadata.LastMoveTime
+	}
+	return strings.Compare(a[i].Release.Title, a[j].Release.Title) < 0
+}
+
 // ByLabelCat allows sorting of releases by the date they were added
 type ByLabelCat struct {
 	records    []*pbrc.Record
