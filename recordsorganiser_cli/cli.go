@@ -181,6 +181,8 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 	total := float32(0)
 	for _, loc := range locs.GetLocations() {
 		fmt.Printf("%v (%v) -> %v [%v] with %v (%v) %v [Last reorg: %v from %v] (%v)\n", loc.GetName(), len(loc.GetReleasesLocation()), loc.GetFolderIds(), loc.GetQuota(), loc.Sort.String(), loc.GetSlots(), loc.GetSpillFolder(), time.Unix(loc.LastReorg, 0), loc.ReorgTime, loc.InPlay)
+		fmt.Printf("%v\n", loc.GetFolderOrder())
+		fmt.Printf("%v\n", loc.GetFolderSort())
 
 		for j, rloc := range loc.GetReleasesLocation() {
 			if slot < 0 || rloc.GetSlot() == slot {
@@ -432,6 +434,7 @@ func main() {
 		var inPlay = updateLocationFlags.Bool("inplay", false, "Is in play")
 		var notInPlay = updateLocationFlags.Bool("notinplay", false, "Is in play")
 		var physical = updateLocationFlags.Bool("physical", false, "Has physical media")
+		var order = updateLocationFlags.Int("order", -1, "Has physical media")
 
 		if err := updateLocationFlags.Parse(os.Args[2:]); err == nil {
 			if *needStock {
@@ -440,8 +443,19 @@ func main() {
 			if *delete {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, DeleteLocation: true})
 			}
-			if *folder > 0 {
-				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{FolderIds: []int32{int32(*folder)}}})
+			if *folder > 0 && len(*sort) > 0 && *order >= 0 {
+				if *sort == "label" {
+					client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{
+						FolderOrder: map[int32]int32{int32(*folder): int32(*order)},
+						FolderSort:  map[int32]pb.Location_Sorting{int32(*folder): pb.Location_BY_LABEL_CATNO},
+						FolderIds:   []int32{int32(*folder)}}})
+				}
+				if *sort == "time" {
+					client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{
+						FolderOrder: map[int32]int32{int32(*folder): int32(*order)},
+						FolderSort:  map[int32]pb.Location_Sorting{int32(*folder): pb.Location_BY_DATE_ADDED},
+						FolderIds:   []int32{int32(*folder)}}})
+				}
 			}
 			if *quota != 0 {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{Quota: &pb.Quota{NumOfSlots: int32(*quota)}}})

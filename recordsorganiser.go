@@ -42,41 +42,56 @@ func (s *Server) markOverQuota(ctx context.Context, c *pb.Location) error {
 
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.Organisation) (int32, error) {
 	s.Log(fmt.Sprintf("Organising %v", c.GetName()))
-	ids, err := s.bridge.getReleases(ctx, c.GetFolderIds())
-	if err != nil {
-		return -1, err
-	}
+	var overall []*pbrc.Record
+	for i, _ := range c.GetFolderIds() {
 
-	adjustment := 0
-	tfr := []*pbrc.Record{}
-	for _, id := range ids {
-		r, err := s.bridge.getRecord(ctx, id)
-		if status.Convert(err).Code() != codes.OutOfRange {
-			if err != nil {
-				return -1, err
+		var lfold []int32
+		var sorter pb.Location_Sorting
+		for key, val := range c.GetFolderOrder() {
+			if int(val) == i {
+				lfold = append(lfold, key)
+				sorter = c.GetFolderSort()[key]
 			}
-			if r.GetMetadata().Category == pbrc.ReleaseMetadata_ASSESS_FOR_SALE ||
-				r.GetMetadata().Category == pbrc.ReleaseMetadata_PREPARE_TO_SELL ||
-				r.GetMetadata().Category == pbrc.ReleaseMetadata_STAGED_TO_SELL {
-				adjustment++
-			}
-
-			tfr = append(tfr, r)
 		}
+
+		ids, err := s.bridge.getReleases(ctx, lfold)
+		if err != nil {
+			return -1, err
+		}
+
+		adjustment := 0
+		tfr := []*pbrc.Record{}
+		for _, id := range ids {
+			r, err := s.bridge.getRecord(ctx, id)
+			if status.Convert(err).Code() != codes.OutOfRange {
+				if err != nil {
+					return -1, err
+				}
+				if r.GetMetadata().Category == pbrc.ReleaseMetadata_ASSESS_FOR_SALE ||
+					r.GetMetadata().Category == pbrc.ReleaseMetadata_PREPARE_TO_SELL ||
+					r.GetMetadata().Category == pbrc.ReleaseMetadata_STAGED_TO_SELL {
+					adjustment++
+				}
+
+				tfr = append(tfr, r)
+			}
+		}
+
+		switch sorter {
+		case pb.Location_BY_DATE_ADDED:
+			sort.Sort(ByDateAdded(tfr))
+		case pb.Location_BY_LABEL_CATNO:
+			sort.Sort(ByLabelCat{tfr, convert(org.GetExtractors()), s.Log})
+		case pb.Location_BY_FOLDER_THEN_DATE:
+			sort.Sort(ByFolderThenRelease(tfr))
+		case pb.Location_BY_MOVE_TIME:
+			sort.Sort(ByDateMoved(tfr))
+		}
+
+		overall = append(overall, tfr...)
 	}
 
-	switch c.GetSort() {
-	case pb.Location_BY_DATE_ADDED:
-		sort.Sort(ByDateAdded(tfr))
-	case pb.Location_BY_LABEL_CATNO:
-		sort.Sort(ByLabelCat{tfr, convert(org.GetExtractors()), s.Log})
-	case pb.Location_BY_FOLDER_THEN_DATE:
-		sort.Sort(ByFolderThenRelease(tfr))
-	case pb.Location_BY_MOVE_TIME:
-		sort.Sort(ByDateMoved(tfr))
-	}
-
-	records := s.Split(tfr, float32(c.GetSlots()))
+	records := s.Split(overall, float32(c.GetSlots()))
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
 	for slot, recs := range records {
 		for i, rinloc := range recs {
@@ -89,5 +104,5 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		s.markOverQuota(ctx, c)
 	}
 
-	return int32(len(tfr)), s.saveOrg(ctx, org)
+	return int32(len(overall)), s.saveOrg(ctx, org)
 }
