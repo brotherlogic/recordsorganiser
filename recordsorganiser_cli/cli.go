@@ -92,7 +92,7 @@ func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement) string {
 	if err != nil {
 		return fmt.Sprintf("%v", err)
 	}
-	return fmt.Sprintf("%v. ", rec.GetRelease().GetId()) + loc.Title + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", rec.GetMetadata().GetRecordWidth()) + "}"
+	return fmt.Sprintf("%v. ", rec.GetRelease().GetId()) + loc.Title + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", rec.GetMetadata().GetRecordWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]"
 }
 
 func getRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
@@ -430,6 +430,7 @@ func main() {
 		var delete = updateLocationFlags.Bool("delete", false, "Remove this")
 		var needStock = updateLocationFlags.Bool("stockcheck", false, "Needs a stock check.")
 		var inPlay = updateLocationFlags.Bool("inplay", false, "Is in play")
+		var notInPlay = updateLocationFlags.Bool("notinplay", false, "Is in play")
 		var physical = updateLocationFlags.Bool("physical", false, "Has physical media")
 
 		if err := updateLocationFlags.Parse(os.Args[2:]); err == nil {
@@ -479,6 +480,9 @@ func main() {
 			}
 			if *inPlay {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{InPlay: pb.Location_IN_PLAY}})
+			}
+			if *notInPlay {
+				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{InPlay: pb.Location_NOT_IN_PLAY}})
 			}
 			if *physical {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{MediaType: pb.Location_PHYSICAL}})
