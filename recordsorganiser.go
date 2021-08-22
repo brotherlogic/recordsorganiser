@@ -90,6 +90,8 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		}
 
 		overall = append(overall, tfr...)
+		s.Log(fmt.Sprintf("APPEND: %v", overall[0]))
+
 	}
 
 	records := s.Split(overall, float32(c.GetSlots()))
