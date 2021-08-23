@@ -90,7 +90,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		}
 
 		overall = append(overall, tfr...)
-		if len(overall) > 0 {
+		if overall != nil && len(overall) > 0 {
 			s.Log(fmt.Sprintf("RUNNING APPEND: %v", overall[0]))
 		}
 	}
