@@ -136,7 +136,7 @@ func (s *Server) Mote(ctx context.Context, master bool) error {
 // GetState gets the state of the server
 func (s Server) GetState() []*pbgs.State {
 	return []*pbgs.State{
-		&pbgs.State{Key: "yes", Value: int64(12346)},
+		&pbgs.State{Key: "yes", Value: int64(123467)},
 	}
 }
 
