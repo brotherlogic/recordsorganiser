@@ -44,7 +44,7 @@ func (s *Server) markOverQuota(ctx context.Context, c *pb.Location) error {
 
 var (
 	sizes = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "recordsorganiser_size",
+		Name: "recordsorganiser_in_box",
 		Help: "Various Wait Times",
 	}, []string{"location"})
 )
@@ -52,6 +52,7 @@ var (
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.Organisation) (int32, error) {
 	s.Log(fmt.Sprintf("Organising %v", c.GetName()))
 	var overall []*pbrc.Record
+	boxCount := 0
 	for i, _ := range c.GetFolderIds() {
 
 		var lfold []int32
@@ -83,6 +84,10 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 				}
 
 				tfr = append(tfr, r)
+			}
+
+			if r.GetMetadata().GetBoxState() != pbrc.ReleaseMetadata_BOX_UNKNOWN && r.GetMetadata().GetBoxState() != pbrc.ReleaseMetadata_OUT_OF_BOX {
+				boxCount++
 			}
 		}
 
@@ -117,6 +122,6 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		s.markOverQuota(ctx, c)
 	}
 
-	sizes.With(prometheus.Labels{"location": c.GetName()}).Set(float64(len(overall)))
+	sizes.With(prometheus.Labels{"location": c.GetName()}).Set(float64((boxCount)))
 	return int32(len(overall)), s.saveOrg(ctx, org)
 }
