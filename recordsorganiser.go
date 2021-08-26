@@ -5,6 +5,8 @@ import (
 	"sort"
 
 	"github.com/brotherlogic/goserver"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -39,6 +41,13 @@ func (s *Server) markOverQuota(ctx context.Context, c *pb.Location) error {
 	}
 	return s.processQuota(ctx, c)
 }
+
+var (
+	sizes = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorganiser_size",
+		Help: "Various Wait Times",
+	}, []string{"location"})
+)
 
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.Organisation) (int32, error) {
 	s.Log(fmt.Sprintf("Organising %v", c.GetName()))
@@ -108,5 +117,6 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		s.markOverQuota(ctx, c)
 	}
 
+	sizes.With(prometheus.Labels{"location": c.GetName()}).Set(float64(len(overall)))
 	return int32(len(overall)), s.saveOrg(ctx, org)
 }
