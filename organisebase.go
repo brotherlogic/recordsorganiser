@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"time"
 
 	"github.com/brotherlogic/goserver"
 	"golang.org/x/net/context"
@@ -157,20 +156,6 @@ func InitServer() *Server {
 // ReportHealth alerts if we're not healthy
 func (s Server) ReportHealth() bool {
 	return true
-}
-
-func (s *Server) checkbOrg(ctx context.Context, org *pb.Organisation) error {
-	for _, loc := range org.GetLocations() {
-		if loc.ReorgTime == 0 {
-			s.RaiseIssue("Add reorg time", fmt.Sprintf("Add a reorg time span for %v", loc.GetName()))
-		} else if loc.ReorgTime > 0 {
-			cTime := int64(time.Now().Sub(time.Unix(loc.LastReorg, 0)).Seconds())
-			if cTime > loc.ReorgTime {
-				s.RaiseIssue("Reorg", fmt.Sprintf("Please reorg %v", loc.GetName()))
-			}
-		}
-	}
-	return nil
 }
 
 func main() {
