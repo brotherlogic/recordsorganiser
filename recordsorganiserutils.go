@@ -79,7 +79,7 @@ func (s *Server) processWidthQuota(ctx context.Context, c *pb.Location) error {
 		sort.Sort(sales.BySaleOrder(records))
 		pointer := 0
 		for pointer < len(records) && totalWidth > c.GetQuota().GetTotalWidth() {
-			s.Log(fmt.Sprintf("SALES %v because of width %v -> %v", records[pointer].GetRelease().GetInstanceId(), totalWidth, c.GetQuota().GetTotalWidth()))
+			s.Log(fmt.Sprintf("SALES %v (slot %v of %v) because of width %v -> %v", records[pointer].GetRelease().GetInstanceId(), slot, c.GetName(), totalWidth, c.GetQuota().GetTotalWidth()))
 			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[pointer].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
 			s.bridge.updateRecord(ctx, up)
 			totalWidth -= records[pointer].GetMetadata().GetRecordWidth()
