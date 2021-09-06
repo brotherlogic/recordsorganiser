@@ -176,16 +176,26 @@ func getFormatWidth(r *pbrc.Record) float32 {
 }
 
 // Split splits a releases list into buckets
-func (s *Server) Split(releases []*pbrc.Record, n float32, hardgap []int) [][]*pbrc.Record {
+func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap []int) [][]*pbrc.Record {
 	var solution [][]*pbrc.Record
 
-	var count float32
-	count = 0
-	for _, rel := range releases {
+	var counts []float32
+	count := float32(0)
+	tslots := 0
+	for i, rel := range releases {
+		for _, gap := range hardgap {
+			if i == gap {
+				nslots := int(float32(count) / maxw)
+				tslots += nslots
+				counts = append(counts, float32(count / float32(nslots)))
+				count = 0
+			}
+		}
 		count += getFormatWidth(rel)
 	}
+	counts = append(counts, count / float32((int(n)-tslots)))
 
-	boundaryAccumulator := count / n
+	version := 0
 	currentValue := float32(0.0)
 	var currentReleases []*pbrc.Record
 	for i, rel := range releases {
@@ -196,12 +206,15 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, hardgap []int) [][]*p
 			}
 		}
 		s.Log(fmt.Sprintf("WEAT %v -> %v", i, currentValue))
-		if found || currentValue+getFormatWidth(rel) > boundaryAccumulator {
-			s.Log(fmt.Sprintf("ACCUM: %v + %v is greater than %v, starting new slot (%v / %v)", currentValue, getFormatWidth(rel), boundaryAccumulator, i, hardgap))
+		if found || currentValue+getFormatWidth(rel) > counts[version] {
+			s.Log(fmt.Sprintf("ACCUM: %v + %v is greater than %v, starting new slot (%v / %v)", currentValue, getFormatWidth(rel), counts[version], i, hardgap))
 
 			solution = append(solution, currentReleases)
 			currentReleases = make([]*pbrc.Record, 0)
 			currentValue = 0
+			if found {
+				version++
+			}
 		}
 
 		currentReleases = append(currentReleases, rel)
