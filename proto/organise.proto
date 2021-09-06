@@ -63,6 +63,7 @@ message Location {
   repeated int32 folder_ids = 3;
   map<int32, int32> folder_order = 19;
   map<int32, Sorting> folder_sort = 20;
+  map<int32, bool> hard_gap = 21;
 
   // The placement of releases in the folder
   repeated ReleasePlacement releases_location = 4;

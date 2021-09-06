@@ -176,7 +176,7 @@ func getFormatWidth(r *pbrc.Record) float32 {
 }
 
 // Split splits a releases list into buckets
-func (s *Server) Split(releases []*pbrc.Record, n float32) [][]*pbrc.Record {
+func (s *Server) Split(releases []*pbrc.Record, n float32, hardgap []int) [][]*pbrc.Record {
 	var solution [][]*pbrc.Record
 
 	var count float32
@@ -186,16 +186,21 @@ func (s *Server) Split(releases []*pbrc.Record, n float32) [][]*pbrc.Record {
 	}
 
 	boundaryAccumulator := count / n
-	boundaryValue := boundaryAccumulator
 	currentValue := float32(0.0)
 	var currentReleases []*pbrc.Record
-	for _, rel := range releases {
-		if currentValue+getFormatWidth(rel) > boundaryValue {
-			s.Log(fmt.Sprintf("ACCUMULATOR: %v + %v is greater than %v, starting new slot", currentValue, getFormatWidth(rel), boundaryValue))
+	for i, rel := range releases {
+		found := false
+		for _, gap := range hardgap {
+			if i == gap {
+				found = true
+			}
+		}
+		if found || currentValue+getFormatWidth(rel) > boundaryAccumulator {
+			s.Log(fmt.Sprintf("ACCUMULATOR: %v + %v is greater than %v, starting new slot", currentValue, getFormatWidth(rel), boundaryAccumulator))
 
 			solution = append(solution, currentReleases)
 			currentReleases = make([]*pbrc.Record, 0)
-			boundaryValue += boundaryAccumulator
+			currentValue = 0
 		}
 
 		currentReleases = append(currentReleases, rel)
