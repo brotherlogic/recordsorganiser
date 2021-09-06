@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/brotherlogic/goserver"
@@ -50,7 +49,6 @@ var (
 )
 
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.Organisation) (int32, error) {
-	s.Log(fmt.Sprintf("Organising %v", c.GetName()))
 	var overall []*pbrc.Record
 	boxCount := 0
 	for i, _ := range c.GetFolderIds() {
