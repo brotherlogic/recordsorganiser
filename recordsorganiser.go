@@ -62,7 +62,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		var lfold []int32
 		var sorter pb.Location_Sorting
 		for key, val := range c.GetFolderOrder() {
-			if val == ind {
+			if val == int32(ind) {
 				lfold = append(lfold, key)
 				sorter = c.GetFolderSort()[key]
 			}
