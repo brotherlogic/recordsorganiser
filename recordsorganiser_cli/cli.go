@@ -196,7 +196,7 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 					if err != nil {
 						log.Fatalf("ARFH: %v", err)
 					}
-					total += rec.GetMetadata().GetRecordWidth()
+					total += getFormatWidth(rec)
 
 				}
 			}
@@ -208,6 +208,30 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 	if len(locs.GetLocations()) == 0 {
 		fmt.Printf("No Locations Found!\n")
 	}
+}
+func getFormatWidth(r *pbrc.Record) float32 {
+	// Use the spine width if we have it
+	if r.GetMetadata().GetRecordWidth() > 0 {
+		return r.GetMetadata().GetRecordWidth()
+	}
+
+	// Death Waltz release are thicker than average
+	for _, label := range r.GetRelease().GetLabels() {
+		if label.Name == "Death Waltz Recording Company" || label.Name == "Now-Again Records" {
+			return 12.2
+		}
+	}
+	for _, format := range r.GetRelease().GetFormats() {
+		if strings.Contains(format.Text, "Gatefold") {
+			return 8.7
+		}
+		if strings.Contains(format.Text, "Box") {
+			return 18.0
+		}
+	}
+
+	//Regular record size
+	return 3.7
 }
 
 func list(ctx context.Context, client pb.OrganiserServiceClient) {
