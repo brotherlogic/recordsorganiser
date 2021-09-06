@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -187,14 +188,15 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 	for i, rel := range releases {
 		for _, gap := range hardgap {
 			if i == gap {
-				nslots := int(math.ceil(float32(count) / maxw))
+				nslots := int(math.Ceil(float64(count) / float64(maxw)))
 				tslots += nslots
-				counts = append(counts, float32(count / max(1.0, float32(nslots))))
+				counts = append(counts, float32(count / float32(nslots)))
 				count = 0
 			}
 		}
 		count += getFormatWidth(rel)
 	}
+
 	counts = append(counts, count / float32((int(n)-tslots)))
 
 	s.Log(fmt.Sprintf("AHA WE DIDFOUND %v", counts))
