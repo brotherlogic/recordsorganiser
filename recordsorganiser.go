@@ -109,6 +109,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		overall = append(overall, tfr...)
 	}
 
+	s.Log(fmt.Sprintf("Running split with %v", gaps))
 	records := s.Split(overall, float32(c.GetSlots()), gaps)
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
 	for slot, recs := range records {
