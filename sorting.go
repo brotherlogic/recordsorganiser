@@ -195,6 +195,7 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, hardgap []int) [][]*p
 				found = true
 			}
 		}
+		s.Log(fmt.Sprintf("WEAT %v -> %v", i, currentValue))
 		if found || currentValue+getFormatWidth(rel) > boundaryAccumulator {
 			s.Log(fmt.Sprintf("ACCUMULATOR: %v + %v is greater than %v, starting new slot (%v / %v)", currentValue, getFormatWidth(rel), boundaryAccumulator, i, hardgap))
 
