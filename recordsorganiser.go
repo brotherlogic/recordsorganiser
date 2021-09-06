@@ -91,7 +91,6 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 			}
 		}
 
-		s.Log(fmt.Sprintf("SORT CODE: %v -> %v", lfold, sorter))
 		switch sorter {
 		case pb.Location_BY_DATE_ADDED:
 			sort.Sort(ByDateAdded(tfr))
