@@ -196,7 +196,7 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, hardgap []int) [][]*p
 			}
 		}
 		if found || currentValue+getFormatWidth(rel) > boundaryAccumulator {
-			s.Log(fmt.Sprintf("ACCUMULATOR: %v + %v is greater than %v, starting new slot", currentValue, getFormatWidth(rel), boundaryAccumulator))
+			s.Log(fmt.Sprintf("ACCUMULATOR: %v + %v is greater than %v, starting new slot (%v / %v)", currentValue, getFormatWidth(rel), boundaryAccumulator, i, hardgap))
 
 			solution = append(solution, currentReleases)
 			currentReleases = make([]*pbrc.Record, 0)

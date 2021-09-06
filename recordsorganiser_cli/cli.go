@@ -183,6 +183,7 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 		fmt.Printf("%v (%v) -> %v [%v] with %v (%v) %v [Last reorg: %v from %v] (%v)\n", loc.GetName(), len(loc.GetReleasesLocation()), loc.GetFolderIds(), loc.GetQuota(), loc.Sort.String(), loc.GetSlots(), loc.GetSpillFolder(), time.Unix(loc.LastReorg, 0), loc.ReorgTime, loc.InPlay)
 		fmt.Printf("%v\n", loc.GetFolderOrder())
 		fmt.Printf("%v\n", loc.GetFolderSort())
+		fmt.Printf("%v\n", loc.GetHardGap())
 
 		for j, rloc := range loc.GetReleasesLocation() {
 			if slot < 0 || rloc.GetSlot() == slot {
@@ -191,7 +192,7 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 						fmt.Printf("\n")
 						lastSlot = rloc.GetSlot()
 					}
-					fmt.Printf("%v [%v]. %v\n", j, rloc.GetSlot(), getReleaseString(ctx, rloc))
+					fmt.Printf("%v [%v]. %v [%v]\n", j, rloc.GetSlot(), getReleaseString(ctx, rloc), total)
 					rec, err := getRecord(ctx, rloc.InstanceId)
 					if err != nil {
 						log.Fatalf("ARFH: %v", err)
@@ -459,6 +460,7 @@ func main() {
 		var notInPlay = updateLocationFlags.Bool("notinplay", false, "Is in play")
 		var physical = updateLocationFlags.Bool("physical", false, "Has physical media")
 		var order = updateLocationFlags.Int("order", -1, "Has physical media")
+		var gap = updateLocationFlags.Int("gap", -1, "Adds gaps")
 
 		if err := updateLocationFlags.Parse(os.Args[2:]); err == nil {
 			if *needStock {
@@ -466,6 +468,11 @@ func main() {
 			}
 			if *delete {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, DeleteLocation: true})
+			}
+			if *gap > 0 {
+				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{
+					HardGap: map[int32]bool{int32(*gap): true},
+				}})
 			}
 			if *folder > 0 && len(*sort) > 0 && *order >= 0 {
 				if *sort == "label" {
