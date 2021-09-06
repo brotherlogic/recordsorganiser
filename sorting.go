@@ -199,7 +199,7 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 
 	counts = append(counts, count / float32((int(n)-tslots)))
 
-	s.Log(fmt.Sprintf("AHA WE DIDFOUND %v", counts))
+	s.Log(fmt.Sprintf("AHA WE DIDFOUND =  %v", counts))
 
 	version := 0
 	currentValue := float32(0.0)
