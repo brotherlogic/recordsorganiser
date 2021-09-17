@@ -47,6 +47,11 @@ var (
 		Name: "recordsorganiser_in_box",
 		Help: "Various Wait Times",
 	}, []string{"location"})
+
+	swidths = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorgainser_slot_widths",
+		Help: "Widthof slots",
+	}, []string{"location", "slot"})
 )
 
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.Organisation) (int32, error) {
@@ -54,6 +59,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 	var overall []*pbrc.Record
 	boxCount := 0
 	var gaps []int
+	widths := make(map[int32]float64)
 	for ind, i := range c.GetFolderIds() {
 		if ind > 0 && c.GetHardGap()[i] {
 			gaps = append(gaps, len(overall))
@@ -81,6 +87,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 				if err != nil {
 					return -1, err
 				}
+				widths[r.GetRelease().GetInstanceId()] = float64(r.GetMetadata().GetRecordWidth())
 				if r.GetMetadata().Category == pbrc.ReleaseMetadata_ASSESS_FOR_SALE ||
 					r.GetMetadata().Category == pbrc.ReleaseMetadata_PREPARE_TO_SELL ||
 					r.GetMetadata().Category == pbrc.ReleaseMetadata_STAGED_TO_SELL {
@@ -121,6 +128,15 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 	//Make any quota adjustments - we only do width ajdustments
 	if c.GetQuota().GetTotalWidth() > 0 {
 		s.markOverQuota(ctx, c)
+	}
+
+	slotWidths := make(map[int]float64)
+	for _, ent := range c.GetReleasesLocation() {
+		slotWidths[int(ent.GetSlot())] += widths[ent.GetInstanceId()]
+	}
+
+	for slot, width := range slotWidths {
+		swidths.With(prometheus.Labels{"location": c.GetName(), "slot": fmt.Sprintf("%v", slot)}).Set(width)
 	}
 
 	sizes.With(prometheus.Labels{"location": c.GetName()}).Set(float64((boxCount)))
