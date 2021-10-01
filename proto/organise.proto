@@ -75,6 +75,7 @@ message Location {
     BY_RELEASE_DATE = 2;
     BY_FOLDER_THEN_DATE = 3;
     BY_MOVE_TIME = 4;
+    BY_LAST_LISTEN = 5;
   }
   Sorting sort = 5;
 

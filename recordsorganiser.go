@@ -111,6 +111,8 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 			sort.Sort(ByFolderThenRelease(tfr))
 		case pb.Location_BY_MOVE_TIME:
 			sort.Sort(ByDateMoved(tfr))
+		case pb.Location_BY_LAST_LISTEN:
+			sort.Sort(ByLastListen(tfr))
 		}
 
 		overall = append(overall, tfr...)

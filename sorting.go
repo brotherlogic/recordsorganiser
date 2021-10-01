@@ -13,6 +13,18 @@ import (
 )
 
 // ByDateAdded allows sorting of releases by the date they were added
+type ByLastListen []*pbrc.Record
+
+func (a ByLastListen) Len() int      { return len(a) }
+func (a ByLastListen) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByLastListen) Less(i, j int) bool {
+	if a[i].Metadata.LastListenTime != a[j].Metadata.LastListenTime {
+		return a[i].Metadata.LastListenTime < a[j].Metadata.LastListenTime
+	}
+	return strings.Compare(a[i].Release.Title, a[j].Release.Title) < 0
+}
+
+// ByDateAdded allows sorting of releases by the date they were added
 type ByDateAdded []*pbrc.Record
 
 func (a ByDateAdded) Len() int      { return len(a) }
@@ -176,8 +188,6 @@ func getFormatWidth(r *pbrc.Record) float32 {
 	return 3.7
 }
 
-
-
 // Split splits a releases list into buckets
 func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap []int) [][]*pbrc.Record {
 	var solution [][]*pbrc.Record
@@ -190,14 +200,14 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 			if i == gap {
 				nslots := int(math.Ceil(float64(count) / float64(maxw)))
 				tslots += nslots
-				counts = append(counts, float32(count / float32(nslots)))
+				counts = append(counts, float32(count/float32(nslots)))
 				count = 0
 			}
 		}
 		count += getFormatWidth(rel)
 	}
 
-	counts = append(counts, count / float32((int(n)-tslots)))
+	counts = append(counts, count/float32((int(n)-tslots)))
 
 	s.Log(fmt.Sprintf("AHA WE DIDFOUND =  %v", counts))
 
