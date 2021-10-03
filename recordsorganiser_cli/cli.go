@@ -491,10 +491,11 @@ func main() {
 						FolderIds:   []int32{int32(*folder)}}})
 				}
 				if *sort == "listen" {
-					client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{
+					ur, err := client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{
 						FolderOrder: map[int32]int32{int32(*folder): int32(*order)},
 						FolderSort:  map[int32]pb.Location_Sorting{int32(*folder): pb.Location_BY_LAST_LISTEN},
 						FolderIds:   []int32{int32(*folder)}}})
+					fmt.Printf("%v, %v\n", ur, err)
 				}
 			}
 			if *quota != 0 {

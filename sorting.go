@@ -207,7 +207,7 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 		count += getFormatWidth(rel)
 	}
 
-	counts = append(counts, count/float32((int(n)-tslots)))
+	counts = append(counts, maxw)
 
 	s.Log(fmt.Sprintf("AHA WE DIDFOUND =  %v", counts))
 
