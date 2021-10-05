@@ -189,7 +189,7 @@ func getFormatWidth(r *pbrc.Record) float32 {
 }
 
 // Split splits a releases list into buckets
-func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap []int) [][]*pbrc.Record {
+func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap []int, allowAdjust bool) [][]*pbrc.Record {
 	var solution [][]*pbrc.Record
 
 	var counts []float32
@@ -214,7 +214,7 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 	version := 0
 	currentValue := float32(0.0)
 	var currentReleases []*pbrc.Record
-	for i, rel := range releases {
+	for i := range releases {
 		found := false
 		for _, gap := range hardgap {
 			if i == gap {
@@ -222,19 +222,25 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 			}
 		}
 		s.Log(fmt.Sprintf("WEAT %v -> %v", i, currentValue))
-		if found || currentValue+getFormatWidth(rel) > counts[version] {
-			s.Log(fmt.Sprintf("ACCUM: %v + %v is greater than %v, starting new slot (%v / %v)", currentValue, getFormatWidth(rel), counts[version], i, hardgap))
+		if found {
+			s.Log(fmt.Sprintf("ACCUM: %v + %v is greater than %v, starting new slot (%v / %v)", currentValue, getFormatWidth(releases[i]), counts[version], i, hardgap))
 
 			solution = append(solution, currentReleases)
 			currentReleases = make([]*pbrc.Record, 0)
 			currentValue = 0
-			if found {
-				version++
+			version++
+		} else if currentValue+getFormatWidth(releases[i]) > counts[version] {
+			if allowAdjust && currentValue+getFormatWidth(releases[i+1]) < counts[version] {
+				releases[i], releases[i+1] = releases[i+1], releases[i]
+			} else {
+				solution = append(solution, currentReleases)
+				currentReleases = make([]*pbrc.Record, 0)
+				currentValue = 0
 			}
 		}
 
-		currentReleases = append(currentReleases, rel)
-		currentValue += getFormatWidth(rel)
+		currentReleases = append(currentReleases, releases[i])
+		currentValue += getFormatWidth(releases[i])
 	}
 	solution = append(solution, currentReleases)
 
