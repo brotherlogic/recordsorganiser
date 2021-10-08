@@ -212,6 +212,9 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 
 	record, err := s.bridge.getRecord(ctx, req.GetInstanceId())
 	if err != nil {
+		if status.Convert(err).Code() == codes.OutOfRange {
+			return &rcpb.ClientUpdateResponse{}, nil
+		}
 		return nil, err
 	}
 

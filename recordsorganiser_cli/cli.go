@@ -464,10 +464,14 @@ func main() {
 		var physical = updateLocationFlags.Bool("physical", false, "Has physical media")
 		var order = updateLocationFlags.Int("order", -1, "Has physical media")
 		var gap = updateLocationFlags.Int("gap", -1, "Adds gaps")
+		var adjust = updateLocationFlags.Bool("adjust", false, "Do adjust")
 
 		if err := updateLocationFlags.Parse(os.Args[2:]); err == nil {
 			if *needStock {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{Checking: pb.Location_REQUIRE_STOCK_CHECK}})
+			}
+			if *adjust {
+				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{AllowAdjust: true}})
 			}
 			if *delete {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, DeleteLocation: true})
