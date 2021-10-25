@@ -52,6 +52,11 @@ var (
 		Name: "recordsorgainser_slot_widths",
 		Help: "Widthof slots",
 	}, []string{"location", "slot"})
+
+	twidth = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorgainser_total_width",
+		Help: "Widthof slots",
+	}, []string{"location"})
 )
 
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.Organisation) (int32, error) {
@@ -80,6 +85,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		}
 
 		adjustment := 0
+		tw := float64(0)
 		tfr := []*pbrc.Record{}
 		for _, id := range ids {
 			r, err := s.bridge.getRecord(ctx, id)
@@ -88,6 +94,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 					return -1, err
 				}
 				widths[r.GetRelease().GetInstanceId()] = float64(r.GetMetadata().GetRecordWidth())
+				tw += float64(r.GetMetadata().GetRecordWidth())
 				if r.GetMetadata().Category == pbrc.ReleaseMetadata_ASSESS_FOR_SALE ||
 					r.GetMetadata().Category == pbrc.ReleaseMetadata_PREPARE_TO_SELL ||
 					r.GetMetadata().Category == pbrc.ReleaseMetadata_STAGED_TO_SELL {
@@ -101,6 +108,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 				boxCount++
 			}
 		}
+		twidth.With(prometheus.Labels{"location": c.GetName()}).Set(tw)
 
 		switch sorter {
 		case pb.Location_BY_DATE_ADDED:
