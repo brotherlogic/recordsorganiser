@@ -94,7 +94,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 					return -1, err
 				}
 				widths[r.GetRelease().GetInstanceId()] = float64(r.GetMetadata().GetRecordWidth())
-				tw += float64(r.GetMetadata().GetRecordWidth())
+				tw += float64(getFormatWidth(r))
 				if r.GetMetadata().Category == pbrc.ReleaseMetadata_ASSESS_FOR_SALE ||
 					r.GetMetadata().Category == pbrc.ReleaseMetadata_PREPARE_TO_SELL ||
 					r.GetMetadata().Category == pbrc.ReleaseMetadata_STAGED_TO_SELL {
