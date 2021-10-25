@@ -54,7 +54,7 @@ var (
 	}, []string{"location", "slot"})
 
 	twidth = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "recordsorgainser_total_width",
+		Name: "recordsorganiser_total_width",
 		Help: "Widthof slots",
 	}, []string{"location"})
 )
