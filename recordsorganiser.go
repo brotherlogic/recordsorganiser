@@ -70,8 +70,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 	boxCount := 0
 	var gaps []int
 	widths := make(map[int32]float64)
-	adj := float32(0)
-	adjc := float32(0)
+	fwidths := []float64{1}
 	for ind, i := range c.GetFolderIds() {
 		if ind > 0 && c.GetHardGap()[i] {
 			gaps = append(gaps, len(overall))
@@ -104,11 +103,10 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 				widths[r.GetRelease().GetInstanceId()] = float64(r.GetMetadata().GetRecordWidth())
 
 				if r.GetMetadata().GetRecordWidth() > 0 {
-					adj += r.Metadata.GetRecordWidth()
-					adjc++
+					fwidths = append(fwidths, float64(r.GetMetadata().GetRecordWidth()))
 				}
 
-				tw += float64(getFormatWidth(r, adj/adjc))
+				tw += float64(getFormatWidth(r, fwidths[len(fwidths)/2]))
 				if r.GetMetadata().Category == pbrc.ReleaseMetadata_ASSESS_FOR_SALE ||
 					r.GetMetadata().Category == pbrc.ReleaseMetadata_PREPARE_TO_SELL ||
 					r.GetMetadata().Category == pbrc.ReleaseMetadata_STAGED_TO_SELL {
@@ -141,8 +139,8 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 	}
 
 	s.Log(fmt.Sprintf("Running split with %v and %v", gaps, len(overall)))
-	awidth.With(prometheus.Labels{"location": c.GetName()}).Set(float64(adj / adjc))
-	records := s.Split(overall, float32(c.GetSlots()), float32(c.GetQuota().GetTotalWidth()), gaps, c.GetAllowAdjust(), adj/adjc)
+	awidth.With(prometheus.Labels{"location": c.GetName()}).Set(float64(fwidths[len(fwidths)/2]))
+	records := s.Split(overall, float32(c.GetSlots()), float32(c.GetQuota().GetTotalWidth()), gaps, c.GetAllowAdjust(), fwidths[len(fwidths)/2])
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
 	for slot, recs := range records {
 		for i, rinloc := range recs {

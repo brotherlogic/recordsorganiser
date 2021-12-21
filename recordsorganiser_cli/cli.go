@@ -182,6 +182,9 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 
 	lastSlot := int32(1)
 	total := float32(0)
+	twidth := float32(0)
+	tcount := float32(0)
+	var widths []float64
 	for _, loc := range locs.GetLocations() {
 		fmt.Printf("%v (%v) -> %v [%v] with %v (%v) %v [Last reorg: %v from %v] (%v)\n", loc.GetName(), len(loc.GetReleasesLocation()), loc.GetFolderIds(), loc.GetQuota(), loc.Sort.String(), loc.GetSlots(), loc.GetSpillFolder(), time.Unix(loc.LastReorg, 0), loc.ReorgTime, loc.InPlay)
 		fmt.Printf("%v\n", loc.GetFolderOrder())
@@ -201,13 +204,19 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 						log.Fatalf("ARFH: %v", err)
 					}
 					total += getFormatWidth(rec)
+					if rec.GetMetadata().GetRecordWidth() > 0 {
+						twidth += rec.GetMetadata().GetRecordWidth()
+						tcount++
+						widths = append(widths, float64(rec.Metadata.GetRecordWidth()))
+					}
 
 				}
 			}
 		}
 	}
+	sort.Float64s(widths)
 
-	fmt.Printf("Summary: %v [%v]\n", locs.GetNumberProcessed(), total)
+	fmt.Printf("Summary: %v [%v] %v/%v = %v / %v\n", locs.GetNumberProcessed(), total, twidth, tcount, twidth/tcount, widths[len(widths)/2])
 
 	if len(locs.GetLocations()) == 0 {
 		fmt.Printf("No Locations Found!\n")

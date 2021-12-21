@@ -163,17 +163,17 @@ func (a ByFolderThenRelease) Less(i, j int) bool {
 	return strings.Compare(a[i].GetRelease().Title, a[j].GetRelease().Title) < 0
 }
 
-func getFormatWidth(r *pbrc.Record, bwidth float32) float32 {
+func getFormatWidth(r *pbrc.Record, bwidth float64) float32 {
 	// Use the spine width if we have it
 	if r.GetMetadata().GetRecordWidth() > 0 {
 		return r.GetMetadata().GetRecordWidth()
 	}
 
-	return bwidth
+	return float32(bwidth)
 }
 
 // Split splits a releases list into buckets
-func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap []int, allowAdjust bool, bwidth float32) [][]*pbrc.Record {
+func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap []int, allowAdjust bool, bwidth float64) [][]*pbrc.Record {
 	var solution [][]*pbrc.Record
 
 	var counts []float32
