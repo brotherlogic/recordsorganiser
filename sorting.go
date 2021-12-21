@@ -211,14 +211,14 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 		}
 		s.Log(fmt.Sprintf("WEAT %v -> %v", i, currentValue))
 		if found {
-			s.Log(fmt.Sprintf("ACCUM: %v + %v is greater than %v, starting new slot (%v / %v)", currentValue, getFormatWidth(releases[i]), counts[version], i, hardgap))
+			s.Log(fmt.Sprintf("ACCUM: %v + %v is greater than %v, starting new slot (%v / %v)", currentValue, getFormatWidth(releases[i], bwidth), counts[version], i, hardgap))
 
 			solution = append(solution, currentReleases)
 			currentReleases = make([]*pbrc.Record, 0)
 			currentValue = 0
 			version++
-		} else if currentValue+getFormatWidth(releases[i]) > counts[version] {
-			if allowAdjust && i < len(releases)-1 && currentValue+getFormatWidth(releases[i+1]) < counts[version] {
+		} else if currentValue+getFormatWidth(releases[i], bwidth) > counts[version] {
+			if allowAdjust && i < len(releases)-1 && currentValue+getFormatWidth(releases[i+1], bwidth) < counts[version] {
 				releases[i], releases[i+1] = releases[i+1], releases[i]
 			} else {
 				solution = append(solution, currentReleases)
@@ -228,7 +228,7 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 		}
 
 		currentReleases = append(currentReleases, releases[i])
-		currentValue += getFormatWidth(releases[i])
+		currentValue += getFormatWidth(releases[i], bwidth)
 	}
 	solution = append(solution, currentReleases)
 
