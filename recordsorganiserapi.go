@@ -79,6 +79,19 @@ func (s *Server) AddLocation(ctx context.Context, req *pb.AddLocationRequest) (*
 	return &pb.AddLocationResponse{Now: org}, nil
 }
 
+func (s *Server) metrics(ctx context.Context) error {
+	org, err := s.readOrg(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, loc := range org.GetLocations() {
+		s.organiseLocation(ctx, loc, org)
+	}
+
+	return nil
+}
+
 // GetOrganisation gets a given organisation
 func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationRequest) (*pb.GetOrganisationResponse, error) {
 	org, err := s.readOrg(ctx)

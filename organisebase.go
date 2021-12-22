@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"time"
 
 	"github.com/brotherlogic/goserver"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	pbgs "github.com/brotherlogic/goserver/proto"
+	"github.com/brotherlogic/goserver/utils"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	rcpb "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
@@ -170,6 +172,13 @@ func main() {
 	server := InitServer()
 
 	err := server.RegisterServerV2("recordsorganiser", false, true)
+	if err != nil {
+		return
+	}
+
+	ctx, cancel := utils.ManualContext("recorginit", time.Minute*10)
+	err = server.metrics(ctx)
+	cancel()
 	if err != nil {
 		return
 	}
