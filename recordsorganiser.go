@@ -56,7 +56,7 @@ var (
 	twidth = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "recordsorganiser_total_width",
 		Help: "Widthof slots",
-	}, []string{"location"})
+	}, []string{"location", "filed"})
 
 	awidth = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "recordsorganiser_average_width",
@@ -91,7 +91,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		}
 
 		adjustment := 0
-		tw := float64(0)
+		tw := make(map[string]float64)
 
 		tfr := []*pbrc.Record{}
 		for _, id := range ids {
@@ -106,7 +106,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 					fwidths = append(fwidths, float64(r.GetMetadata().GetRecordWidth()))
 				}
 
-				tw += float64(getFormatWidth(r, fwidths[len(fwidths)/2]))
+				tw[r.GetMetadata().GetFiledUnder().String()] += float64(getFormatWidth(r, fwidths[len(fwidths)/2]))
 				if r.GetMetadata().Category == pbrc.ReleaseMetadata_ASSESS_FOR_SALE ||
 					r.GetMetadata().Category == pbrc.ReleaseMetadata_PREPARE_TO_SELL ||
 					r.GetMetadata().Category == pbrc.ReleaseMetadata_STAGED_TO_SELL {
@@ -120,7 +120,10 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 				boxCount++
 			}
 		}
-		twidth.With(prometheus.Labels{"location": c.GetName()}).Set(tw)
+
+		for key, val := range tw {
+			twidth.With(prometheus.Labels{"location": c.GetName(), "filed": key}).Set(val)
+		}
 
 		switch sorter {
 		case pb.Location_BY_DATE_ADDED:
