@@ -166,6 +166,12 @@ func (a ByFolderThenRelease) Less(i, j int) bool {
 func getFormatWidth(r *pbrc.Record, bwidth float64) float32 {
 	// Use the spine width if we have it
 	if r.GetMetadata().GetRecordWidth() > 0 {
+		// Make the adjustment for DS_F records
+		if r.GetMetadata().GetSleeve() == pbrc.ReleaseMetadata_BAGS_UNLIMITED_PLAIN ||
+			r.GetMetadata().GetSleeve() == pbrc.ReleaseMetadata_VINYL_STORAGE_DOUBLE_FLAP {
+			return r.GetMetadata().GetRecordWidth() * 1.25
+		}
+
 		return r.GetMetadata().GetRecordWidth()
 	}
 
