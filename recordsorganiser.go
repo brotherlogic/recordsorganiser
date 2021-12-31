@@ -147,7 +147,13 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
 	for slot, recs := range records {
 		for i, rinloc := range recs {
-			c.ReleasesLocation = append(c.ReleasesLocation, &pb.ReleasePlacement{Slot: int32(slot + 1), Index: int32(i), InstanceId: rinloc.GetRelease().InstanceId, Title: rinloc.GetRelease().Title})
+			c.ReleasesLocation = append(c.ReleasesLocation,
+				&pb.ReleasePlacement{
+					Slot:            int32(slot + 1),
+					Index:           int32(i),
+					InstanceId:      rinloc.GetRelease().InstanceId,
+					Title:           rinloc.GetRelease().Title,
+					DeterminedWidth: getFormatWidth(rinloc, fwidths[len(fwidths)/2])})
 		}
 	}
 

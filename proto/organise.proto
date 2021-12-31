@@ -34,6 +34,9 @@ message ReleasePlacement {
 
   // The name of this release
   string title = 4;
+
+  // Determined width of this release
+  float determined_width = 5;
 }
 
 message Quota {

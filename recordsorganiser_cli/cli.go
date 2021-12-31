@@ -95,7 +95,7 @@ func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement) string {
 	if rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD {
 		return ""
 	}
-	return fmt.Sprintf("%v. ", rec.GetRelease().GetId()) + loc.Title + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", rec.GetMetadata().GetRecordWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]"
+	return fmt.Sprintf("%v. ", rec.GetRelease().GetId()) + loc.Title + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]"
 }
 
 func getRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
@@ -203,7 +203,7 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 					if err != nil {
 						log.Fatalf("ARFH: %v", err)
 					}
-					total += getFormatWidth(rec)
+					total += rloc.GetDeterminedWidth()
 					if rec.GetMetadata().GetRecordWidth() > 0 {
 						twidth += rec.GetMetadata().GetRecordWidth()
 						tcount++
