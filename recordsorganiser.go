@@ -71,6 +71,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 	var gaps []int
 	widths := make(map[int32]float64)
 	fwidths := []float64{1}
+	tw := make(map[int32]string)
 	for ind, i := range c.GetFolderIds() {
 		if ind > 0 && c.GetHardGap()[i] {
 			gaps = append(gaps, len(overall))
@@ -91,7 +92,6 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		}
 
 		adjustment := 0
-		tw := make(map[string]float64)
 
 		tfr := []*pbrc.Record{}
 		for _, id := range ids {
@@ -106,12 +106,13 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 					fwidths = append(fwidths, float64(r.GetMetadata().GetRecordWidth()))
 				}
 
-				tw[r.GetMetadata().GetFiledUnder().String()] += float64(getFormatWidth(r, fwidths[len(fwidths)/2]))
 				if r.GetMetadata().Category == pbrc.ReleaseMetadata_ASSESS_FOR_SALE ||
 					r.GetMetadata().Category == pbrc.ReleaseMetadata_PREPARE_TO_SELL ||
 					r.GetMetadata().Category == pbrc.ReleaseMetadata_STAGED_TO_SELL {
 					adjustment++
 				}
+
+				tw[id] = r.GetMetadata().GetFiledUnder().String()
 
 				tfr = append(tfr, r)
 			}
@@ -119,10 +120,6 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 			if r.GetMetadata().GetBoxState() != pbrc.ReleaseMetadata_BOX_UNKNOWN && r.GetMetadata().GetBoxState() != pbrc.ReleaseMetadata_OUT_OF_BOX {
 				boxCount++
 			}
-		}
-
-		for key, val := range tw {
-			twidth.With(prometheus.Labels{"location": c.GetName(), "filed": key}).Set(val)
 		}
 
 		switch sorter {
@@ -163,12 +160,19 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 	}
 
 	slotWidths := make(map[int]float64)
+	twf := make(map[string]float64)
 	for _, ent := range c.GetReleasesLocation() {
 		slotWidths[int(ent.GetSlot())] += float64(ent.GetDeterminedWidth())
+		twf[tw[ent.GetInstanceId()]] += float64(ent.GetDeterminedWidth())
 	}
 
 	for slot, width := range slotWidths {
 		swidths.With(prometheus.Labels{"location": c.GetName(), "slot": fmt.Sprintf("%v", slot)}).Set(width)
+
+	}
+
+	for key, val := range twf {
+		twidth.With(prometheus.Labels{"location": c.GetName(), "filed": key}).Set(val)
 	}
 
 	sizes.With(prometheus.Labels{"location": c.GetName()}).Set(float64((boxCount)))
