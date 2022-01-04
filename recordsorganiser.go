@@ -171,6 +171,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 
 	}
 
+	s.Log(fmt.Sprintf("TOTAL %v -> %v", c.GetName(), twf))
 	for key, val := range twf {
 		twidth.With(prometheus.Labels{"location": c.GetName(), "filed": key}).Set(val)
 	}
