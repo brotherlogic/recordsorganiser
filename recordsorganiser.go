@@ -165,7 +165,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 
 	slotWidths := make(map[int]float64)
 	for _, ent := range c.GetReleasesLocation() {
-		slotWidths[int(ent.GetSlot())] += widths[ent.GetInstanceId()]
+		slotWidths[int(ent.GetSlot())] += float64(ent.GetDeterminedWidth())
 	}
 
 	for slot, width := range slotWidths {
