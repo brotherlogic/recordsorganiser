@@ -154,7 +154,6 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 					InstanceId:      rinloc.GetRelease().InstanceId,
 					Title:           rinloc.GetRelease().Title,
 					DeterminedWidth: getFormatWidth(rinloc, fwidths[len(fwidths)/2])})
-					widths[rinloc.GetRelease().GetInstanceId()] = getFormatWidth(rinloc, fwidths[len(fwidths)/2])})
 		}
 	}
 
