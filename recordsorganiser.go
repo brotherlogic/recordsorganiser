@@ -138,7 +138,9 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		overall = append(overall, tfr...)
 	}
 
-	s.Log(fmt.Sprintf("Running split with %v and %v -> %v", gaps, len(overall), fwidths))
+	sort.Float64s(fwidths)
+
+	s.Log(fmt.Sprintf("Running split for %v with %v and %v -> %v", gaps, c.GetName(), len(overall), fwidths))
 	awidth.With(prometheus.Labels{"location": c.GetName()}).Set(float64(fwidths[len(fwidths)/2]))
 	records := s.Split(overall, float32(c.GetSlots()), float32(c.GetQuota().GetTotalWidth()), gaps, c.GetAllowAdjust(), fwidths[len(fwidths)/2])
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
