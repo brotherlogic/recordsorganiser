@@ -55,6 +55,16 @@ func (s *Server) readOrg(ctx context.Context) (*pb.Organisation, error) {
 				location.FolderSort[folder] = location.Sort
 			}
 		}
+
+		seen := make(map[int32]bool)
+		var done []int32
+		for _, val := range location.GetFolderIds() {
+			if !seen[val] {
+				done = append(done, val)
+				seen[val] = true
+			}
+		}
+		location.FolderIds = done
 	}
 
 	if len(locations) > 0 {
