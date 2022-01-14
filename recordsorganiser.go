@@ -72,18 +72,27 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 	widths := make(map[int32]float64)
 	fwidths := []float64{1}
 	tw := make(map[int32]string)
-	for ind, i := range c.GetFolderIds() {
-		if ind > 0 && c.GetHardGap()[i] {
-			gaps = append(gaps, len(overall))
+	maxorder := int32(0)
+	for _, ord := range c.GetFolderOrder() {
+		if ord > maxorder {
+			maxorder = ord
 		}
-
+	}
+	for order := int32(0); order <= maxorder; order++ {
 		var lfold []int32
 		var sorter pb.Location_Sorting
+		fg := false
 		for key, val := range c.GetFolderOrder() {
-			if val == int32(ind) {
+			if val == order {
 				lfold = append(lfold, key)
 				sorter = c.GetFolderSort()[key]
 			}
+			if c.GetHardGap()[key] {
+				fg = true
+			}
+		}
+		if fg {
+			gaps = append(gaps, len(overall))
 		}
 
 		ids, err := s.bridge.getReleases(ctx, lfold)
