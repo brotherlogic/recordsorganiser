@@ -12,10 +12,6 @@ type BySaleOrder []*pbrc.Record
 
 // Get The Score
 func GetScore(r *pbrc.Record) float32 {
-	if r.GetRelease().Rating != 0 {
-		return float32(r.GetRelease().Rating)
-	}
-
 	// Treat NaN as a zero score
 	if math.IsNaN(float64(r.GetMetadata().OverallScore)) {
 		return 0
@@ -27,29 +23,6 @@ func GetScore(r *pbrc.Record) float32 {
 func (a BySaleOrder) Len() int      { return len(a) }
 func (a BySaleOrder) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a BySaleOrder) Less(i, j int) bool {
-	if a[i].GetMetadata() != nil && a[j].GetMetadata() != nil {
-		if a[i].GetMetadata().Keep != a[j].GetMetadata().Keep {
-			if a[i].GetMetadata().Keep == pbrc.ReleaseMetadata_KEEPER {
-				return false
-			}
-			if a[j].GetMetadata().Keep == pbrc.ReleaseMetadata_KEEPER {
-				return true
-			}
-		}
-	}
-
-	// Push FULL_MATCH first
-	if a[i].GetMetadata() != nil && a[j].GetMetadata() != nil {
-		if a[i].GetMetadata().Match != a[j].GetMetadata().Match {
-			if a[i].GetMetadata().Match == pbrc.ReleaseMetadata_FULL_MATCH {
-				return true
-			}
-			if a[j].GetMetadata().Match == pbrc.ReleaseMetadata_FULL_MATCH {
-				return false
-			}
-		}
-	}
-
 	// Sort by score
 	if a[i].GetMetadata() != nil && a[j].GetMetadata() != nil {
 		if GetScore(a[i]) != GetScore(a[j]) {
