@@ -69,6 +69,23 @@ func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) 
 	s.Log(fmt.Sprintf("Maybe selling because the collection is oversubscribed: %v > %v", twidth, c.GetQuota().GetAbsoluteWidth()))
 
 	if twidth > c.GetQuota().GetAbsoluteWidth() {
+		records := []*pbrc.Record{}
+		for _, rp := range c.GetReleasesLocation() {
+				rec, err := s.bridge.getRecord(ctx, rp.GetInstanceId())
+				if err != nil {
+					return err
+				}
+				records = append(records, rec)
+			}
+		}
+		sort.Sort(sales.BySaleOrder(records))
+
+		r := records[0]
+		s.CtxLog(ctx, fmt.Sprintf("WEARESELLING: %v", r.GetRelease().GetInstanceId))
+		if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_IN_COLLECTION {
+			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
+			s.bridge.updateRecord(ctx, up)
+		}
 	}
 
 	return nil

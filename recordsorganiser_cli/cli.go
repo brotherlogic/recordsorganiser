@@ -190,6 +190,7 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 		fmt.Printf("%v\n", loc.GetFolderOrder())
 		fmt.Printf("%v\n", loc.GetFolderSort())
 		fmt.Printf("%v\n", loc.GetHardGap())
+		fmt.Printf("%v\n", loc.GetQuota())
 
 		for j, rloc := range loc.GetReleasesLocation() {
 			if slot < 0 || rloc.GetSlot() == slot {
