@@ -71,20 +71,23 @@ func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) 
 	if twidth > c.GetQuota().GetAbsoluteWidth() {
 		records := []*pbrc.Record{}
 		for _, rp := range c.GetReleasesLocation() {
-				rec, err := s.bridge.getRecord(ctx, rp.GetInstanceId())
-				if err != nil {
-					return err
-				}
-				records = append(records, rec)
+			rec, err := s.bridge.getRecord(ctx, rp.GetInstanceId())
+			if err != nil {
+				return err
 			}
+			records = append(records, rec)
 		}
+
 		sort.Sort(sales.BySaleOrder(records))
 
 		r := records[0]
-		s.CtxLog(ctx, fmt.Sprintf("WEARESELLING: %v", r.GetRelease().GetInstanceId))
+		s.CtxLog(ctx, fmt.Sprintf("WEARESELLING: %v", r.GetRelease().GetInstanceId()))
 		if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_IN_COLLECTION {
 			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
-			s.bridge.updateRecord(ctx, up)
+			_, err := s.bridge.updateRecord(ctx, up)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
