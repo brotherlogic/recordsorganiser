@@ -66,8 +66,9 @@ func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) 
 		twidth += elem.GetDeterminedWidth()
 	}
 
+	s.Log(fmt.Sprintf("Maybe selling because the collection is oversubscribed: %v > %v", twidth, c.GetQuota().GetAbsoluteWidth()))
+
 	if twidth > c.GetQuota().GetAbsoluteWidth() {
-		s.Log(fmt.Sprintf("Selling because the collection is oversubscribed: %v vs %v", twidth, c.GetQuota().GetAbsoluteWidth()))
 	}
 
 	return nil
