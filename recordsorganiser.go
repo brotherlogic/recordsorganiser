@@ -86,9 +86,9 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 			if val == order {
 				lfold = append(lfold, key)
 				sorter = c.GetFolderSort()[key]
-			}
-			if c.GetHardGap()[key] {
-				fg = true
+				if c.GetHardGap()[key] {
+					fg = true
+				}
 			}
 		}
 		if fg {
