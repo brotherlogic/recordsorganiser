@@ -207,8 +207,6 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 
 	counts = append(counts, maxw)
 
-	s.Log(fmt.Sprintf("AHARGH WE DIDFOUND =  %v", counts))
-
 	version := 0
 	currentValue := float32(0.0)
 	var currentReleases []*pbrc.Record
@@ -219,7 +217,6 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 				found = true
 			}
 		}
-		s.Log(fmt.Sprintf("WEAT %v -> %v", i, currentValue))
 		if found {
 			s.Log(fmt.Sprintf("ACCUM: %v + %v is greater than %v, starting new slot (%v / %v)", currentValue, getFormatWidth(releases[i], bwidth), counts[version], i, hardgap))
 
