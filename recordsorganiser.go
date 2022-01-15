@@ -36,6 +36,10 @@ func convert(exs []*pb.LabelExtractor) map[int32]string {
 }
 
 func (s *Server) markOverQuota(ctx context.Context, c *pb.Location) error {
+	if c.GetQuota().GetAbsoluteWidth() > 0 {
+		return s.processAbsoluteWidthQuota(ctx, c)
+	}
+
 	if c.GetQuota().GetTotalWidth() > 0 {
 		return s.processWidthQuota(ctx, c)
 	}

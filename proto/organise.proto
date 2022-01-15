@@ -52,6 +52,9 @@ message Quota {
     
     // The total width of the set
     float width = 4;
+
+    // The overall width
+    float absolute_width = 5;
   }
 }
 

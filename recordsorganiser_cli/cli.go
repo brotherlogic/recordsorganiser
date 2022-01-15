@@ -474,8 +474,15 @@ func main() {
 		var order = updateLocationFlags.Int("order", -1, "Has physical media")
 		var gap = updateLocationFlags.Int("gap", -1, "Adds gaps")
 		var adjust = updateLocationFlags.Bool("adjust", false, "Do adjust")
+		var absWidth = updateLocationFlags.Float64("abs_width", -1, "Overall width")
 
 		if err := updateLocationFlags.Parse(os.Args[2:]); err == nil {
+			if *absWidth > 0 {
+				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{
+					Location: *name,
+					Update:   &pb.Location{Quota: &pb.Quota{QuotaType: &pb.Quota_AbsoluteWidth{float32(*absWidth)}}},
+				})
+			}
 			if *needStock {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{Checking: pb.Location_REQUIRE_STOCK_CHECK}})
 			}

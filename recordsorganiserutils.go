@@ -60,6 +60,19 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 	return nil
 }
 
+func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) error {
+	twidth := float32(0)
+	for _, elem := range c.GetReleasesLocation() {
+		twidth += elem.GetDeterminedWidth()
+	}
+
+	if twidth > c.GetQuota().GetAbsoluteWidth() {
+		s.Log(fmt.Sprintf("Selling because the collection is oversubscribed: %v vs %v", twidth, c.GetQuota().GetAbsoluteWidth()))
+	}
+
+	return nil
+}
+
 func (s *Server) processWidthQuota(ctx context.Context, c *pb.Location) error {
 	for slot := 0; slot <= int(c.GetSlots()); slot++ {
 		totalWidth := float32(0)
