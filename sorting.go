@@ -176,6 +176,10 @@ func getFormatWidth(r *pbrc.Record, bwidth float64) float32 {
 			return r.GetMetadata().GetRecordWidth() * 1.15
 		}
 
+		if r.GetMetadata().GetSleeve() == pbrc.ReleaseMetadata_VINYL_STORAGE_NO_INNER {
+			return r.GetMetadata().GetRecordWidth() * 1.4
+		}
+
 		return r.GetMetadata().GetRecordWidth()
 	}
 
