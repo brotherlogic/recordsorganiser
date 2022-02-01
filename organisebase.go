@@ -65,6 +65,12 @@ func (s *Server) readOrg(ctx context.Context) (*pb.Organisation, error) {
 			}
 		}
 		location.FolderIds = done
+
+		if location.GetName() == "Holding" {
+			location.FolderIds = []int32{3578980}
+			delete(location.FolderOrder, int32(673768))
+			delete(location.FolderSort, int32(673768))
+		}
 	}
 
 	if len(locations) > 0 {
