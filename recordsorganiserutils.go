@@ -77,7 +77,16 @@ func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) 
 
 		sort.Sort(sales.BySaleOrder(records))
 
+		// Find the first appropriate record
 		r := records[0]
+		for _, prec := range records {
+			if prec.GetMetadata().GetBoxState() == pbrc.ReleaseMetadata_BOX_UNKNOWN ||
+				prec.GetMetadata().GetBoxState() == pbrc.ReleaseMetadata_OUT_OF_BOX {
+				r = prec
+				break
+			}
+		}
+
 		if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_IN_COLLECTION {
 			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
 			_, err := s.bridge.updateRecord(ctx, up)
