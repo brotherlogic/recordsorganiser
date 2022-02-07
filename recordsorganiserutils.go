@@ -64,7 +64,7 @@ func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) 
 		twidth += elem.GetDeterminedWidth()
 	}
 
-	s.CtxLog(ctx, fmt.Sprintf("Total width %v vs quota of %v", twidth, c.GetQuota().GetAbsoluteWidth()))
+	s.CtxLog(ctx, fmt.Sprintf("%v has Total width %v vs quota of %v", c.GetName(), twidth, c.GetQuota().GetAbsoluteWidth()))
 	if twidth > c.GetQuota().GetAbsoluteWidth() {
 		records := []*pbrc.Record{}
 		for _, rp := range c.GetReleasesLocation() {
