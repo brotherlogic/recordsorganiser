@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"regexp"
 	"strconv"
@@ -76,7 +75,6 @@ func doExtractorSplit(label *pb.Label, ex map[int32]string, logger func(string))
 		for _, pair := range vals {
 			ret = append(ret, pair[1])
 		}
-		logger(fmt.Sprintf("RAN ON %v got %v", label, ret))
 		return ret
 	}
 
@@ -222,8 +220,6 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 			}
 		}
 		if found {
-			s.Log(fmt.Sprintf("ACCUM: %v + %v is greater than %v, starting new slot (%v / %v)", currentValue, getFormatWidth(releases[i], bwidth), counts[version], i, hardgap))
-
 			solution = append(solution, currentReleases)
 			currentReleases = make([]*pbrc.Record, 0)
 			currentValue = 0

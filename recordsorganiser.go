@@ -69,7 +69,6 @@ var (
 )
 
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.Organisation) (int32, error) {
-	s.Log(fmt.Sprintf("Organising the %v with %v and %v", c.GetName(), c.GetHardGap(), c.GetFolderIds()))
 	var overall []*pbrc.Record
 	boxCount := 0
 	var gaps []int
@@ -153,7 +152,6 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 
 	sort.Float64s(fwidths)
 
-	s.Log(fmt.Sprintf("Running split for %v with %v and %v", gaps, c.GetName(), len(overall)))
 	awidth.With(prometheus.Labels{"location": c.GetName()}).Set(float64(fwidths[len(fwidths)/2]))
 	records := s.Split(overall, float32(c.GetSlots()), float32(c.GetQuota().GetTotalWidth()), gaps, c.GetAllowAdjust(), fwidths[len(fwidths)/2])
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
@@ -170,7 +168,6 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 	}
 
 	//Make any quota adjustments - we only do width ajdustments
-	s.CtxLog(ctx, fmt.Sprintf("Starting Sale Decision: %v", c.GetQuota()))
 	if c.GetQuota().GetAbsoluteWidth() > 0 {
 		s.markOverQuota(ctx, c)
 	}
@@ -187,7 +184,6 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 
 	}
 
-	s.Log(fmt.Sprintf("TOTAL %v -> %v", c.GetName(), twf))
 	for key, val := range twf {
 		twidth.With(prometheus.Labels{"location": c.GetName(), "filed": key}).Set(val)
 	}

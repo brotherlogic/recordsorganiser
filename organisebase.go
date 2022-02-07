@@ -46,7 +46,6 @@ func (s *Server) readOrg(ctx context.Context) (*pb.Organisation, error) {
 		}
 
 		if location.GetFolderOrder() == nil {
-			s.Log("Adjusting folder order")
 			location.FolderOrder = make(map[int32]int32)
 			location.FolderSort = make(map[int32]pb.Location_Sorting)
 

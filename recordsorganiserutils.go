@@ -37,7 +37,6 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 	slots := int(c.GetQuota().GetNumOfSlots())
 	existing := len(c.ReleasesLocation)
 
-	s.Log(fmt.Sprintf("SALES:  since we're over numeric quota %v - selling %v records", c.Name, existing-slots))
 	c.OverQuotaTime = 0
 
 	records := []*pbrc.Record{}
@@ -54,7 +53,6 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 
 	for i := 0; i < existing-slots; i++ {
 		up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[i].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
-		s.Log(fmt.Sprintf("Selling %v (%v)", records[i].GetRelease().Title, records[i].GetRelease().InstanceId))
 		s.bridge.updateRecord(ctx, up)
 	}
 	return nil
@@ -66,8 +64,7 @@ func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) 
 		twidth += elem.GetDeterminedWidth()
 	}
 
-	s.Log(fmt.Sprintf("Maybe selling because the collection is oversubscribed: %v > %v", twidth, c.GetQuota().GetAbsoluteWidth()))
-
+	s.CtxLog(ctx, fmt.Sprintf("Total width %v vs quota of %v", twidth, c.GetQuota().GetAbsoluteWidth()))
 	if twidth > c.GetQuota().GetAbsoluteWidth() {
 		records := []*pbrc.Record{}
 		for _, rp := range c.GetReleasesLocation() {
@@ -81,7 +78,6 @@ func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) 
 		sort.Sort(sales.BySaleOrder(records))
 
 		r := records[0]
-		s.CtxLog(ctx, fmt.Sprintf("NOWWEARESELLING: %v", r.GetRelease().GetInstanceId()))
 		if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_IN_COLLECTION {
 			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
 			_, err := s.bridge.updateRecord(ctx, up)
@@ -113,7 +109,6 @@ func (s *Server) processWidthQuota(ctx context.Context, c *pb.Location) error {
 		sort.Sort(sales.BySaleOrder(records))
 		pointer := 0
 		for pointer < len(records) && totalWidth > c.GetQuota().GetTotalWidth() {
-			s.Log(fmt.Sprintf("SALES %v (slot %v of %v) because of width %v -> %v", records[pointer].GetRelease().GetInstanceId(), slot, c.GetName(), totalWidth, c.GetQuota().GetTotalWidth()))
 			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[pointer].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
 			s.bridge.updateRecord(ctx, up)
 			totalWidth -= records[pointer].GetMetadata().GetRecordWidth()
