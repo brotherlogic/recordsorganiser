@@ -60,6 +60,7 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 
 func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) error {
 	twidth := float32(0)
+
 	for _, elem := range c.GetReleasesLocation() {
 		twidth += elem.GetDeterminedWidth()
 	}

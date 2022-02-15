@@ -62,6 +62,11 @@ var (
 		Help: "Widthof slots",
 	}, []string{"location", "filed"})
 
+	fwidth = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorganiser_folder_width",
+		Help: "Widthof slots",
+	}, []string{"folder"})
+
 	awidth = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "recordsorganiser_average_width",
 		Help: "Widthof slots",
@@ -75,6 +80,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 	widths := make(map[int32]float64)
 	fwidths := []float64{1}
 	tw := make(map[int32]string)
+	fw := make(map[int32]int32)
 	maxorder := int32(0)
 	for _, ord := range c.GetFolderOrder() {
 		if ord > maxorder {
@@ -125,6 +131,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 				}
 
 				tw[id] = r.GetMetadata().GetFiledUnder().String()
+				fw[id] = r.GetRelease().GetFolderId()
 
 				tfr = append(tfr, r)
 			}
@@ -174,9 +181,11 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 
 	slotWidths := make(map[int]float64)
 	twf := make(map[string]float64)
+	fwf := make(map[int32]float64)
 	for _, ent := range c.GetReleasesLocation() {
 		slotWidths[int(ent.GetSlot())] += float64(ent.GetDeterminedWidth())
 		twf[tw[ent.GetInstanceId()]] += float64(ent.GetDeterminedWidth())
+		fwf[fw[ent.GetInstanceId()]] += float64(ent.GetDeterminedWidth())
 	}
 
 	for slot, width := range slotWidths {
@@ -186,6 +195,10 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 
 	for key, val := range twf {
 		twidth.With(prometheus.Labels{"location": c.GetName(), "filed": key}).Set(val)
+	}
+
+	for key, val := range fwf {
+		twidth.With(prometheus.Labels{"folder": fmt.Sprintf("%v", key)}).Set(val)
 	}
 
 	sizes.With(prometheus.Labels{"location": c.GetName()}).Set(float64((boxCount)))
