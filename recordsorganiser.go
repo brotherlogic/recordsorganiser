@@ -198,7 +198,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 	}
 
 	for key, val := range fwf {
-		twidth.With(prometheus.Labels{"folder": fmt.Sprintf("%v", key)}).Set(val)
+		fwidth.With(prometheus.Labels{"folder": fmt.Sprintf("%v", key)}).Set(val)
 	}
 
 	sizes.With(prometheus.Labels{"location": c.GetName()}).Set(float64((boxCount)))
