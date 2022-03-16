@@ -77,17 +77,17 @@ func locateRelease(ctx context.Context, c pb.OrganiserServiceClient, id int32) {
 				if r.GetInstanceId() == id {
 					fmt.Printf("Slot %v\n", r.GetSlot())
 					if i > 0 {
-						fmt.Printf("%v. %v\n", i-1, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i-1]))
+						fmt.Printf("%v. %v\n", i-1, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i-1], false))
 					}
-					fmt.Printf("%v. %v\n", i, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i]))
-					fmt.Printf("%v. %v\n", i+1, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i+1]))
+					fmt.Printf("%v. %v\n", i, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i], false))
+					fmt.Printf("%v. %v\n", i+1, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i+1], false))
 				}
 			}
 		}
 	}
 }
 
-func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement) string {
+func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement, showSleeve bool) string {
 	rec, err := getRecord(ctx, loc.InstanceId)
 	if err != nil {
 		return fmt.Sprintf("%v", err)
@@ -95,7 +95,11 @@ func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement) string {
 	/*if rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD {
 		return ""
 	}*/
-	return fmt.Sprintf("%v. ", rec.GetRelease().GetId()) + loc.Title + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]"
+	sleeve := ""
+	if showSleeve {
+		sleeve = fmt.Sprintf("%v", rec.GetMetadata().GetSleeve())
+	}
+	return fmt.Sprintf("%v. ", rec.GetRelease().GetId()) + loc.Title + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]" + sleeve
 }
 
 func getRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
@@ -174,7 +178,7 @@ func isSeven(ctx context.Context, instanceID int32) bool {
 	return false
 }
 
-func get(ctx context.Context, client pb.OrganiserServiceClient, name string, force bool, slot int32, twelves bool, reset bool, sevens bool) {
+func get(ctx context.Context, client pb.OrganiserServiceClient, name string, force bool, slot int32, twelves bool, reset bool, sevens, showSleeve bool) {
 	locs, err := client.GetOrganisation(ctx, &pb.GetOrganisationRequest{OrgReset: reset, ForceReorg: force, Locations: []*pb.Location{&pb.Location{Name: name}}})
 	if err != nil {
 		log.Fatalf("Error reading locations: %v", err)
@@ -199,7 +203,7 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 						fmt.Printf("\n")
 						lastSlot = rloc.GetSlot()
 					}
-					fmt.Printf("%v [%v]. %v [%v]\n", j, rloc.GetSlot(), getReleaseString(ctx, rloc), total)
+					fmt.Printf("%v [%v]. %v [%v]\n", j, rloc.GetSlot(), getReleaseString(ctx, rloc, showSleeve), total)
 					rec, err := getRecord(ctx, rloc.InstanceId)
 					if err != nil {
 						log.Fatalf("ARFH: %v", err)
@@ -302,9 +306,10 @@ func main() {
 		var twelves = getLocationFlags.Bool("twelves", false, "Just 12 inches")
 		var sevens = getLocationFlags.Bool("sevens", false, "Just 7 inches")
 		var reorg = getLocationFlags.Bool("reorg", false, "Do a full reorg")
+		var showSleeve = getLocationFlags.Bool("sleeves", false, "Show sleeve state")
 
 		if err := getLocationFlags.Parse(os.Args[2:]); err == nil {
-			get(ctx, client, *name, *force, int32(*slot), *twelves, *reorg, *sevens)
+			get(ctx, client, *name, *force, int32(*slot), *twelves, *reorg, *sevens, *showSleeve)
 		}
 	case "add":
 		addLocationFlags := flag.NewFlagSet("AddLocation", flag.ExitOnError)
