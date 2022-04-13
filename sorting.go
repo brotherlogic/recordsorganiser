@@ -9,6 +9,8 @@ import (
 
 	pb "github.com/brotherlogic/godiscogs"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 // ByDateAdded allows sorting of releases by the date they were added
@@ -183,6 +185,13 @@ func getFormatWidth(r *pbrc.Record, bwidth float64) float32 {
 
 	return float32(bwidth)
 }
+
+var (
+	fstart = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorganiser_in_box",
+		Help: "Various Wait Times",
+	}, []string{"location", "folder"})
+)
 
 // Split splits a releases list into buckets
 func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap []int, allowAdjust bool, bwidth float64) [][]*pbrc.Record {

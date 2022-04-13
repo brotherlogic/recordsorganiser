@@ -158,12 +158,20 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 	}
 
 	sort.Float64s(fwidths)
+	mslot := make(map[int32]int)
+	for _, slot := range c.GetFolderIds() {
+		mslot[slot] = 999
+	}
 
 	awidth.With(prometheus.Labels{"location": c.GetName()}).Set(float64(fwidths[len(fwidths)/2]))
 	records := s.Split(overall, float32(c.GetSlots()), float32(c.GetQuota().GetTotalWidth()), gaps, c.GetAllowAdjust(), fwidths[len(fwidths)/2])
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
 	for slot, recs := range records {
 		for i, rinloc := range recs {
+			sl := slot + 1
+			if sl < mslot[rinloc.GetRelease().GetFolderId()] {
+				mslot[rinloc.GetRelease().GetFolderId()] = sl
+			}
 			c.ReleasesLocation = append(c.ReleasesLocation,
 				&pb.ReleasePlacement{
 					Slot:            int32(slot + 1),
@@ -172,6 +180,10 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 					Title:           rinloc.GetRelease().Title,
 					DeterminedWidth: getFormatWidth(rinloc, fwidths[len(fwidths)/2])})
 		}
+	}
+
+	for folder, mi := range mslot {
+		fstart.With(prometheus.Labels{"location": c.GetName(), "folder": fmt.Sprintf("%v", folder)}).Set(float64(mi))
 	}
 
 	//Make any quota adjustments - we only do width ajdustments
