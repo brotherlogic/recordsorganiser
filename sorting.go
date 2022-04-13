@@ -188,7 +188,7 @@ func getFormatWidth(r *pbrc.Record, bwidth float64) float32 {
 
 var (
 	fstart = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "recordsorganiser_in_box",
+		Name: "recordsorganiser_slot_start",
 		Help: "Various Wait Times",
 	}, []string{"location", "folder"})
 )
