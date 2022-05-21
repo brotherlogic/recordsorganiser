@@ -33,7 +33,7 @@ func (a BySaleOrder) Less(i, j int) bool {
 	// Sort by current price
 	if a[i].GetMetadata() != nil && a[j].GetMetadata() != nil {
 		if a[i].GetMetadata().CurrentSalePrice != a[j].GetMetadata().CurrentSalePrice {
-			return a[i].GetMetadata().CurrentSalePrice < a[j].GetMetadata().CurrentSalePrice
+			return a[i].GetMetadata().CurrentSalePrice > a[j].GetMetadata().CurrentSalePrice
 		}
 	}
 
