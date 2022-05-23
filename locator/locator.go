@@ -3,7 +3,6 @@ package locator
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/brotherlogic/goserver/utils"
@@ -41,7 +40,7 @@ func ReadableLocation(ctx context.Context, id int32) (string, error) {
 	conn, err := utils.LFDialServer(ctx, "recordcollection")
 
 	if err != nil {
-		log.Fatalf("Unable to dial: %v", err)
+		return "", err
 	}
 	defer conn.Close()
 	client := pbrc.NewRecordCollectionServiceClient(conn)
