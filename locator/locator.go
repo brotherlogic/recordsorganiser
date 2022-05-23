@@ -36,7 +36,7 @@ func getReleaseString(ctx context.Context, client pbrc.RecordCollectionServiceCl
 	return fmt.Sprintf("%v. ", rec.GetRelease().GetId()) + loc.Title + " " + fmt.Sprintf("%v", rec.GetMetadata().GetFiledUnder()) + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]" + sleeve
 }
 
-func ReadableLocation(dial func(ctx context.Context, name string) (*grpc.ClientConn, error), ctx context.Context, id int32) (string, error) {
+func ReadableLocation(ctx context.Context, dial func(ctx context.Context, name string) (*grpc.ClientConn, error), id int32) (string, error) {
 	conn, err := dial(ctx, "recordcollection")
 
 	if err != nil {
