@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/brotherlogic/goserver/utils"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -36,8 +36,8 @@ func getReleaseString(ctx context.Context, client pbrc.RecordCollectionServiceCl
 	return fmt.Sprintf("%v. ", rec.GetRelease().GetId()) + loc.Title + " " + fmt.Sprintf("%v", rec.GetMetadata().GetFiledUnder()) + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]" + sleeve
 }
 
-func ReadableLocation(ctx context.Context, id int32) (string, error) {
-	conn, err := utils.LFDialServer(ctx, "recordcollection")
+func ReadableLocation(dial func(ctx context.Context, name string) (*grpc.ClientConn, error), ctx context.Context, id int32) (string, error) {
+	conn, err := dial(ctx, "recordcollection")
 
 	if err != nil {
 		return "", err
@@ -45,7 +45,7 @@ func ReadableLocation(ctx context.Context, id int32) (string, error) {
 	defer conn.Close()
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 
-	conn2, err := utils.LFDialServer(ctx, "recordsorganiser")
+	conn2, err := dial(ctx, "recordsorganiser")
 	if err != nil {
 		return "", err
 	}
@@ -55,12 +55,6 @@ func ReadableLocation(ctx context.Context, id int32) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	rec, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: id})
-	if err != nil {
-		return "", err
-	}
-	fmt.Printf("%v (%v) is in %v\n", rec.GetRecord().GetRelease().Title, rec.GetRecord().GetRelease().InstanceId, location.GetFoundLocation().GetName())
 
 	for i, r := range location.GetFoundLocation().GetReleasesLocation() {
 		str := ""
