@@ -296,7 +296,7 @@ func main() {
 		var id = ilocateFlags.Int("id", -1, "The name of the location")
 
 		if err := ilocateFlags.Parse(os.Args[2:]); err == nil {
-			location, err := locator.ReadableLocation(ctx, utils.LFDialServer, int32(*id))
+			location, err := locator.ReadableLocation(ctx, utils.LFDialServer, int32(*id), true)
 			fmt.Printf("%v -> %v\n", location, err)
 		}
 	case "cupdate":

@@ -21,11 +21,16 @@ func getRecord(ctx context.Context, client pbrc.RecordCollectionServiceClient, i
 	return val.GetRecord(), err
 }
 
-func getReleaseString(ctx context.Context, client pbrc.RecordCollectionServiceClient, loc *pbro.ReleasePlacement, showSleeve bool) string {
+func getReleaseString(ctx context.Context, client pbrc.RecordCollectionServiceClient, loc *pbro.ReleasePlacement, showSleeve bool, brief bool) string {
 	rec, err := getRecord(ctx, client, loc.InstanceId)
 	if err != nil {
 		return fmt.Sprintf("%v", err)
 	}
+
+	if brief {
+		return fmt.Sprintf("%v", rec.GetRelease().GetTitle())
+	}
+
 	/*if rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD {
 		return ""
 	}*/
@@ -36,7 +41,7 @@ func getReleaseString(ctx context.Context, client pbrc.RecordCollectionServiceCl
 	return fmt.Sprintf("%v. ", rec.GetRelease().GetId()) + loc.Title + " " + fmt.Sprintf("%v", rec.GetMetadata().GetFiledUnder()) + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]" + sleeve
 }
 
-func ReadableLocation(ctx context.Context, dial func(ctx context.Context, name string) (*grpc.ClientConn, error), id int32) (string, error) {
+func ReadableLocation(ctx context.Context, dial func(ctx context.Context, name string) (*grpc.ClientConn, error), id int32, brief bool) (string, error) {
 	conn, err := dial(ctx, "recordcollection")
 
 	if err != nil {
@@ -61,10 +66,10 @@ func ReadableLocation(ctx context.Context, dial func(ctx context.Context, name s
 		if r.GetInstanceId() == id {
 			str += fmt.Sprintf("Slot %v\n", r.GetSlot())
 			if i > 0 {
-				str += fmt.Sprintf("%v. %v\n", i-1, getReleaseString(ctx, client, location.GetFoundLocation().GetReleasesLocation()[i-1], false))
+				str += fmt.Sprintf("%v. %v\n", i-1, getReleaseString(ctx, client, location.GetFoundLocation().GetReleasesLocation()[i-1], false, brief))
 			}
-			str += fmt.Sprintf("%v. %v\n", i, getReleaseString(ctx, client, location.GetFoundLocation().GetReleasesLocation()[i], false))
-			str += fmt.Sprintf("%v. %v\n", i+1, getReleaseString(ctx, client, location.GetFoundLocation().GetReleasesLocation()[i+1], false))
+			str += fmt.Sprintf("%v. %v\n", i, getReleaseString(ctx, client, location.GetFoundLocation().GetReleasesLocation()[i], false, brief))
+			str += fmt.Sprintf("%v. %v\n", i+1, getReleaseString(ctx, client, location.GetFoundLocation().GetReleasesLocation()[i+1], false, brief))
 			return str, nil
 		}
 	}
