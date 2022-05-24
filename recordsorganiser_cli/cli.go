@@ -16,6 +16,7 @@ import (
 
 	pbgd "github.com/brotherlogic/godiscogs"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
+	"github.com/brotherlogic/recordsorganiser/locator"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 
 	//Needed to pull in gzip encoding init
@@ -290,6 +291,14 @@ func main() {
 	client := pb.NewOrganiserServiceClient(conn)
 
 	switch os.Args[1] {
+	case "ilocate":
+		ilocateFlags := flag.NewFlagSet("ILocate", flag.ExitOnError)
+		var id = ilocateFlags.Int("id", -1, "The name of the location")
+
+		if err := ilocateFlags.Parse(os.Args[2:]); err == nil {
+			location, err := locator.ReadableLocation(ctx, utils.LFDialServer, int32(*id))
+			fmt.Printf("%v -> %v\n", location, err)
+		}
 	case "cupdate":
 		val, _ := strconv.Atoi(os.Args[2])
 		client := pbrc.NewClientUpdateServiceClient(conn)

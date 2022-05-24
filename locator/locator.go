@@ -65,6 +65,7 @@ func ReadableLocation(ctx context.Context, dial func(ctx context.Context, name s
 			}
 			str += fmt.Sprintf("%v. %v\n", i, getReleaseString(ctx, client, location.GetFoundLocation().GetReleasesLocation()[i], false))
 			str += fmt.Sprintf("%v. %v\n", i+1, getReleaseString(ctx, client, location.GetFoundLocation().GetReleasesLocation()[i+1], false))
+			return str, nil
 		}
 	}
 
