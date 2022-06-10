@@ -69,7 +69,11 @@ func ReadableLocation(ctx context.Context, dial func(ctx context.Context, name s
 				str += fmt.Sprintf("%v. %v\n", i-1, getReleaseString(ctx, client, location.GetFoundLocation().GetReleasesLocation()[i-1], false, brief))
 			}
 			str += fmt.Sprintf("%v. %v\n", i, getReleaseString(ctx, client, location.GetFoundLocation().GetReleasesLocation()[i], false, brief))
-			str += fmt.Sprintf("%v. %v\n", i+1, getReleaseString(ctx, client, location.GetFoundLocation().GetReleasesLocation()[i+1], false, brief))
+			if i+1 > len(location.GetFoundLocation().GetReleasesLocation()) {
+				str += fmt.Sprintf("%v. %v\n", i+1, "End of Slot")
+			} else {
+				str += fmt.Sprintf("%v. %v\n", i+1, getReleaseString(ctx, client, location.GetFoundLocation().GetReleasesLocation()[i+1], false, brief))
+			}
 			return str, nil
 		}
 	}
