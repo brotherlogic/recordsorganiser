@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	pbrc "github.com/brotherlogic/recordcollection/proto"
+	rcpb "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 )
 
@@ -74,7 +75,7 @@ var (
 )
 
 func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.Organisation) (int32, error) {
-	var overall []*pbrc.Record
+	var noverall []*pbrc.Record
 	boxCount := 0
 	var gaps []int
 	widths := make(map[int32]float64)
@@ -101,7 +102,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 			}
 		}
 		if fg {
-			gaps = append(gaps, len(overall))
+			gaps = append(gaps, len(noverall))
 		}
 
 		ids, err := s.bridge.getReleases(ctx, lfold)
@@ -154,7 +155,7 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 			sort.Sort(ByLastListen(tfr))
 		}
 
-		overall = append(overall, tfr...)
+		noverall = append(noverall, tfr...)
 	}
 
 	sort.Float64s(fwidths)
@@ -163,11 +164,18 @@ func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.O
 		mslot[slot] = 999
 	}
 
+	//Before splitting let the org group records
+	overall := noverall
+	var mapper map[int32][]*rcpb.Record
+	if c.CombineSimilar {
+		overall, mapper = collapse(noverall)
+	}
+
 	awidth.With(prometheus.Labels{"location": c.GetName()}).Set(float64(fwidths[len(fwidths)/2]))
 	records := s.Split(overall, float32(c.GetSlots()), float32(c.GetQuota().GetTotalWidth()), gaps, c.GetAllowAdjust(), fwidths[len(fwidths)/2])
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
 	for slot, recs := range records {
-		for i, rinloc := range recs {
+		for i, rinloc := range expand(recs, mapper) {
 			sl := slot + 1
 			if sl < mslot[rinloc.GetRelease().GetFolderId()] {
 				mslot[rinloc.GetRelease().GetFolderId()] = sl

@@ -136,6 +136,8 @@ message Location {
   MediaType media_type = 18;
 
   bool allow_adjust = 22;
+
+  bool combine_similar = 23;
 }
 
 message Organisation {

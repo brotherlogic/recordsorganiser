@@ -180,28 +180,28 @@ func TestSortByFolderThenMasterReleaseDate(t *testing.T) {
 }
 
 func TestGetFormatWidth(t *testing.T) {
-	v := getFormatWidth(&pbrc.Record{Release: &pbd.Release{FormatQuantity: 1, Labels: []*pbd.Label{&pbd.Label{Name: "Death Waltz Recording Company"}}}})
+	v := getFormatWidth(&pbrc.Record{Release: &pbd.Release{FormatQuantity: 1, Labels: []*pbd.Label{&pbd.Label{Name: "Death Waltz Recording Company"}}}}, 2.0)
 	if v != 2.0 {
 		t.Errorf("Bad width: %v", v)
 	}
 }
 
 func TestGetFormatWidthForNowAgain(t *testing.T) {
-	v := getFormatWidth(&pbrc.Record{Release: &pbd.Release{FormatQuantity: 1, Labels: []*pbd.Label{&pbd.Label{Name: "Now-Again Records"}}}})
+	v := getFormatWidth(&pbrc.Record{Release: &pbd.Release{FormatQuantity: 1, Labels: []*pbd.Label{&pbd.Label{Name: "Now-Again Records"}}}}, 2.0)
 	if v != 2.0 {
 		t.Errorf("Bad width: %v", v)
 	}
 }
 
 func TestGetFormatWidthForBox(t *testing.T) {
-	v := getFormatWidth(&pbrc.Record{Release: &pbd.Release{FormatQuantity: 4, Formats: []*pbd.Format{&pbd.Format{Text: "Boxset"}}}})
+	v := getFormatWidth(&pbrc.Record{Release: &pbd.Release{FormatQuantity: 4, Formats: []*pbd.Format{&pbd.Format{Text: "Boxset"}}}}, 2.0)
 	if v != 5.0 {
 		t.Errorf("Bad width: %v", v)
 	}
 }
 
 func TestGetFormatWidthForGatefold(t *testing.T) {
-	v := getFormatWidth(&pbrc.Record{Release: &pbd.Release{FormatQuantity: 1, Formats: []*pbd.Format{&pbd.Format{Text: "Gatefold"}}}})
+	v := getFormatWidth(&pbrc.Record{Release: &pbd.Release{FormatQuantity: 1, Formats: []*pbd.Format{&pbd.Format{Text: "Gatefold"}}}}, 2.0)
 	if v != 2.0 {
 		t.Errorf("Bad width: %v", v)
 	}
@@ -233,16 +233,5 @@ func TestExtractorSplitNoCandidates(t *testing.T) {
 
 	if len(vals) != 0 {
 		t.Errorf("Bad extraction: %v", vals)
-	}
-}
-
-func TestBasicSplit(t *testing.T) {
-	releases := []*pbrc.Record{&pbrc.Record{Release: &pbd.Release{FormatQuantity: 1}}, &pbrc.Record{Release: &pbd.Release{FormatQuantity: 1}}}
-
-	s := getTestServer(".testbasicsplit")
-	splits := s.Split(releases, 2)
-
-	if len(splits) != 2 {
-		t.Errorf("Bad split: %v", len(splits))
 	}
 }

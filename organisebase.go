@@ -70,6 +70,10 @@ func (s *Server) readOrg(ctx context.Context) (*pb.Organisation, error) {
 			delete(location.FolderOrder, int32(673768))
 			delete(location.FolderSort, int32(673768))
 		}
+
+		if location.GetName() == "12 Inches" {
+			location.CombineSimilar = true
+		}
 	}
 
 	if len(locations) > 0 {
