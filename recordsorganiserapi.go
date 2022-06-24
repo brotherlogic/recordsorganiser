@@ -146,6 +146,11 @@ func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationReq
 		if err != nil {
 			return nil, err
 		}
+
+		err = s.saveCache(ctx, cache)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &pb.GetOrganisationResponse{Locations: locations, NumberProcessed: num}, nil
