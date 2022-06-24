@@ -14,6 +14,15 @@ message SortMapping {
   string title = 3;
 }
 
+message CacheEntry {
+  int32 instance_id = 1;
+  map<string, string> entry = 2;
+}
+
+message SortingCache {
+  repeated CacheEntry cache = 1;
+}
+
 message LabelExtractor {
   // The id of the label
   int32 label_id = 1;

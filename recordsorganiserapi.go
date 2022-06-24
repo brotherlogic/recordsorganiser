@@ -65,13 +65,18 @@ func (s *Server) AddLocation(ctx context.Context, req *pb.AddLocationRequest) (*
 		return nil, err
 	}
 
+	cache, err := s.loadCache(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	org.Locations = append(org.Locations, req.GetAdd())
 	err = s.saveOrg(ctx, org)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = s.organiseLocation(ctx, req.GetAdd(), org)
+	_, err = s.organiseLocation(ctx, cache, req.GetAdd(), org)
 	if err != nil {
 		return nil, err
 	}
@@ -85,8 +90,13 @@ func (s *Server) metrics(ctx context.Context) error {
 		return err
 	}
 
+	cache, err := s.loadCache(ctx)
+	if err != nil {
+		return err
+	}
+
 	for _, loc := range org.GetLocations() {
-		s.organiseLocation(ctx, loc, org)
+		s.organiseLocation(ctx, cache, loc, org)
 	}
 
 	return nil
@@ -95,6 +105,11 @@ func (s *Server) metrics(ctx context.Context) error {
 // GetOrganisation gets a given organisation
 func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationRequest) (*pb.GetOrganisationResponse, error) {
 	org, err := s.readOrg(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	cache, err := s.loadCache(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +125,7 @@ func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationReq
 		for _, loc := range org.GetLocations() {
 			if rloc.GetName() == loc.GetName() || rloc.GetName() == "" {
 				if req.ForceReorg {
-					n, err := s.organiseLocation(ctx, loc, org)
+					n, err := s.organiseLocation(ctx, cache, loc, org)
 					num = n
 					if err != nil {
 						return &pb.GetOrganisationResponse{}, err
@@ -230,6 +245,12 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 		return nil, err
 	}
 
+	// Update the cache
+	cache, err := s.updateCache(ctx, record)
+	if err != nil {
+		return nil, err
+	}
+
 	oldLoc := &pb.Location{}
 	newLoc := &pb.Location{}
 	for _, loc := range org.GetLocations() {
@@ -248,7 +269,7 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 
 	if oldLoc.GetName() != newLoc.GetName() {
 		if len(oldLoc.GetName()) > 0 {
-			_, err := s.organiseLocation(ctx, oldLoc, org)
+			_, err := s.organiseLocation(ctx, cache, oldLoc, org)
 			if err != nil {
 				return nil, err
 			}
@@ -257,7 +278,7 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 		}
 
 		if len(newLoc.GetName()) > 0 {
-			_, err := s.organiseLocation(ctx, newLoc, org)
+			_, err := s.organiseLocation(ctx, cache, newLoc, org)
 			if err != nil {
 				return nil, err
 			}

@@ -74,7 +74,7 @@ var (
 	}, []string{"location"})
 )
 
-func (s *Server) organiseLocation(ctx context.Context, c *pb.Location, org *pb.Organisation) (int32, error) {
+func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c *pb.Location, org *pb.Organisation) (int32, error) {
 	var noverall []*pbrc.Record
 	boxCount := 0
 	var gaps []int

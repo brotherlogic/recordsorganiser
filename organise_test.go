@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
-	"testing"
 	"time"
 
 	"github.com/brotherlogic/goserver"
-	"github.com/brotherlogic/keystore/client"
+	keystoreclient "github.com/brotherlogic/keystore/client"
 	"golang.org/x/net/context"
 
 	pbd "github.com/brotherlogic/godiscogs"
@@ -193,82 +192,4 @@ func getTestServer(dir string) *Server {
 	org.Extractors = append(org.Extractors, &pb.LabelExtractor{LabelId: 123, Extractor: "\\d\\d"})
 	testServer.GoServer.KSclient.Save(context.Background(), KEY, org)
 	return testServer
-}
-
-func TestAddLocation(t *testing.T) {
-	testServer := getTestServer(".testAddLocation")
-	location := &pb.Location{
-		Name:      "TestName",
-		Slots:     2,
-		FolderIds: []int32{10},
-		Sort:      pb.Location_BY_LABEL_CATNO,
-	}
-
-	_, err := testServer.AddLocation(context.Background(), &pb.AddLocationRequest{Add: location})
-	if err != nil {
-		t.Errorf("Error on adding location: %v", err)
-	}
-}
-
-func TestAddLocationByDate(t *testing.T) {
-	testServer := getTestServer(".testAddLocation")
-	location := &pb.Location{
-		Name:      "TestName",
-		Slots:     2,
-		FolderIds: []int32{10},
-		Sort:      pb.Location_BY_DATE_ADDED,
-	}
-
-	_, err := testServer.AddLocation(context.Background(), &pb.AddLocationRequest{Add: location})
-	if err != nil {
-		t.Errorf("Error on adding location: %v", err)
-	}
-}
-
-func TestAddLocationFail(t *testing.T) {
-	testServer := getTestServer(".testAddLocation")
-	testServer.bridge = testBridge{failGetReleases: true}
-	location := &pb.Location{
-		Name:      "TestName",
-		Slots:     2,
-		FolderIds: []int32{10},
-		Sort:      pb.Location_BY_DATE_ADDED,
-	}
-
-	_, err := testServer.AddLocation(context.Background(), &pb.AddLocationRequest{Add: location})
-	if err == nil {
-		t.Errorf("Adding a location did not fail")
-	}
-}
-func TestRaiseIssue(t *testing.T) {
-	testServer := getTestServer(".testRaiseIssue")
-	location := &pb.Location{
-		Name:      "TestName",
-		Slots:     2,
-		FolderIds: []int32{10},
-		Sort:      pb.Location_BY_LABEL_CATNO,
-	}
-
-	_, err := testServer.AddLocation(context.Background(), &pb.AddLocationRequest{Add: location})
-	if err != nil {
-		t.Errorf("Error on adding location: %v", err)
-	}
-}
-
-func TestPassQuota(t *testing.T) {
-	testServer := getTestServer(".testRaiseIssue")
-	location := &pb.Location{
-		Name:      "TestName",
-		Slots:     2,
-		FolderIds: []int32{10},
-		Sort:      pb.Location_BY_LABEL_CATNO,
-		Quota: &pb.Quota{
-			QuotaType: &pb.Quota_Slots{Slots: 20},
-		},
-	}
-
-	_, err := testServer.AddLocation(context.Background(), &pb.AddLocationRequest{Add: location})
-	if err != nil {
-		t.Errorf("Error on adding location: %v", err)
-	}
 }

@@ -1,14 +1,11 @@
 package main
 
 import (
-	"sort"
 	"testing"
 	"time"
 
-	"github.com/brotherlogic/goserver/utils"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
-	"github.com/brotherlogic/recordsorganiser/sales"
 	"golang.org/x/net/context"
 )
 
@@ -27,17 +24,6 @@ var data = []struct {
 			&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Keep: pbrc.ReleaseMetadata_KEEPER}},
 		},
 	}}
-
-func TestOrdering(t *testing.T) {
-	for _, entry := range data {
-		sort.Sort(sales.BySaleOrder(entry.in))
-		for i := range entry.in {
-			if utils.FuzzyMatch(entry.in[i], entry.out[i]) != nil {
-				t.Errorf("Sorting error: %v vs %v", entry.in[i], entry.out[i])
-			}
-		}
-	}
-}
 
 func TestMarkWithinQuota(t *testing.T) {
 	s := getTestServer(".makrWithinQuota")

@@ -195,7 +195,7 @@ func TestGetFormatWidthForNowAgain(t *testing.T) {
 
 func TestGetFormatWidthForBox(t *testing.T) {
 	v := getFormatWidth(&pbrc.Record{Release: &pbd.Release{FormatQuantity: 4, Formats: []*pbd.Format{&pbd.Format{Text: "Boxset"}}}}, 2.0)
-	if v != 5.0 {
+	if v != 2.0 {
 		t.Errorf("Bad width: %v", v)
 	}
 }

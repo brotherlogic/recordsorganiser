@@ -8,8 +8,13 @@ import (
 	"time"
 
 	"github.com/brotherlogic/goserver"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 
 	pbgs "github.com/brotherlogic/goserver/proto"
 	"github.com/brotherlogic/goserver/utils"
@@ -24,10 +29,52 @@ type prodBridge struct {
 	log  func(string)
 }
 
+var (
+	count = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "recordsorganiser_cache_count",
+		Help: "The size of the tracking queue",
+	})
+	size = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "recordsorganiser_cache_size",
+		Help: "The size of the tracking queue",
+	})
+)
+
 const (
 	//KEY is where we store the org
 	KEY = "github.com/brotherlogic/recordsorganiser/org"
+
+	CACHE_KEY = "github.com/brotherlgoic/recordsorganiser/cache"
 )
+
+func (s *Server) loadCache(ctx context.Context) (*pb.SortingCache, error) {
+	data, err := s.LoadData(ctx, CACHE_KEY, 0.5)
+	if err != nil {
+		if status.Convert(err).Code() == codes.InvalidArgument {
+			return &pb.SortingCache{}, nil
+		}
+		return nil, err
+	}
+
+	cache := &pb.SortingCache{}
+	err = proto.Unmarshal(data, cache)
+	if err != nil {
+		return nil, err
+	}
+
+	count.Set(float64(len(cache.GetCache())))
+	size.Set(float64(proto.Size(cache)))
+
+	return cache, nil
+}
+
+func (s *Server) saveCache(ctx context.Context, config *pb.SortingCache) error {
+	data, err := proto.Marshal(config)
+	if err != nil {
+		return err
+	}
+	return s.SaveData(ctx, data, CACHE_KEY, 0.5)
+}
 
 func (s *Server) readOrg(ctx context.Context) (*pb.Organisation, error) {
 	org := &pb.Organisation{}
