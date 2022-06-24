@@ -18,6 +18,12 @@ func (s *Server) updateCache(ctx context.Context, rec *rcpb.Record) (*pb.Sorting
 		return nil, err
 	}
 
+	appendCache(cache, rec)
+
+	return cache, s.saveCache(ctx, cache)
+}
+
+func appendCache(cache *pb.SortingCache, rec *rcpb.Record) {
 	cacheEntry := buildCacheEntry(rec)
 
 	var entries []*pb.CacheEntry
@@ -28,8 +34,6 @@ func (s *Server) updateCache(ctx context.Context, rec *rcpb.Record) (*pb.Sorting
 	}
 	entries = append(entries, cacheEntry)
 	cache.Cache = entries
-
-	return cache, s.saveCache(ctx, cache)
 }
 
 func buildCacheEntry(rec *rcpb.Record) *pb.CacheEntry {

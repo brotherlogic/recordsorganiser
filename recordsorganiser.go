@@ -119,6 +119,9 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 				if err != nil {
 					return -1, err
 				}
+
+				appendCache(cache, r)
+
 				widths[r.GetRelease().GetInstanceId()] = float64(r.GetMetadata().GetRecordWidth())
 
 				if r.GetMetadata().GetRecordWidth() > 0 {

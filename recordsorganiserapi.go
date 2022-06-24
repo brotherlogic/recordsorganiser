@@ -290,6 +290,11 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 				return &rcpb.ClientUpdateResponse{}, err
 			}
 		}
+
+		err := s.saveCache(ctx, cache)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &rcpb.ClientUpdateResponse{}, nil
