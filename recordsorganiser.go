@@ -77,6 +77,10 @@ var (
 		Name: "recordsorganiser_org_time",
 		Help: "Time take to organise a slot",
 	}, []string{"location"})
+	align = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorganiser_align_probs",
+		Help: "Time take to organise a slot",
+	}, []string{"location"})
 )
 
 func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c *pb.Location, org *pb.Organisation) (int32, error) {
@@ -162,11 +166,14 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			sort.Sort(ByLabelCat{tfr, convert(org.GetExtractors()), s.Log, cache})
 			sort.Sort(ByCachedLabelCat{tfr2, cache})
 
+			count := 0
 			for i := range tfr {
 				if tfr[i].GetRelease().GetInstanceId() != tfr2[i] {
+					count++
 					s.RaiseIssue("Alignment Issue", fmt.Sprintf("%v is not %v", tfr2[i], tfr[i]))
 				}
 			}
+			align.With(prometheus.Labels{"location": c.GetName()}).Inc()
 		case pb.Location_BY_FOLDER_THEN_DATE:
 			sort.Sort(ByFolderThenRelease(tfr))
 		case pb.Location_BY_MOVE_TIME:
