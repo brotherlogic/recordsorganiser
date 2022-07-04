@@ -1,16 +1,22 @@
 package main
 
 import (
+	"fmt"
+
 	"google.golang.org/protobuf/proto"
 
 	rcpb "github.com/brotherlogic/recordcollection/proto"
 	ropb "github.com/brotherlogic/recordsorganiser/proto"
 )
 
-func labelMatch(r1, r2 *rcpb.Record) bool {
+func (s *Server) labelMatch(r1, r2 *rcpb.Record, cache *ropb.SortingCache) bool {
 	for _, label1 := range r1.GetRelease().GetLabels() {
 		for _, label2 := range r2.GetRelease().GetLabels() {
 			if label1.GetName() == label2.GetName() {
+				if cache.GetCache()[r1.GetRelease().GetInstanceId()].GetLabelHash() != cache.GetCache()[r1.GetRelease().GetInstanceId()].GetLabelHash() &&
+					cache.GetCache()[r1.GetRelease().GetInstanceId()].GetLabelHash() != "" {
+					s.RaiseIssue("Bad label collab", fmt.Sprintf("%v VS %v", cache.GetCache()[r1.GetRelease().GetInstanceId()], cache.GetCache()[r2.GetRelease().GetInstanceId()]))
+				}
 				return true
 			}
 		}
@@ -19,7 +25,7 @@ func labelMatch(r1, r2 *rcpb.Record) bool {
 }
 
 //For now this just collapses similar records down to a simple map
-func collapse(records []*rcpb.Record, cache *ropb.SortingCache) ([]*rcpb.Record, map[int32][]*rcpb.Record) {
+func (s *Server) collapse(records []*rcpb.Record, cache *ropb.SortingCache) ([]*rcpb.Record, map[int32][]*rcpb.Record) {
 	mapper := make(map[int32][]*rcpb.Record)
 	var nrecords []*rcpb.Record
 	var trecord *rcpb.Record
@@ -27,7 +33,7 @@ func collapse(records []*rcpb.Record, cache *ropb.SortingCache) ([]*rcpb.Record,
 
 	for i, rec := range records {
 		if inlabel {
-			if labelMatch(trecord, rec) {
+			if s.labelMatch(trecord, rec, cache) {
 				mapper[trecord.GetRelease().GetInstanceId()] = append(mapper[trecord.GetRelease().GetInstanceId()], rec)
 				trecord.GetMetadata().RecordWidth += rec.GetMetadata().GetRecordWidth()
 			} else {
@@ -39,7 +45,7 @@ func collapse(records []*rcpb.Record, cache *ropb.SortingCache) ([]*rcpb.Record,
 
 		if !inlabel {
 			if i < len(records)-1 {
-				if labelMatch(rec, records[i+1]) {
+				if s.labelMatch(rec, records[i+1], cache) {
 					inlabel = true
 					temp := proto.Clone(rec)
 					trecord = temp.(*rcpb.Record)
