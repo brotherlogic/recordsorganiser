@@ -180,7 +180,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 	overall := noverall
 	var mapper map[int32][]*rcpb.Record
 	if c.CombineSimilar {
-		overall, mapper = collapse(noverall)
+		overall, mapper = collapse(noverall, cache)
 	}
 
 	awidth.With(prometheus.Labels{"location": c.GetName()}).Set(float64(fwidths[len(fwidths)/2]))

@@ -18,8 +18,9 @@ message CacheEntry {
   int32 instance_id = 1;
   map<string, string> entry = 2;
   double width = 3;
-  string filled =4;
+  string filled = 4;
   int32 folder = 5;
+  string labelHash = 6;
 }
 
 message SortingCache {

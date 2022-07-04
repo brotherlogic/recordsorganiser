@@ -39,11 +39,16 @@ func appendCache(cache *pb.SortingCache, rec *rcpb.Record) *pb.CacheEntry {
 
 func buildCacheEntry(rec *rcpb.Record) *pb.CacheEntry {
 	label := gd.GetMainLabel(rec.GetRelease().GetLabels())
+	labelString := ""
+	for _, label := range rec.GetRelease().GetLabels() {
+		labelString += label.GetName()
+	}
 	return &pb.CacheEntry{
 		InstanceId: rec.GetRelease().GetInstanceId(),
 		Width:      float64(rec.GetMetadata().GetRecordWidth()),
 		Filled:     rec.GetMetadata().GetFiledUnder().String(),
 		Folder:     rec.GetRelease().GetFolderId(),
+		LabelHash:  labelString,
 		Entry: map[string]string{
 			"BY_LABEL":      strings.ToLower(label.GetName() + "-" + label.GetCatno()),
 			"BY_DATE_ADDED": strings.ToLower(fmt.Sprintf("%v", rec.GetMetadata().GetDateAdded()))},

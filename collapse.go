@@ -1,8 +1,10 @@
 package main
 
 import (
-	rcpb "github.com/brotherlogic/recordcollection/proto"
 	"google.golang.org/protobuf/proto"
+
+	rcpb "github.com/brotherlogic/recordcollection/proto"
+	ropb "github.com/brotherlogic/recordsorganiser/proto"
 )
 
 func labelMatch(r1, r2 *rcpb.Record) bool {
@@ -17,7 +19,7 @@ func labelMatch(r1, r2 *rcpb.Record) bool {
 }
 
 //For now this just collapses similar records down to a simple map
-func collapse(records []*rcpb.Record) ([]*rcpb.Record, map[int32][]*rcpb.Record) {
+func collapse(records []*rcpb.Record, cache *ropb.SortingCache) ([]*rcpb.Record, map[int32][]*rcpb.Record) {
 	mapper := make(map[int32][]*rcpb.Record)
 	var nrecords []*rcpb.Record
 	var trecord *rcpb.Record
