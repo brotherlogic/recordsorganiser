@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/brotherlogic/goserver"
 	"github.com/prometheus/client_golang/prometheus"
@@ -72,9 +73,18 @@ var (
 		Name: "recordsorganiser_average_width",
 		Help: "Widthof slots",
 	}, []string{"location"})
+	otime = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorganiser_org_time",
+		Help: "Time take to organise a slot",
+	}, []string{"location"})
 )
 
 func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c *pb.Location, org *pb.Organisation) (int32, error) {
+	t := time.Now()
+	defer func() {
+		otime.With(prometheus.Labels{"location": c.GetName()}).Set(float64(time.Since(t).Milliseconds()))
+	}()
+
 	var noverall []*pbrc.Record
 	boxCount := 0
 	var gaps []int
