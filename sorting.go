@@ -12,6 +12,8 @@ import (
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+
+	"github.com/fvbommel/sortorder"
 )
 
 // ByDateAdded allows sorting of releases by the date they were added
@@ -99,7 +101,13 @@ func doExtractorSplit(label *pb.Label, ex map[int32]string, logger func(string))
 
 // Sorts by label and then catalogue number
 func sortByLabelCatCached(rel1, rel2 *pbro.CacheEntry, cache *pbro.SortingCache) int {
-	return strings.Compare(rel1.GetEntry()["BY_LABEL"], rel2.GetEntry()["BY_LABEL"])
+	if sortorder.NaturalLess(rel1.GetEntry()["BY_LABEL"], rel2.GetEntry()["BY_LABEL"]) {
+		return 1
+	}
+	if rel1.GetEntry()["BY_LABEL"] == rel2.GetEntry()["BY_LABEL"] {
+		return 0
+	}
+	return -1
 }
 
 // Sorts by label and then catalogue number

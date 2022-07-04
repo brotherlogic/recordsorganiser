@@ -213,7 +213,7 @@ func InitServer() *Server {
 		&goserver.GoServer{},
 		prodBridge{},
 	}
-	server.PrepServer()
+	server.PrepServer("recordsorganiser")
 
 	server.bridge = &prodBridge{dial: server.FDialServer, log: server.Log}
 	server.Register = server
@@ -237,7 +237,7 @@ func main() {
 
 	server := InitServer()
 
-	err := server.RegisterServerV2("recordsorganiser", false, true)
+	err := server.RegisterServerV2(false)
 	if err != nil {
 		return
 	}
