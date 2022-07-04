@@ -9,6 +9,7 @@ import (
 
 	pb "github.com/brotherlogic/godiscogs"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
+	pbro "github.com/brotherlogic/recordsorganiser/proto"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -54,12 +55,13 @@ type ByLabelCat struct {
 	records    []*pbrc.Record
 	extractors map[int32]string
 	logger     func(string)
+	cache      *pbro.SortingCache
 }
 
 func (a ByLabelCat) Len() int      { return len(a.records) }
 func (a ByLabelCat) Swap(i, j int) { a.records[i], a.records[j] = a.records[j], a.records[i] }
 func (a ByLabelCat) Less(i, j int) bool {
-	return sortByLabelCat(a.records[i].GetRelease(), a.records[j].GetRelease(), a.extractors, a.logger) < 0
+	return sortByLabelCat(a.records[i].GetRelease(), a.records[j].GetRelease(), a.extractors, a.logger, a.cache) < 0
 }
 
 func split(str string) []string {
@@ -84,7 +86,8 @@ func doExtractorSplit(label *pb.Label, ex map[int32]string, logger func(string))
 }
 
 // Sorts by label and then catalogue number
-func sortByLabelCat(rel1, rel2 *pb.Release, extractors map[int32]string, logger func(string)) int {
+func sortByLabelCat(rel1, rel2 *pb.Release, extractors map[int32]string, logger func(string), cache *pbro.SortingCache) int {
+
 	if len(rel1.Labels) == 0 {
 		return -1
 	}

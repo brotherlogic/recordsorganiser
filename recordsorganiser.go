@@ -86,7 +86,6 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 	}()
 
 	var noverall []*pbrc.Record
-	boxCount := 0
 	var gaps []int
 	widths := make(map[int32]float64)
 	fwidths := []float64{1}
@@ -120,38 +119,38 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			return -1, err
 		}
 
-		adjustment := 0
-
 		tfr := []*pbrc.Record{}
 		for _, id := range ids {
+			found := false
+			for _, entry := range cache.GetCache() {
+				if entry.GetInstanceId() == id {
+					found = true
+				}
+			}
+			if !found {
+				s.RaiseIssue("Missing cache", fmt.Sprintf("Cache for %v is missing", id))
+			}
+
 			r, err := s.bridge.getRecord(ctx, id)
 			if status.Convert(err).Code() != codes.OutOfRange {
 				if err != nil {
 					return -1, err
 				}
 
-				appendCache(cache, r)
+				entry := appendCache(cache, r)
+				//widths[r.GetRelease().GetInstanceId()] = float64(r.GetMetadata().GetRecordWidth())
+				widths[id] = entry.GetWidth()
 
-				widths[r.GetRelease().GetInstanceId()] = float64(r.GetMetadata().GetRecordWidth())
-
-				if r.GetMetadata().GetRecordWidth() > 0 {
-					fwidths = append(fwidths, float64(r.GetMetadata().GetRecordWidth()))
+				if widths[id] > 0 {
+					fwidths = append(fwidths, widths[id])
 				}
 
-				if r.GetMetadata().Category == pbrc.ReleaseMetadata_ASSESS_FOR_SALE ||
-					r.GetMetadata().Category == pbrc.ReleaseMetadata_PREPARE_TO_SELL ||
-					r.GetMetadata().Category == pbrc.ReleaseMetadata_STAGED_TO_SELL {
-					adjustment++
-				}
-
-				tw[id] = r.GetMetadata().GetFiledUnder().String()
-				fw[id] = r.GetRelease().GetFolderId()
+				//tw[id] = r.GetMetadata().GetFiledUnder().String()
+				tw[id] = entry.GetFilled()
+				//fw[id] = r.GetRelease().GetFolderId()
+				fw[id] = entry.GetFolder()
 
 				tfr = append(tfr, r)
-			}
-
-			if r.GetMetadata().GetBoxState() != pbrc.ReleaseMetadata_BOX_UNKNOWN && r.GetMetadata().GetBoxState() != pbrc.ReleaseMetadata_OUT_OF_BOX {
-				boxCount++
 			}
 		}
 
@@ -159,7 +158,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		case pb.Location_BY_DATE_ADDED:
 			sort.Sort(ByDateAdded(tfr))
 		case pb.Location_BY_LABEL_CATNO:
-			sort.Sort(ByLabelCat{tfr, convert(org.GetExtractors()), s.Log})
+			sort.Sort(ByLabelCat{tfr, convert(org.GetExtractors()), s.Log, cache})
 		case pb.Location_BY_FOLDER_THEN_DATE:
 			sort.Sort(ByFolderThenRelease(tfr))
 		case pb.Location_BY_MOVE_TIME:
@@ -234,6 +233,5 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		fwidth.With(prometheus.Labels{"folder": fmt.Sprintf("%v", key)}).Set(val)
 	}
 
-	sizes.With(prometheus.Labels{"location": c.GetName()}).Set(float64((boxCount)))
 	return int32(len(overall)), s.saveOrg(ctx, org)
 }

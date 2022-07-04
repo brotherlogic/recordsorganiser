@@ -23,7 +23,7 @@ func (s *Server) updateCache(ctx context.Context, rec *rcpb.Record) (*pb.Sorting
 	return cache, s.saveCache(ctx, cache)
 }
 
-func appendCache(cache *pb.SortingCache, rec *rcpb.Record) {
+func appendCache(cache *pb.SortingCache, rec *rcpb.Record) *pb.CacheEntry {
 	cacheEntry := buildCacheEntry(rec)
 
 	var entries []*pb.CacheEntry
@@ -34,12 +34,16 @@ func appendCache(cache *pb.SortingCache, rec *rcpb.Record) {
 	}
 	entries = append(entries, cacheEntry)
 	cache.Cache = entries
+	return cacheEntry
 }
 
 func buildCacheEntry(rec *rcpb.Record) *pb.CacheEntry {
 	label := gd.GetMainLabel(rec.GetRelease().GetLabels())
 	return &pb.CacheEntry{
 		InstanceId: rec.GetRelease().GetInstanceId(),
+		Width:      float64(rec.GetMetadata().GetRecordWidth()),
+		Filled:     rec.GetMetadata().GetFiledUnder().String(),
+		Folder:     rec.GetRelease().GetFolderId(),
 		Entry: map[string]string{
 			"BY_LABEL":      strings.ToLower(label.GetName() + "-" + label.GetCatno()),
 			"BY_DATE_ADDED": strings.ToLower(fmt.Sprintf("%v", rec.GetMetadata().GetDateAdded()))},

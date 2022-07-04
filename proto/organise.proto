@@ -17,6 +17,9 @@ message SortMapping {
 message CacheEntry {
   int32 instance_id = 1;
   map<string, string> entry = 2;
+  double width = 3;
+  string filled =4;
+  int32 folder = 5;
 }
 
 message SortingCache {
