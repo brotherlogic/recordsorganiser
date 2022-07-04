@@ -13,8 +13,8 @@ func (s *Server) labelMatch(r1, r2 *rcpb.Record, cache *ropb.SortingCache) bool 
 	for _, label1 := range r1.GetRelease().GetLabels() {
 		for _, label2 := range r2.GetRelease().GetLabels() {
 			if label1.GetName() == label2.GetName() {
-				if cache.GetCache()[r1.GetRelease().GetInstanceId()].GetLabelHash() != cache.GetCache()[r1.GetRelease().GetInstanceId()].GetLabelHash() &&
-					cache.GetCache()[r1.GetRelease().GetInstanceId()].GetLabelHash() != "" {
+				if getEntry(cache, r1.GetRelease().GetInstanceId()).GetLabelHash() != getEntry(cache, r2.GetRelease().GetInstanceId()).GetLabelHash() &&
+					getEntry(cache, r1.GetRelease().GetInstanceId()).GetLabelHash() != "" {
 					s.RaiseIssue("Bad label collab", fmt.Sprintf("%v VS %v", cache.GetCache()[r1.GetRelease().GetInstanceId()], cache.GetCache()[r2.GetRelease().GetInstanceId()]))
 				}
 				return true
