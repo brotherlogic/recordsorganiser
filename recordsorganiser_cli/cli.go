@@ -298,7 +298,7 @@ func main() {
 		if err := ilocateFlags.Parse(os.Args[2:]); err == nil {
 			cache, err := client.GetCache(ctx, &pb.GetCacheRequest{})
 			if err != nil {
-				log.Fatalf("Cannot read cache")
+				log.Fatalf("Cannot read cache: %v", err)
 			}
 			for _, entry := range cache.GetCache().GetCache() {
 				if entry.GetInstanceId() == int32(*id) {
