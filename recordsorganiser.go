@@ -170,7 +170,15 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			for i := range tfr {
 				if tfr[i].GetRelease().GetInstanceId() != tfr2[i] {
 					count++
-					s.RaiseIssue("Alignment Issue", fmt.Sprintf("%v is not %v", tfr2[i], tfr[i]))
+					counts1 := ""
+					if i > 0 {
+						counts1 += fmt.Sprintf("%v vs %v\n", tfr[i-1].GetRelease().GetInstanceId(), tfr2[i-1])
+					}
+					counts1 += fmt.Sprintf("%v vs %v\n", tfr[i].GetRelease().GetInstanceId(), tfr2[i])
+					if i < len(tfr) {
+						counts1 += fmt.Sprintf("%v vs %v\n", tfr[i+1].GetRelease().GetInstanceId(), tfr2[i+1])
+					}
+					s.RaiseIssue("Alignment Issue", counts1)
 				}
 			}
 			align.With(prometheus.Labels{"location": c.GetName()}).Inc()
