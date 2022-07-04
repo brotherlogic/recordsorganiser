@@ -230,6 +230,11 @@ message AddExtractorRequest {
 
 message AddExtractorResponse {}
 
+message GetCacheRequest{}
+message GetCacheResponse {
+  SortingCache cache = 1;
+}
+
 service OrganiserService {
   rpc AddLocation (AddLocationRequest) returns (AddLocationResponse) {};
   rpc GetOrganisation (GetOrganisationRequest) returns (GetOrganisationResponse) {};
@@ -237,4 +242,5 @@ service OrganiserService {
   rpc Locate (LocateRequest) returns (LocateResponse) {};
   rpc GetQuota (QuotaRequest) returns (QuotaResponse) {};
   rpc AddExtractor (AddExtractorRequest) returns (AddExtractorResponse) {};
+  rpc GetCache(GetCacheRequest) returns (GetCacheResponse) {};
 }

@@ -84,6 +84,14 @@ func (s *Server) AddLocation(ctx context.Context, req *pb.AddLocationRequest) (*
 	return &pb.AddLocationResponse{Now: org}, nil
 }
 
+func (s *Server) GetCache(ctx context.Context, _ *pb.GetCacheRequest) (*pb.GetCacheResponse, error) {
+	cache, err := s.loadCache(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.GetCacheResponse{Cache: cache}, nil
+}
+
 func (s *Server) metrics(ctx context.Context) error {
 	org, err := s.readOrg(ctx)
 	if err != nil {

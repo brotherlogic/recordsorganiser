@@ -291,6 +291,21 @@ func main() {
 	client := pb.NewOrganiserServiceClient(conn)
 
 	switch os.Args[1] {
+	case "cache":
+		ilocateFlags := flag.NewFlagSet("ILocate", flag.ExitOnError)
+		var id = ilocateFlags.Int("id", -1, "The name of the location")
+
+		if err := ilocateFlags.Parse(os.Args[2:]); err == nil {
+			cache, err := client.GetCache(ctx, &pb.GetCacheRequest{})
+			if err != nil {
+				log.Fatalf("Cannot read cache")
+			}
+			for _, entry := range cache.GetCache().GetCache() {
+				if entry.GetInstanceId() == int32(*id) {
+					fmt.Printf("%v\n", cache.Cache.GetCache())
+				}
+			}
+		}
 	case "ilocate":
 		ilocateFlags := flag.NewFlagSet("ILocate", flag.ExitOnError)
 		var id = ilocateFlags.Int("id", -1, "The name of the location")

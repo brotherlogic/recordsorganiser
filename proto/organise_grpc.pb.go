@@ -23,6 +23,7 @@ type OrganiserServiceClient interface {
 	Locate(ctx context.Context, in *LocateRequest, opts ...grpc.CallOption) (*LocateResponse, error)
 	GetQuota(ctx context.Context, in *QuotaRequest, opts ...grpc.CallOption) (*QuotaResponse, error)
 	AddExtractor(ctx context.Context, in *AddExtractorRequest, opts ...grpc.CallOption) (*AddExtractorResponse, error)
+	GetCache(ctx context.Context, in *GetCacheRequest, opts ...grpc.CallOption) (*GetCacheResponse, error)
 }
 
 type organiserServiceClient struct {
@@ -87,6 +88,15 @@ func (c *organiserServiceClient) AddExtractor(ctx context.Context, in *AddExtrac
 	return out, nil
 }
 
+func (c *organiserServiceClient) GetCache(ctx context.Context, in *GetCacheRequest, opts ...grpc.CallOption) (*GetCacheResponse, error) {
+	out := new(GetCacheResponse)
+	err := c.cc.Invoke(ctx, "/recordsorganiser.OrganiserService/GetCache", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrganiserServiceServer is the server API for OrganiserService service.
 // All implementations should embed UnimplementedOrganiserServiceServer
 // for forward compatibility
@@ -97,6 +107,7 @@ type OrganiserServiceServer interface {
 	Locate(context.Context, *LocateRequest) (*LocateResponse, error)
 	GetQuota(context.Context, *QuotaRequest) (*QuotaResponse, error)
 	AddExtractor(context.Context, *AddExtractorRequest) (*AddExtractorResponse, error)
+	GetCache(context.Context, *GetCacheRequest) (*GetCacheResponse, error)
 }
 
 // UnimplementedOrganiserServiceServer should be embedded to have forward compatible implementations.
@@ -120,6 +131,9 @@ func (UnimplementedOrganiserServiceServer) GetQuota(context.Context, *QuotaReque
 }
 func (UnimplementedOrganiserServiceServer) AddExtractor(context.Context, *AddExtractorRequest) (*AddExtractorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddExtractor not implemented")
+}
+func (UnimplementedOrganiserServiceServer) GetCache(context.Context, *GetCacheRequest) (*GetCacheResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCache not implemented")
 }
 
 // UnsafeOrganiserServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -241,6 +255,24 @@ func _OrganiserService_AddExtractor_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrganiserService_GetCache_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCacheRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganiserServiceServer).GetCache(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/recordsorganiser.OrganiserService/GetCache",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganiserServiceServer).GetCache(ctx, req.(*GetCacheRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _OrganiserService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "recordsorganiser.OrganiserService",
 	HandlerType: (*OrganiserServiceServer)(nil),
@@ -268,6 +300,10 @@ var _OrganiserService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddExtractor",
 			Handler:    _OrganiserService_AddExtractor_Handler,
+		},
+		{
+			MethodName: "GetCache",
+			Handler:    _OrganiserService_GetCache_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
