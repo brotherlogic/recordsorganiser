@@ -302,7 +302,7 @@ func main() {
 			}
 			for _, entry := range cache.GetCache().GetCache() {
 				if entry.GetInstanceId() == int32(*id) {
-					fmt.Printf("%v\n", cache.Cache.GetCache())
+					fmt.Printf("%v\n", entry)
 				}
 			}
 		}
