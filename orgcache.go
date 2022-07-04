@@ -59,6 +59,7 @@ func buildCacheEntry(rec *rcpb.Record) *pb.CacheEntry {
 		Filled:     rec.GetMetadata().GetFiledUnder().String(),
 		Folder:     rec.GetRelease().GetFolderId(),
 		LabelHash:  labelString,
+		MainLabel:  label.GetName(),
 		Entry: map[string]string{
 			"BY_LABEL":      strings.ToLower(label.GetName() + "-" + label.GetCatno()),
 			"BY_DATE_ADDED": strings.ToLower(fmt.Sprintf("%v", rec.GetMetadata().GetDateAdded()))},

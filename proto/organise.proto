@@ -21,6 +21,7 @@ message CacheEntry {
   string filled = 4;
   int32 folder = 5;
   string labelHash = 6;
+  string mainLabel = 7;
 }
 
 message SortingCache {

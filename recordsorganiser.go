@@ -120,15 +120,15 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		}
 
 		tfr := []*pbrc.Record{}
+		tfr2 := []int32{}
 		for _, id := range ids {
-			found := false
-			for _, entry := range cache.GetCache() {
-				if entry.GetInstanceId() == id {
-					found = true
-				}
-			}
-			if !found {
+			if getEntry(cache, id) == nil {
 				s.RaiseIssue("Missing cache", fmt.Sprintf("Cache for %v is missing", id))
+				r, err := s.bridge.getRecord(ctx, id)
+				if err != nil {
+					return -1, err
+				}
+				appendCache(cache, r)
 			}
 
 			r, err := s.bridge.getRecord(ctx, id)
@@ -151,6 +151,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 				fw[id] = entry.GetFolder()
 
 				tfr = append(tfr, r)
+				tfr2 = append(tfr2, id)
 			}
 		}
 
@@ -159,6 +160,13 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			sort.Sort(ByDateAdded(tfr))
 		case pb.Location_BY_LABEL_CATNO:
 			sort.Sort(ByLabelCat{tfr, convert(org.GetExtractors()), s.Log, cache})
+			sort.Sort(ByCachedLabelCat{tfr2, cache})
+
+			for i := range tfr {
+				if tfr[i].GetRelease().GetInstanceId() != tfr2[i] {
+					s.RaiseIssue("Alignment Issue", fmt.Sprintf("%v is not %v", tfr2[i], tfr[i]))
+				}
+			}
 		case pb.Location_BY_FOLDER_THEN_DATE:
 			sort.Sort(ByFolderThenRelease(tfr))
 		case pb.Location_BY_MOVE_TIME:

@@ -64,6 +64,18 @@ func (a ByLabelCat) Less(i, j int) bool {
 	return sortByLabelCat(a.records[i].GetRelease(), a.records[j].GetRelease(), a.extractors, a.logger, a.cache) < 0
 }
 
+// ByLabelCat allows sorting of releases by the date they were added
+type ByCachedLabelCat struct {
+	records []int32
+	cache   *pbro.SortingCache
+}
+
+func (a ByCachedLabelCat) Len() int      { return len(a.records) }
+func (a ByCachedLabelCat) Swap(i, j int) { a.records[i], a.records[j] = a.records[j], a.records[i] }
+func (a ByCachedLabelCat) Less(i, j int) bool {
+	return sortByLabelCatCached(getEntry(a.cache, a.records[i]), getEntry(a.cache, a.records[j]), a.cache) < 0
+}
+
 func split(str string) []string {
 	return regexp.MustCompile("[0-9]+|[a-z]+|[A-Z]+").FindAllString(str, -1)
 }
@@ -83,6 +95,11 @@ func doExtractorSplit(label *pb.Label, ex map[int32]string, logger func(string))
 	}
 
 	return make([]string, 0)
+}
+
+// Sorts by label and then catalogue number
+func sortByLabelCatCached(rel1, rel2 *pbro.CacheEntry, cache *pbro.SortingCache) int {
+	return strings.Compare(rel1.GetEntry()["BY_LABEL"], rel2.GetEntry()["BY_LABEL"])
 }
 
 // Sorts by label and then catalogue number
