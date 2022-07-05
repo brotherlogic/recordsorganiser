@@ -50,8 +50,12 @@ func appendCache(cache *pb.SortingCache, rec *rcpb.Record) *pb.CacheEntry {
 func buildCacheEntry(rec *rcpb.Record) *pb.CacheEntry {
 	label := gd.GetMainLabel(rec.GetRelease().GetLabels())
 	labelString := ""
+	seen := make(map[string]bool)
 	for _, label := range rec.GetRelease().GetLabels() {
-		labelString += label.GetName()
+		if !seen[label.GetName()] {
+			labelString += label.GetName()
+			seen[label.GetName()] = true
+		}
 	}
 	return &pb.CacheEntry{
 		InstanceId: rec.GetRelease().GetInstanceId(),
