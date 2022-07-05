@@ -170,6 +170,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			count := 0
 			for i := range tfr {
 				if tfr[i].GetRelease().GetInstanceId() != tfr2[i] {
+					align.With(prometheus.Labels{"location": c.GetName()}).Inc()
 					count++
 					counts1 := ""
 					if i > 0 {
@@ -185,7 +186,6 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 					}
 				}
 			}
-			align.With(prometheus.Labels{"location": c.GetName()}).Inc()
 		case pb.Location_BY_FOLDER_THEN_DATE:
 			sort.Sort(ByFolderThenRelease(tfr))
 		case pb.Location_BY_MOVE_TIME:
