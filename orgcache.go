@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	"golang.org/x/net/context"
 
@@ -47,6 +48,23 @@ func appendCache(cache *pb.SortingCache, rec *rcpb.Record) *pb.CacheEntry {
 	return cacheEntry
 }
 
+func convertCatno(catno string) string {
+	ncat := ""
+	in_bits := false
+	for _, r := range catno {
+		if unicode.IsLetter(r) || unicode.IsNumber(r) {
+			ncat += string(r)
+			in_bits = false
+		} else {
+			if !in_bits {
+				ncat += " "
+				in_bits = true
+			}
+		}
+	}
+	return ncat
+}
+
 func buildCacheEntry(rec *rcpb.Record) *pb.CacheEntry {
 	label := gd.GetMainLabel(rec.GetRelease().GetLabels())
 	labelString := ""
@@ -65,7 +83,7 @@ func buildCacheEntry(rec *rcpb.Record) *pb.CacheEntry {
 		LabelHash:  labelString,
 		MainLabel:  label.GetName(),
 		Entry: map[string]string{
-			"BY_LABEL":      strings.ToLower(label.GetName() + "|" + label.GetCatno()),
+			"BY_LABEL":      strings.ToLower(label.GetName() + "|" + convertCatno(label.GetCatno())),
 			"BY_DATE_ADDED": strings.ToLower(fmt.Sprintf("%v", rec.GetMetadata().GetDateAdded()))},
 	}
 }
