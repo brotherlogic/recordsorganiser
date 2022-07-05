@@ -179,6 +179,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 						counts1 += fmt.Sprintf("%v vs %v\n", tfr[i+1].GetRelease().GetInstanceId(), tfr2[i+1])
 					}
 					s.RaiseIssue("Alignment Issue", counts1)
+					break
 				}
 			}
 			align.With(prometheus.Labels{"location": c.GetName()}).Inc()
