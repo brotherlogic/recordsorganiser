@@ -140,8 +140,8 @@ func sortByLabelCat(rel1, rel2 *pb.Release, extractors map[int32]string, logger 
 	cat2Elems := doExtractorSplit(label2, extractors, logger)
 
 	if len(cat1Elems) == 0 || len(cat1Elems) != len(cat2Elems) {
-		cat1Elems = split(label1.Catno)
-		cat2Elems = split(label2.Catno)
+		cat1Elems = split(strings.ToLower(label1.Catno))
+		cat2Elems = split(strings.ToLower(label2.Catno))
 	}
 
 	toCheck := len(cat1Elems)
