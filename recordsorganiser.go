@@ -175,7 +175,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 						counts1 += fmt.Sprintf("%v vs %v\n", tfr[i-1].GetRelease().GetInstanceId(), tfr2[i-1])
 					}
 					counts1 += fmt.Sprintf("%v vs %v\n", tfr[i].GetRelease().GetInstanceId(), tfr2[i])
-					if i < len(tfr) {
+					if i+1 < len(tfr) {
 						counts1 += fmt.Sprintf("%v vs %v\n", tfr[i+1].GetRelease().GetInstanceId(), tfr2[i+1])
 					}
 					s.RaiseIssue("Alignment Issue", counts1)
