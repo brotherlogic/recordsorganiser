@@ -101,10 +101,18 @@ func doExtractorSplit(label *pb.Label, ex map[int32]string, logger func(string))
 
 // Sorts by label and then catalogue number
 func sortByLabelCatCached(rel1, rel2 *pbro.CacheEntry, cache *pbro.SortingCache) int {
-	if sortorder.NaturalLess(rel1.GetEntry()["BY_LABEL"], rel2.GetEntry()["BY_LABEL"]) {
+	bits1 := strings.Split(rel1.GetEntry()["BY_LABEL"], "|")
+	bits2 := strings.Split(rel2.GetEntry()["BY_LABEL"], "|")
+
+	val := strings.Compare(bits1[0], bits2[0])
+	if val != 0 {
+		return val
+	}
+
+	if sortorder.NaturalLess(bits1[1], bits2[1]) {
 		return -1
 	}
-	if rel1.GetEntry()["BY_LABEL"] == rel2.GetEntry()["BY_LABEL"] {
+	if bits1[1] == bits2[1] {
 		return 0
 	}
 	return 1
