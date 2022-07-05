@@ -127,7 +127,6 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		tfr2 := []int32{}
 		for _, id := range ids {
 			if getEntry(cache, id) == nil {
-				s.RaiseIssue("Missing cache", fmt.Sprintf("Cache for %v is missing", id))
 				r, err := s.bridge.getRecord(ctx, id)
 				if err != nil {
 					return -1, err
@@ -260,5 +259,6 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		fwidth.With(prometheus.Labels{"folder": fmt.Sprintf("%v", key)}).Set(val)
 	}
 
+	s.saveCache(ctx, cache)
 	return int32(len(overall)), s.saveOrg(ctx, org)
 }
