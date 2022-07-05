@@ -166,6 +166,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			sort.Sort(ByLabelCat{tfr, convert(org.GetExtractors()), s.Log, cache})
 			sort.Sort(ByCachedLabelCat{tfr2, cache})
 
+			issue := false
 			count := 0
 			for i := range tfr {
 				if tfr[i].GetRelease().GetInstanceId() != tfr2[i] {
@@ -178,8 +179,10 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 					if i+1 < len(tfr) {
 						counts1 += fmt.Sprintf("%v vs %v\n", tfr[i+1].GetRelease().GetInstanceId(), tfr2[i+1])
 					}
-					s.RaiseIssue("Alignment Issue", counts1)
-					break
+					if !issue {
+						s.RaiseIssue("Alignment Issue", counts1)
+						issue = true
+					}
 				}
 			}
 			align.With(prometheus.Labels{"location": c.GetName()}).Inc()
