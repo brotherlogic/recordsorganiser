@@ -20,7 +20,6 @@ message CacheEntry {
   double width = 3;
   string filled = 4;
   int32 folder = 5;
-  string labelHash = 6;
   string mainLabel = 7;
 }
 

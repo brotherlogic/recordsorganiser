@@ -80,7 +80,6 @@ func buildCacheEntry(rec *rcpb.Record) *pb.CacheEntry {
 		Width:      float64(rec.GetMetadata().GetRecordWidth()),
 		Filled:     rec.GetMetadata().GetFiledUnder().String(),
 		Folder:     rec.GetRelease().GetFolderId(),
-		LabelHash:  labelString,
 		MainLabel:  label.GetName(),
 		Entry: map[string]string{
 			"BY_LABEL":      strings.ToLower(label.GetName() + "|" + convertCatno(label.GetCatno())),
