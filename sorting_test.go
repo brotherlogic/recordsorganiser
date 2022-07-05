@@ -7,6 +7,7 @@ import (
 
 	pbd "github.com/brotherlogic/godiscogs"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
+	pb "github.com/brotherlogic/recordsorganiser/proto"
 )
 
 func testLog(s string) {
@@ -51,7 +52,7 @@ func TestSortByLabelCat(t *testing.T) {
 		&pbrc.Record{Release: &pbd.Release{Id: 4, Labels: []*pbd.Label{&pbd.Label{Name: "TestA"}}}, Metadata: &pbrc.ReleaseMetadata{DateAdded: 123}},
 	}
 
-	sort.Sort(ByLabelCat{releases, make(map[int32]string), testLog})
+	sort.Sort(ByLabelCat{releases, make(map[int32]string), testLog, &pb.SortingCache{}})
 
 	if releases[0].Release.Id != 4 {
 		t.Errorf("Releases are not correctly ordered: %v", releases)
@@ -65,7 +66,7 @@ func TestSortByLabelCatWhenCatImbalance(t *testing.T) {
 		&pbrc.Record{Release: &pbd.Release{Id: 4, Labels: []*pbd.Label{&pbd.Label{Name: "TestA"}}}, Metadata: &pbrc.ReleaseMetadata{DateAdded: 123}},
 	}
 
-	sort.Sort(ByLabelCat{releases, make(map[int32]string), testLog})
+	sort.Sort(ByLabelCat{releases, make(map[int32]string), testLog, &pb.SortingCache{}})
 
 	if releases[0].Release.Id != 4 {
 		t.Errorf("Releases are not correctly ordered: %v", releases)
@@ -79,7 +80,7 @@ func TestSortByLabelCatNoLabels(t *testing.T) {
 		&pbrc.Record{Release: &pbd.Release{Id: 4}, Metadata: &pbrc.ReleaseMetadata{DateAdded: 123}},
 	}
 
-	sort.Sort(ByLabelCat{releases, make(map[int32]string), testLog})
+	sort.Sort(ByLabelCat{releases, make(map[int32]string), testLog, &pb.SortingCache{}})
 
 	if releases[0].Release.Id != 4 {
 		t.Errorf("Releases are not correctly ordered: %v", releases)
@@ -127,19 +128,19 @@ var defaultComp = []struct {
 
 func TestSortingByLabelCat(t *testing.T) {
 	for _, tt := range sortTests {
-		sValue := sortByLabelCat(&tt.r1, &tt.r2, make(map[int32]string), testLog)
+		sValue := sortByLabelCat(&tt.r1, &tt.r2, make(map[int32]string), testLog, &pb.SortingCache{})
 		if sValue >= 0 {
 			t.Errorf("%v should come before %v (%v)", tt.r1, tt.r2, sValue)
 		}
-		sValueR := sortByLabelCat(&tt.r2, &tt.r1, make(map[int32]string), testLog)
+		sValueR := sortByLabelCat(&tt.r2, &tt.r1, make(map[int32]string), testLog, &pb.SortingCache{})
 		if sValueR <= 0 {
 			t.Errorf("%v should come before %v (%v)", tt.r1, tt.r2, sValueR)
 		}
 	}
 
 	tt := defaultComp[0]
-	sValue := sortByLabelCat(&tt.r1, &tt.r2, make(map[int32]string), testLog)
-	sValue2 := sortByLabelCat(&tt.r2, &tt.r1, make(map[int32]string), testLog)
+	sValue := sortByLabelCat(&tt.r1, &tt.r2, make(map[int32]string), testLog, &pb.SortingCache{})
+	sValue2 := sortByLabelCat(&tt.r2, &tt.r1, make(map[int32]string), testLog, &pb.SortingCache{})
 	if sValue != 0 || sValue2 != 0 {
 		t.Errorf("Default is not zero: %v and %v", sValue, sValue2)
 	}

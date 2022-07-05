@@ -1,10 +1,7 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"time"
 
 	"github.com/brotherlogic/goserver"
@@ -213,10 +210,6 @@ func InitServer() *Server {
 		&goserver.GoServer{},
 		prodBridge{},
 	}
-	server.PrepServer("recordsorganiser")
-
-	server.bridge = &prodBridge{dial: server.FDialServer, log: server.Log}
-	server.Register = server
 
 	return server
 }
@@ -227,15 +220,11 @@ func (s Server) ReportHealth() bool {
 }
 
 func main() {
-	var quiet = flag.Bool("quiet", true, "Show log output")
-	flag.Parse()
-
-	if *quiet {
-		log.SetFlags(0)
-		log.SetOutput(ioutil.Discard)
-	}
-
 	server := InitServer()
+	server.PrepServer("recordsorganiser")
+
+	server.bridge = &prodBridge{dial: server.FDialServer, log: server.Log}
+	server.Register = server
 
 	err := server.RegisterServerV2(false)
 	if err != nil {

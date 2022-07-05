@@ -15,6 +15,7 @@ func (s *Server) labelMatch(r1, r2 *rcpb.Record, cache *ropb.SortingCache) bool 
 			if label1.GetName() == label2.GetName() {
 				if getEntry(cache, r1.GetRelease().GetInstanceId()).GetMainLabel() != getEntry(cache, r2.GetRelease().GetInstanceId()).GetMainLabel() &&
 					getEntry(cache, r1.GetRelease().GetInstanceId()).GetMainLabel() != "" {
+					s.Log(fmt.Sprintf("Raising because %v and %v", r1, r2))
 					s.RaiseIssue("Bad label collab", fmt.Sprintf("%v VS %v", getEntry(cache, r1.GetRelease().GetInstanceId()), getEntry(cache, r2.GetRelease().GetInstanceId())))
 				}
 				return true

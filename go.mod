@@ -3,8 +3,8 @@ module github.com/brotherlogic/recordsorganiser
 go 1.16
 
 require (
-	github.com/brotherlogic/godiscogs v0.0.0-20220705185359-861b55eb830b
-	github.com/brotherlogic/goserver v0.0.0-20220705153832-58f6cccd50c2
+	github.com/brotherlogic/godiscogs v0.0.0-20220705215224-1099e278d3ad
+	github.com/brotherlogic/goserver v0.0.0-20220705215507-8b2ff738d487
 	github.com/brotherlogic/keystore v0.0.0-20220621052415-70ae78501e3c
 	github.com/brotherlogic/recordcollection v0.0.0-20220705170422-e0c63a3826f0
 	github.com/fvbommel/sortorder v1.0.2
