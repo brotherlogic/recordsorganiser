@@ -51,8 +51,16 @@ func appendCache(cache *pb.SortingCache, rec *rcpb.Record) *pb.CacheEntry {
 func convertCatno(catno string) string {
 	ncat := ""
 	in_bits := false
+	previousWasLetter := true
 	for _, r := range catno {
 		if unicode.IsLetter(r) || unicode.IsNumber(r) {
+			if previousWasLetter && unicode.IsNumber(r) {
+				previousWasLetter = false
+				ncat += " "
+			} else if !previousWasLetter && unicode.IsLetter(r) {
+				previousWasLetter = true
+				ncat += " "
+			}
 			ncat += string(r)
 			in_bits = false
 		} else {
@@ -62,7 +70,12 @@ func convertCatno(catno string) string {
 			}
 		}
 	}
-	return ncat
+
+	for strings.Contains(ncat, "  ") {
+		ncat = strings.ReplaceAll(ncat, "  ", " ")
+	}
+
+	return strings.TrimSpace(ncat)
 }
 
 func buildCacheEntry(rec *rcpb.Record) *pb.CacheEntry {

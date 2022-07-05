@@ -236,3 +236,36 @@ func TestExtractorSplitNoCandidates(t *testing.T) {
 		t.Errorf("Bad extraction: %v", vals)
 	}
 }
+
+func TestLoadedSorting(t *testing.T) {
+	tests := []struct {
+		r1 int32
+		r2 int32
+	}{
+		{r1: 494740378, r2: 492447790},
+	}
+
+	for _, te := range tests {
+		for sw := 0; sw <= 1; sw++ {
+			r1 := loadTestRecord(te.r1)
+			r2 := loadTestRecord(te.r2)
+
+			if r1 == nil || r2 == nil {
+				t.Fatalf("Unable to load records")
+			}
+
+			cache := &pb.SortingCache{}
+			entry1 := appendCache(cache, r1)
+			entry2 := appendCache(cache, r2)
+			if sw == 1 {
+				entry1, entry2 = entry2, entry1
+			}
+
+			val := sortByLabelCatCached(entry1, entry2, cache)
+
+			if (sw == 0 && val != -1) || (sw == 1 && val != 1) {
+				t.Errorf("Test is poorly ordered: %v, %v => %v", entry1, entry2, val)
+			}
+		}
+	}
+}
