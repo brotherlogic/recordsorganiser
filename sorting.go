@@ -113,7 +113,7 @@ func sortByLabelCatCached(rel1, rel2 *pbro.CacheEntry, cache *pbro.SortingCache)
 		return -1
 	}
 	if bits1[1] == bits2[1] {
-		return 0
+		return strings.Compare(bits1[2], bits2[2])
 	}
 	return 1
 }
