@@ -48,7 +48,10 @@ func appendCache(cache *pb.SortingCache, rec *rcpb.Record) *pb.CacheEntry {
 	return cacheEntry
 }
 
-func convertCatno(catno string) string {
+func convertCatno(catnoIn string) string {
+	// Remove leading zeros
+	catno := strings.TrimLeft(catnoIn, "0")
+
 	ncat := ""
 	in_bits := false
 	previousWasLetter := true
