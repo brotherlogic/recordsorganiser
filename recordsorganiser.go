@@ -175,7 +175,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 				if tfr[i].GetRelease().GetInstanceId() != tfr2[i] {
 					align.With(prometheus.Labels{"location": c.GetName()}).Inc()
 					count++
-					counts1 := ""
+					counts1 := "Aligning on " + c.GetName() + "\n"
 					if i > 0 {
 						counts1 += fmt.Sprintf("%v vs %v\n", tfr[i-1].GetRelease().GetInstanceId(), tfr2[i-1])
 					}
