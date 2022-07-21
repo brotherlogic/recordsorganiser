@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 
 	pbgd "github.com/brotherlogic/godiscogs"
 	rcpb "github.com/brotherlogic/recordcollection/proto"
