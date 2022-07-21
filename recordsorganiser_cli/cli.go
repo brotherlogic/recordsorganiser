@@ -315,7 +315,7 @@ func main() {
 			fmt.Printf("%v -> %v\n", location, err)
 		}
 	case "cupdate":
-		val, _ := strconv.Atoi(os.Args[2])
+		val, _ := strconv.ParseInt(os.Args[2], 10, 32)
 		client := pbrc.NewClientUpdateServiceClient(conn)
 		resp, err := client.ClientUpdate(ctx, &pbrc.ClientUpdateRequest{InstanceId: int32(val)})
 
@@ -344,7 +344,7 @@ func main() {
 		if err := addLocationFlags.Parse(os.Args[2:]); err == nil {
 			nums := make([]int32, 0)
 			for _, folderID := range strings.Split(*folderIds, ",") {
-				v, err := strconv.Atoi(folderID)
+				v, err := strconv.ParseInt(folderID, 10, 32)
 				if err != nil {
 					log.Fatalf("Cannot parse folderid: %v", err)
 				}
