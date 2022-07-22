@@ -68,6 +68,11 @@ var (
 		Help: "Widthof slots",
 	}, []string{"location", "filed"})
 
+	tcount = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorganiser_total_count",
+		Help: "Widthof slots",
+	}, []string{"location"})
+
 	fwidth = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "recordsorganiser_folder_width",
 		Help: "Widthof slots",
@@ -233,6 +238,8 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 					DeterminedWidth: getFormatWidth(rinloc, fwidths[len(fwidths)/2])})
 		}
 	}
+
+	tcount.With(prometheus.Labels{"location": c.GetName()}).Set(float64(len(c.ReleasesLocation)))
 
 	for folder, mi := range mslot {
 		fstart.With(prometheus.Labels{"location": c.GetName(), "folder": fmt.Sprintf("%v", folder)}).Set(float64(mi))
