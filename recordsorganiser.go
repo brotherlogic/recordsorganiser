@@ -149,21 +149,24 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 					return -1, err
 				}
 
-				entry := appendCache(cache, r)
-				//widths[r.GetRelease().GetInstanceId()] = float64(r.GetMetadata().GetRecordWidth())
-				widths[id] = entry.GetWidth()
+				if r.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_STAGED_TO_SELL && r.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PREPARE_TO_SELL {
 
-				if widths[id] > 0 {
-					fwidths = append(fwidths, widths[id])
+					entry := appendCache(cache, r)
+					//widths[r.GetRelease().GetInstanceId()] = float64(r.GetMetadata().GetRecordWidth())
+					widths[id] = entry.GetWidth()
+
+					if widths[id] > 0 {
+						fwidths = append(fwidths, widths[id])
+					}
+
+					//tw[id] = r.GetMetadata().GetFiledUnder().String()
+					tw[id] = entry.GetFilled()
+					//fw[id] = r.GetRelease().GetFolderId()
+					fw[id] = entry.GetFolder()
+
+					tfr = append(tfr, r)
+					tfr2 = append(tfr2, id)
 				}
-
-				//tw[id] = r.GetMetadata().GetFiledUnder().String()
-				tw[id] = entry.GetFilled()
-				//fw[id] = r.GetRelease().GetFolderId()
-				fw[id] = entry.GetFolder()
-
-				tfr = append(tfr, r)
-				tfr2 = append(tfr2, id)
 			}
 		}
 
