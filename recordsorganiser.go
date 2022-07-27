@@ -149,7 +149,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 					return -1, err
 				}
 
-				if r.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_STAGED_TO_SELL && r.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PREPARE_TO_SELL {
+				if r.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_STAGED_TO_SELL {
 
 					entry := appendCache(cache, r)
 					//widths[r.GetRelease().GetInstanceId()] = float64(r.GetMetadata().GetRecordWidth())

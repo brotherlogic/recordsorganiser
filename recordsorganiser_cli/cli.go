@@ -291,6 +291,15 @@ func main() {
 	client := pb.NewOrganiserServiceClient(conn)
 
 	switch os.Args[1] {
+	case "ping":
+		client2 := pbrc.NewClientUpdateServiceClient(conn)
+		ilocateFlags := flag.NewFlagSet("ILocate", flag.ExitOnError)
+		var id = ilocateFlags.Int("id", -1, "The name of the location")
+
+		if err := ilocateFlags.Parse(os.Args[2:]); err == nil {
+			location, err := client2.ClientUpdate(ctx, &pbrc.ClientUpdateRequest{InstanceId: int32(*id)})
+			fmt.Printf("%v -> %v\n", location, err)
+		}
 	case "cache":
 		ilocateFlags := flag.NewFlagSet("ILocate", flag.ExitOnError)
 		var id = ilocateFlags.Int("id", -1, "The name of the location")
