@@ -191,8 +191,10 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 
 					// Tele music has two records with the same catalogue number and we don't care about Sold
 					if !issue && tfr2[i] != 870564607 && tfr2[i] != 635886064 && c.GetName() != "Sold" {
-						s.RaiseIssue("Alignment Issue", counts1)
-						issue = true
+						if c.GetName() != "Limbo" {
+							s.RaiseIssue("Alignment Issue", counts1)
+							issue = true
+						}
 					}
 				}
 			}
