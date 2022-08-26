@@ -171,7 +171,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		case pb.Location_BY_DATE_ADDED:
 			sort.Sort(ByDateAdded(tfr))
 		case pb.Location_BY_LABEL_CATNO:
-			sort.Sort(ByLabelCat{tfr, convert(org.GetExtractors()), s.Log, cache})
+			sort.Sort(ByLabelCat{tfr, convert(org.GetExtractors()), s.CtxLog, cache})
 			sort.Sort(ByCachedLabelCat{tfr2, cache})
 
 			issue := false
@@ -219,7 +219,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 	overall := noverall
 	var mapper map[int32][]*rcpb.Record
 	if c.CombineSimilar {
-		overall, mapper = s.collapse(noverall, cache)
+		overall, mapper = s.collapse(ctx, noverall, cache)
 	}
 
 	awidth.With(prometheus.Labels{"location": c.GetName()}).Set(float64(fwidths[len(fwidths)/2]))
@@ -281,7 +281,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 // Bridge that accesses discogs syncer server
 type prodBridge struct {
 	dial func(ctx context.Context, server string) (*grpc.ClientConn, error)
-	log  func(string)
+	log  func(context.Context, string)
 }
 
 var (
@@ -479,7 +479,7 @@ func main() {
 	server := InitServer()
 	server.PrepServer("recordsorganiser")
 
-	server.bridge = &prodBridge{dial: server.FDialServer, log: server.Log}
+	server.bridge = &prodBridge{dial: server.FDialServer, log: server.CtxLog}
 	server.Register = server
 
 	err := server.RegisterServerV2(false)

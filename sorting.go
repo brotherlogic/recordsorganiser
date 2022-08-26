@@ -12,6 +12,7 @@ import (
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"golang.org/x/net/context"
 
 	"github.com/fvbommel/sortorder"
 )
@@ -56,7 +57,7 @@ func (a ByDateMoved) Less(i, j int) bool {
 type ByLabelCat struct {
 	records    []*pbrc.Record
 	extractors map[int32]string
-	logger     func(string)
+	logger     func(context.Context, string)
 	cache      *pbro.SortingCache
 }
 
@@ -82,7 +83,7 @@ func split(str string) []string {
 	return regexp.MustCompile("[0-9]+|[a-z]+|[A-Z]+").FindAllString(str, -1)
 }
 
-func doExtractorSplit(label *pb.Label, ex map[int32]string, logger func(string)) []string {
+func doExtractorSplit(label *pb.Label, ex map[int32]string, logger func(context.Context, string)) []string {
 	if val, ok := ex[label.Id]; ok {
 		r, err := regexp.Compile(val)
 		if err != nil {
@@ -119,7 +120,7 @@ func sortByLabelCatCached(rel1, rel2 *pbro.CacheEntry, cache *pbro.SortingCache)
 }
 
 // Sorts by label and then catalogue number
-func sortByLabelCat(rel1, rel2 *pb.Release, extractors map[int32]string, logger func(string), cache *pbro.SortingCache) int {
+func sortByLabelCat(rel1, rel2 *pb.Release, extractors map[int32]string, logger func(context.Context, string), cache *pbro.SortingCache) int {
 
 	if len(rel1.Labels) == 0 {
 		return -1
