@@ -223,7 +223,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 	}
 
 	awidth.With(prometheus.Labels{"location": c.GetName()}).Set(float64(fwidths[len(fwidths)/2]))
-	records := s.Split(ctx, overall, float32(c.GetSlots()), float32(c.GetQuota().GetTotalWidth()), gaps, c.GetAllowAdjust(), fwidths[len(fwidths)/2])
+	records := s.Split(ctx, c.GetName(), overall, float32(c.GetSlots()), float32(c.GetQuota().GetTotalWidth()), gaps, c.GetAllowAdjust(), fwidths[len(fwidths)/2])
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
 	for slot, recs := range records {
 		for i, rinloc := range expand(recs, mapper) {
