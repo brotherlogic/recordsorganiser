@@ -284,13 +284,13 @@ func (s *Server) Split(ctx context.Context, loc string, releases []*pbrc.Record,
 				s.CtxLog(ctx, fmt.Sprintf("Allowing %v because %v < %v", releases[i+3], currentValue+getFormatWidth(releases[i+3], bwidth), counts[version]))
 				releases[i], releases[i+3] = releases[i+3], releases[i]
 			} else {
-				s.CtxLog(ctx, fmt.Sprintf("Adding %v %v -> %v [%v]", loc, len(solution), currentValue, currentReleases[len(currentReleases)-1]))
 				solution = append(solution, currentReleases)
 				currentReleases = make([]*pbrc.Record, 0)
 				currentValue = 0
 			}
 		}
 
+		s.CtxLog(ctx, fmt.Sprintf("Adding %v -> %v to %v %v", releases[i].Release.GetId(), getFormatWidth(releases[i], bwidth), loc, len(solution)))
 		currentReleases = append(currentReleases, releases[i])
 		currentValue += getFormatWidth(releases[i], bwidth)
 
