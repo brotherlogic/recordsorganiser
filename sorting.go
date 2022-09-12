@@ -256,6 +256,8 @@ func (s *Server) Split(ctx context.Context, loc string, releases []*pbrc.Record,
 
 	counts = append(counts, maxw)
 
+	s.CtxLog(ctx, fmt.Sprintf("%v -> %v", loc, counts))
+
 	version := 0
 	currentValue := float32(0.0)
 	var currentReleases []*pbrc.Record
