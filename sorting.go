@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"regexp"
 	"strconv"
@@ -231,7 +232,7 @@ var (
 )
 
 // Split splits a releases list into buckets
-func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap []int, allowAdjust bool, bwidth float64) [][]*pbrc.Record {
+func (s *Server) Split(ctx context.Context, releases []*pbrc.Record, n float32, maxw float32, hardgap []int, allowAdjust bool, bwidth float64) [][]*pbrc.Record {
 	var solution [][]*pbrc.Record
 
 	var counts []float32
@@ -273,9 +274,9 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 		} else if currentValue+getFormatWidth(releases[i], bwidth) > counts[version] {
 			if allowAdjust && i < len(releases)-1 && currentValue+getFormatWidth(releases[i+1], bwidth) < counts[version] {
 				releases[i], releases[i+1] = releases[i+1], releases[i]
-			} else if allowAdjust && i < len(releases)-1 && currentValue+getFormatWidth(releases[i+2], bwidth) < counts[version] {
+			} else if allowAdjust && i < len(releases)-2 && currentValue+getFormatWidth(releases[i+2], bwidth) < counts[version] {
 				releases[i], releases[i+2] = releases[i+2], releases[i]
-			} else if allowAdjust && i < len(releases)-1 && currentValue+getFormatWidth(releases[i+3], bwidth) < counts[version] {
+			} else if allowAdjust && i < len(releases)-3 && currentValue+getFormatWidth(releases[i+3], bwidth) < counts[version] {
 				releases[i], releases[i+3] = releases[i+3], releases[i]
 			} else {
 				solution = append(solution, currentReleases)
@@ -286,6 +287,10 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 
 		currentReleases = append(currentReleases, releases[i])
 		currentValue += getFormatWidth(releases[i], bwidth)
+
+		if currentValue > counts[version] {
+			s.CtxLog(ctx, fmt.Sprintf("ERROR in addition: %v", currentValue))
+		}
 	}
 	solution = append(solution, currentReleases)
 
