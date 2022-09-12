@@ -273,7 +273,7 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 			version++
 		} else if currentValue+getFormatWidth(releases[i], bwidth) > counts[version] {
 			if allowAdjust && i < len(releases)-adjust && currentValue+getFormatWidth(releases[i+adjust], bwidth) < counts[version] {
-				releases[i], releases[i+1] = releases[i+1], releases[i]
+				releases[i], releases[i+adjust] = releases[i+adjust], releases[i]
 			} else if adjust < 3 {
 				adjust++
 			} else {
