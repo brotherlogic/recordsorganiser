@@ -257,6 +257,7 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 
 	version := 0
 	currentValue := float32(0.0)
+	adjust := 1
 	var currentReleases []*pbrc.Record
 	for i := range releases {
 		found := false
@@ -271,12 +272,15 @@ func (s *Server) Split(releases []*pbrc.Record, n float32, maxw float32, hardgap
 			currentValue = 0
 			version++
 		} else if currentValue+getFormatWidth(releases[i], bwidth) > counts[version] {
-			if allowAdjust && i < len(releases)-1 && currentValue+getFormatWidth(releases[i+1], bwidth) < counts[version] {
+			if allowAdjust && i < len(releases)-adjust && currentValue+getFormatWidth(releases[i+adjust], bwidth) < counts[version] {
 				releases[i], releases[i+1] = releases[i+1], releases[i]
+			} else if adjust < 3 {
+				adjust++
 			} else {
 				solution = append(solution, currentReleases)
 				currentReleases = make([]*pbrc.Record, 0)
 				currentValue = 0
+				adjust = 1
 			}
 		}
 
