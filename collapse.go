@@ -26,6 +26,20 @@ func (s *Server) labelMatch(ctx context.Context, r1, r2 *rcpb.Record, cache *rop
 	return false
 }
 
+func (s *Server) adjust(width float32, mSleeve, dSleeve rcpb.ReleaseMetadata_SleeveState) float32 {
+	if mSleeve == dSleeve {
+		return width
+	}
+
+	if mSleeve == rcpb.ReleaseMetadata_BOX_SET && dSleeve == rcpb.ReleaseMetadata_VINYL_STORAGE_DOUBLE_FLAP {
+		return width * 1.25
+	}
+
+	s.RaiseIssue("Sleeve mismatch", fmt.Sprintf("%v -> %v", mSleeve, dSleeve))
+
+	return width
+}
+
 //For now this just collapses similar records down to a simple map
 func (s *Server) collapse(ctx context.Context, records []*rcpb.Record, cache *ropb.SortingCache) ([]*rcpb.Record, map[int32][]*rcpb.Record) {
 	mapper := make(map[int32][]*rcpb.Record)
@@ -37,7 +51,7 @@ func (s *Server) collapse(ctx context.Context, records []*rcpb.Record, cache *ro
 		if inlabel {
 			if s.labelMatch(ctx, trecord, rec, cache) {
 				mapper[trecord.GetRelease().GetInstanceId()] = append(mapper[trecord.GetRelease().GetInstanceId()], rec)
-				trecord.GetMetadata().RecordWidth += rec.GetMetadata().GetRecordWidth()
+				trecord.GetMetadata().RecordWidth += s.adjust(rec.GetMetadata().GetRecordWidth(), trecord.GetMetadata().GetSleeve(), rec.GetMetadata().GetSleeve())
 			} else {
 				nrecords = append(nrecords, trecord)
 				trecord = nil
