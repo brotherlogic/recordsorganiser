@@ -207,7 +207,7 @@ func getFormatWidth(r *pbrc.Record, bwidth float64) float32 {
 		// Make the adjustment for DS_F records
 		if r.GetMetadata().GetSleeve() == pbrc.ReleaseMetadata_BAGS_UNLIMITED_PLAIN ||
 			r.GetMetadata().GetSleeve() == pbrc.ReleaseMetadata_VINYL_STORAGE_DOUBLE_FLAP {
-			return r.GetMetadata().GetRecordWidth() * 1.25
+			return r.GetMetadata().GetRecordWidth() * 1.26
 		}
 
 		if r.GetMetadata().GetSleeve() == pbrc.ReleaseMetadata_SLEEVE_UNKNOWN {
