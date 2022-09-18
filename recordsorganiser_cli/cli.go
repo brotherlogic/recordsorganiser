@@ -543,6 +543,12 @@ func main() {
 						FolderSort:  map[int32]pb.Location_Sorting{int32(*folder): pb.Location_BY_LABEL_CATNO},
 						FolderIds:   []int32{int32(*folder)}}})
 				}
+				if *sort == "release" {
+					client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{
+						FolderOrder: map[int32]int32{int32(*folder): int32(*order)},
+						FolderSort:  map[int32]pb.Location_Sorting{int32(*folder): pb.Location_BY_RELEASE_DATE},
+						FolderIds:   []int32{int32(*folder)}}})
+				}
 				if *sort == "time" {
 					client.UpdateLocation(ctx, &pb.UpdateLocationRequest{Location: *name, Update: &pb.Location{
 						FolderOrder: map[int32]int32{int32(*folder): int32(*order)},
