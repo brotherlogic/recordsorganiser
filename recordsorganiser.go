@@ -168,6 +168,8 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		}
 
 		switch sorter {
+		case pb.Location_BY_RELEASE_DATE:
+			sort.Sort(ByEarliestReleaseDate{})
 		case pb.Location_BY_DATE_ADDED:
 			sort.Sort(ByDateAdded(tfr))
 		case pb.Location_BY_LABEL_CATNO:
