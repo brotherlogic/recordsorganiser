@@ -492,12 +492,14 @@ func main() {
 		return
 	}
 
-	ctx, cancel := utils.ManualContext("recorginit", time.Minute*10)
-	err = server.metrics(ctx)
-	cancel()
-	if err != nil {
-		return
-	}
+	go func() {
+		ctx, cancel := utils.ManualContext("recorginit", time.Minute*10)
+		err = server.metrics(ctx)
+		cancel()
+		if err != nil {
+			return
+		}
+	}()
 
 	server.Serve()
 }
