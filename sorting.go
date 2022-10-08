@@ -174,15 +174,15 @@ func sortByLabelCat(rel1, rel2 *pb.Release, extractors map[int32]string, logger 
 }
 
 // ByEarliestReleaseDate allows sorting by the earliest release date
-type ByEarliestReleaseDate []*pb.Release
+type ByEarliestReleaseDate []*pbrc.Record
 
 func (a ByEarliestReleaseDate) Len() int      { return len(a) }
 func (a ByEarliestReleaseDate) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a ByEarliestReleaseDate) Less(i, j int) bool {
-	if a[i].EarliestReleaseDate != a[j].EarliestReleaseDate {
-		return a[i].EarliestReleaseDate < a[j].EarliestReleaseDate
+	if a[i].GetRelease().EarliestReleaseDate != a[j].GetRelease().EarliestReleaseDate {
+		return a[i].GetRelease().EarliestReleaseDate < a[j].GetRelease().EarliestReleaseDate
 	}
-	return strings.Compare(a[i].Title, a[j].Title) < 0
+	return strings.Compare(a[i].GetRelease().Title, a[j].GetRelease().Title) < 0
 }
 
 // ByFolderThenRelease allows sorting by the earliest release date

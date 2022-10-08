@@ -9,6 +9,7 @@ import (
 	rcpb "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 	"github.com/golang/protobuf/proto"
+	"golang.org/x/net/context"
 )
 
 func loadTestRecord(iid int32) *rcpb.Record {
@@ -53,7 +54,7 @@ func TestCompareCollapse(t *testing.T) {
 		appendCache(cache, r1)
 		appendCache(cache, r2)
 
-		server.labelMatch(r1, r2, cache)
+		server.labelMatch(context.Background(), r1, r2, cache)
 
 		if server.IssueCount > 0 {
 			t.Fatalf("Issue raised in label comparison: %v, %v", server.IssueCount, server.SkipIssue)
@@ -91,7 +92,7 @@ func TestBasicFunc(t *testing.T) {
 		}},
 	}
 
-	nrecs, mapper := s.collapse(records, &pb.SortingCache{})
+	nrecs, mapper := s.collapse(context.Background(), records, &pb.SortingCache{})
 
 	if len(nrecs) != 2 {
 		t.Errorf("Should be two records here: %v", nrecs)
@@ -145,7 +146,7 @@ func TestReverseFunc(t *testing.T) {
 		}},
 	}
 
-	nrecs, mapper := s.collapse(records, &pb.SortingCache{})
+	nrecs, mapper := s.collapse(context.Background(), records, &pb.SortingCache{})
 
 	if len(nrecs) != 3 {
 		t.Errorf("Should be two records here: %v", nrecs)

@@ -8,9 +8,10 @@ import (
 	pbd "github.com/brotherlogic/godiscogs"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
+	"golang.org/x/net/context"
 )
 
-func testLog(s string) {
+func testLog(ctx context.Context, s string) {
 	fmt.Printf("%v\n", s)
 }
 
@@ -147,16 +148,16 @@ func TestSortingByLabelCat(t *testing.T) {
 }
 
 func TestSortByMasterReleaseDate(t *testing.T) {
-	releases := []*pbd.Release{
-		&pbd.Release{Id: 2, EarliestReleaseDate: 15},
-		&pbd.Release{Id: 3, EarliestReleaseDate: 10},
-		&pbd.Release{Id: 4, EarliestReleaseDate: 20},
-		&pbd.Release{Id: 5, EarliestReleaseDate: 15},
+	releases := []*pbrc.Record{
+		&pbrc.Record{Release: &pbd.Release{Id: 2, EarliestReleaseDate: 15}},
+		&pbrc.Record{Release: &pbd.Release{Id: 3, EarliestReleaseDate: 10}},
+		&pbrc.Record{Release: &pbd.Release{Id: 4, EarliestReleaseDate: 20}},
+		&pbrc.Record{Release: &pbd.Release{Id: 5, EarliestReleaseDate: 15}},
 	}
 
 	sort.Sort(ByEarliestReleaseDate(releases))
 
-	if releases[0].Id != 3 {
+	if releases[0].GetRelease().Id != 3 {
 		t.Errorf("Releases are not correctly ordered: %v", releases)
 	}
 }
