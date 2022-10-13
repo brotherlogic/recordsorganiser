@@ -243,7 +243,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 					DeterminedWidth: getFormatWidth(rinloc, fwidths[len(fwidths)/2])})
 			total += getFormatWidth(rinloc, fwidths[len(fwidths)/2])
 		}
-		s.CtxLog(ctx, fmt.Sprintf("FOUND %v in slot %v for %v", total, slot, c.GetName()))
+
 	}
 
 	tcount.With(prometheus.Labels{"location": c.GetName()}).Set(float64(len(c.ReleasesLocation)))
