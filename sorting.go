@@ -288,7 +288,6 @@ func (s *Server) Split(ctx context.Context, loc string, releases []*pbrc.Record,
 			}
 		}
 
-		s.CtxLog(ctx, fmt.Sprintf("ADDSTO %v -> %v to %v %v", releases[i].Release.GetId(), getFormatWidth(releases[i], bwidth), loc, len(solution)))
 		currentReleases = append(currentReleases, releases[i])
 		currentValue += getFormatWidth(releases[i], bwidth)
 
