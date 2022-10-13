@@ -291,9 +291,6 @@ func (s *Server) Split(ctx context.Context, loc string, releases []*pbrc.Record,
 		currentReleases = append(currentReleases, releases[i])
 		currentValue += getFormatWidth(releases[i], bwidth)
 
-		if currentValue > counts[version] {
-			s.CtxLog(ctx, fmt.Sprintf("ERROR in addition(%v): %v -> %v (%v)", loc, currentValue, counts[version], getFormatWidth(releases[i], bwidth)))
-		}
 	}
 	solution = append(solution, currentReleases)
 
