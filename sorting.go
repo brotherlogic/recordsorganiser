@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"regexp"
 	"strconv"
@@ -273,13 +272,13 @@ func (s *Server) Split(ctx context.Context, loc string, releases []*pbrc.Record,
 			version++
 		} else if currentValue+getFormatWidth(releases[i], bwidth) > counts[version] {
 			if allowAdjust && i < len(releases)-1 && currentValue+getFormatWidth(releases[i+1], bwidth) < counts[version] {
-				s.CtxLog(ctx, fmt.Sprintf("Allowing %v because %v < %v", releases[i+1], currentValue+getFormatWidth(releases[i+1], bwidth), counts[version]))
+				//s.CtxLog(ctx, fmt.Sprintf("Allowing %v because %v < %v", releases[i+1], currentValue+getFormatWidth(releases[i+1], bwidth), counts[version]))
 				releases[i], releases[i+1] = releases[i+1], releases[i]
 			} else if allowAdjust && i < len(releases)-2 && currentValue+getFormatWidth(releases[i+2], bwidth) < counts[version] {
-				s.CtxLog(ctx, fmt.Sprintf("Allowing %v because %v < %v", releases[i+2], currentValue+getFormatWidth(releases[i+2], bwidth), counts[version]))
+				//s.CtxLog(ctx, fmt.Sprintf("Allowing %v because %v < %v", releases[i+2], currentValue+getFormatWidth(releases[i+2], bwidth), counts[version]))
 				releases[i], releases[i+2] = releases[i+2], releases[i]
 			} else if allowAdjust && i < len(releases)-3 && currentValue+getFormatWidth(releases[i+3], bwidth) < counts[version] {
-				s.CtxLog(ctx, fmt.Sprintf("Allowing %v because %v < %v", releases[i+3], currentValue+getFormatWidth(releases[i+3], bwidth), counts[version]))
+				//s.CtxLog(ctx, fmt.Sprintf("Allowing %v because %v < %v", releases[i+3], currentValue+getFormatWidth(releases[i+3], bwidth), counts[version]))
 				releases[i], releases[i+3] = releases[i+3], releases[i]
 			} else {
 				solution = append(solution, currentReleases)
