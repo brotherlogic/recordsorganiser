@@ -46,6 +46,9 @@ func (s *Server) adjust(width float32, mSleeve, dSleeve rcpb.ReleaseMetadata_Sle
 	if mSleeve == rcpb.ReleaseMetadata_SLEEVE_UNKNOWN && dSleeve == rcpb.ReleaseMetadata_BOX_SET {
 		return width * (1 / 1.18)
 	}
+	if mSleeve == rcpb.ReleaseMetadata_VINYL_STORAGE_DOUBLE_FLAP && dSleeve == rcpb.ReleaseMetadata_SLEEVE_UNKNOWN {
+		return width * (1.18 / 1.26)
+	}
 
 	s.RaiseIssue("Sleeve mismatch", fmt.Sprintf("%v -> %v", mSleeve, dSleeve))
 

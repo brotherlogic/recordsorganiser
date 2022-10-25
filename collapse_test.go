@@ -8,7 +8,7 @@ import (
 	dpb "github.com/brotherlogic/godiscogs"
 	rcpb "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 	"golang.org/x/net/context"
 )
 
