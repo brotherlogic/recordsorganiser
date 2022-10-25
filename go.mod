@@ -3,14 +3,14 @@ module github.com/brotherlogic/recordsorganiser
 go 1.16
 
 require (
-	github.com/brotherlogic/godiscogs v0.0.0-20220903154230-c90014325c5b
-	github.com/brotherlogic/goserver v0.0.0-20220821031349-d47a1932e1b3
-	github.com/brotherlogic/keystore v0.0.0-20220819230625-94090acd1be1
-	github.com/brotherlogic/recordcollection v0.0.0-20220912143930-00836d99ffdb
+	github.com/brotherlogic/discovery v0.0.0-20221025164009-f3ffe6adf907 // indirect
+	github.com/brotherlogic/godiscogs v0.0.0-20221025153630-9ad31d9fab21
+	github.com/brotherlogic/goserver v0.0.0-20221025163649-eb477795d80c
+	github.com/brotherlogic/keystore v0.0.0-20221025153610-f0da429b1237
+	github.com/brotherlogic/recordcollection v0.0.0-20221025153424-68cce63d7609
 	github.com/fvbommel/sortorder v1.0.2
-	github.com/golang/protobuf v1.5.2
 	github.com/prometheus/client_golang v1.13.0
-	golang.org/x/net v0.0.0-20220909164309-bea034e7d591
-	google.golang.org/grpc v1.49.0
+	golang.org/x/net v0.1.0
+	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.28.1
 )
