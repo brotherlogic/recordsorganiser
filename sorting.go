@@ -278,8 +278,8 @@ func (s *Server) Split(ctx context.Context, loc string, releases []*pbrc.Record,
 				releases[i+1], releases[i+2] = releases[i+2], releases[i+1] // Correct misorder
 			} else if allowAdjust && i < len(releases)-3 && currentValue+getFormatWidth(releases[i+3], bwidth) < counts[version] {
 				releases[i], releases[i+3] = releases[i+3], releases[i]
-				releases[i+1], releases[i+3] = releases[i+3], releases[i+1]
-				releases[i+2], releases[i+3] = releases[i+3], releases[i+2]
+				releases[i+1], releases[i+3] = releases[i+3], releases[i+1] // Correct misorder
+				releases[i+2], releases[i+3] = releases[i+3], releases[i+2] // Correct misorder
 			} else {
 				solution = append(solution, currentReleases)
 				currentReleases = make([]*pbrc.Record, 0)

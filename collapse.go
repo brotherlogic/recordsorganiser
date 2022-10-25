@@ -43,13 +43,16 @@ func (s *Server) adjust(width float32, mSleeve, dSleeve rcpb.ReleaseMetadata_Sle
 	if mSleeve == rcpb.ReleaseMetadata_VINYL_STORAGE_NO_INNER && dSleeve == rcpb.ReleaseMetadata_VINYL_STORAGE_DOUBLE_FLAP {
 		return width * (1.26 / 1.4)
 	}
+	if mSleeve == rcpb.ReleaseMetadata_SLEEVE_UNKNOWN && dSleeve == rcpb.ReleaseMetadata_BOX_SET {
+		return width * (1 / 1.18)
+	}
 
 	s.RaiseIssue("Sleeve mismatch", fmt.Sprintf("%v -> %v", mSleeve, dSleeve))
 
 	return width
 }
 
-//For now this just collapses similar records down to a simple map
+// For now this just collapses similar records down to a simple map
 func (s *Server) collapse(ctx context.Context, records []*rcpb.Record, cache *ropb.SortingCache) ([]*rcpb.Record, map[int32][]*rcpb.Record) {
 	mapper := make(map[int32][]*rcpb.Record)
 	var nrecords []*rcpb.Record
