@@ -224,6 +224,12 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		overall, mapper = s.collapse(ctx, noverall, cache)
 	}
 
+	for _, o := range overall {
+		if o.GetRelease().GetInstanceId() == 445272706 {
+			s.CtxLog(ctx, fmt.Sprintf("Found in pre-split"))
+		}
+	}
+
 	awidth.With(prometheus.Labels{"location": c.GetName()}).Set(float64(fwidths[len(fwidths)/2]))
 	records := s.Split(ctx, c.GetName(), overall, float32(c.GetSlots()), float32(c.GetQuota().GetTotalWidth()), gaps, c.GetAllowAdjust(), fwidths[len(fwidths)/2])
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
@@ -432,7 +438,7 @@ func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32
 		defer conn.Close()
 		client := pbrc.NewRecordCollectionServiceClient(conn)
 
-		rel, err3 := client.QueryRecords(ctx, &pbrc.QueryRecordsRequest{Query: &pbrc.QueryRecordsRequest_FolderId{id}})
+		rel, err3 := client.QueryRecords(ctx, &pbrc.QueryRecordsRequest{Query: &pbrc.QueryRecordsRequest_FolderId{FolderId: id}})
 		if err3 != nil {
 			return result, err3
 		}
