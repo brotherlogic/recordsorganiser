@@ -35,7 +35,7 @@ func (s *Server) UpdateLocation(ctx context.Context, req *pb.UpdateLocationReque
 	return &pb.UpdateLocationResponse{}, s.saveOrg(ctx, org)
 }
 
-//Locate finds a record in the collection
+// Locate finds a record in the collection
 func (s *Server) Locate(ctx context.Context, req *pb.LocateRequest) (*pb.LocateResponse, error) {
 	org, err := s.readOrg(ctx)
 	if err != nil {
@@ -58,7 +58,7 @@ func (s *Server) Locate(ctx context.Context, req *pb.LocateRequest) (*pb.LocateR
 	return &pb.LocateResponse{}, status.Errorf(codes.NotFound, "Unable to locate %v in collection", req.GetInstanceId())
 }
 
-//AddLocation adds a location
+// AddLocation adds a location
 func (s *Server) AddLocation(ctx context.Context, req *pb.AddLocationRequest) (*pb.AddLocationResponse, error) {
 	org, err := s.readOrg(ctx)
 	if err != nil {
@@ -243,7 +243,7 @@ func (s *Server) AddExtractor(ctx context.Context, req *pb.AddExtractorRequest) 
 	return &pb.AddExtractorResponse{}, s.saveOrg(ctx, org)
 }
 
-//ClientUpdate on an updated record
+// ClientUpdate on an updated record
 func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest) (*rcpb.ClientUpdateResponse, error) {
 	org, err := s.readOrg(ctx)
 	if err != nil {
@@ -299,7 +299,7 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 
 		if len(oldLoc.GetName()) > 0 || len(newLoc.GetName()) > 0 {
 			if record.GetMetadata().GetBoxState() != rcpb.ReleaseMetadata_IN_THE_BOX {
-				_, err := s.bridge.updateRecord(ctx, &rcpb.UpdateRecordRequest{Reason: "Org Move Update", Update: &rcpb.Record{Release: &pbgd.Release{InstanceId: req.GetInstanceId()}}})
+				_, err := s.bridge.updateRecord(ctx, &rcpb.UpdateRecordRequest{Reason: fmt.Sprintf("Org Move Update (%v -> %v)", oldLoc.GetName(), newLoc.GetName()), Update: &rcpb.Record{Release: &pbgd.Release{InstanceId: req.GetInstanceId()}}})
 				return &rcpb.ClientUpdateResponse{}, err
 			}
 		}
