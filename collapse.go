@@ -92,6 +92,9 @@ func (s *Server) collapse(ctx context.Context, records []*rcpb.Record, cache *ro
 			}
 		}
 	}
+
+	nrecords = append(nrecords, trecord)
+
 	return nrecords, mapper
 }
 
