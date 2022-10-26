@@ -217,29 +217,11 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		mslot[slot] = 999
 	}
 
-	for _, o := range noverall {
-		if o.GetRelease().GetInstanceId() == 445272706 {
-			s.CtxLog(ctx, fmt.Sprintf("Found in pre-collapse"))
-		}
-	}
-
 	//Before splitting let the org group records
 	overall := noverall
 	var mapper map[int32][]*rcpb.Record
 	if c.CombineSimilar {
 		overall, mapper = s.collapse(ctx, noverall, cache)
-	}
-
-	for _, o := range overall {
-		if o.GetRelease().GetInstanceId() == 445272706 {
-			s.CtxLog(ctx, fmt.Sprintf("Found in pre-split"))
-		}
-
-		for _, r := range expand([]*pbrc.Record{o}, mapper) {
-			if r.GetRelease().GetInstanceId() == 445272706 {
-				s.CtxLog(ctx, fmt.Sprintf("Found expanded in pre-split"))
-			}
-		}
 	}
 
 	awidth.With(prometheus.Labels{"location": c.GetName()}).Set(float64(fwidths[len(fwidths)/2]))
