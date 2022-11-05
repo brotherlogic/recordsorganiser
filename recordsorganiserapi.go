@@ -55,7 +55,7 @@ func (s *Server) Locate(ctx context.Context, req *pb.LocateRequest) (*pb.LocateR
 		}
 	}
 
-	return &pb.LocateResponse{}, status.Errorf(codes.NotFound, "Unable to locate %v in collection", req.GetInstanceId())
+	return &pb.LocateResponse{}, status.Errorf(codes.NotFound, "Unable to locate %v in collection", record.GetRelease().GetInstanceId())
 }
 
 // AddLocation adds a location
@@ -268,7 +268,7 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 	newLoc := &pb.Location{}
 	for _, loc := range org.GetLocations() {
 		for _, place := range loc.GetReleasesLocation() {
-			if place.GetInstanceId() == req.GetInstanceId() {
+			if place.GetInstanceId() == record.GetRelease().GetInstanceId() {
 				s.CtxLog(ctx, fmt.Sprintf("FOUND %v", loc))
 				oldLoc = loc
 			}
@@ -282,7 +282,6 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 	}
 
 	if oldLoc.GetName() != newLoc.GetName() {
-		s.CtxLog(ctx, fmt.Sprintf("%v -> %v to %v", oldLoc, newLoc))
 		if len(oldLoc.GetName()) > 0 {
 			_, err := s.organiseLocation(ctx, cache, oldLoc, org)
 			if err != nil {
@@ -301,7 +300,7 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 
 		if len(oldLoc.GetName()) > 0 || len(newLoc.GetName()) > 0 {
 			if record.GetMetadata().GetBoxState() != rcpb.ReleaseMetadata_IN_THE_BOX {
-				_, err := s.bridge.updateRecord(ctx, &rcpb.UpdateRecordRequest{Reason: fmt.Sprintf("Org Move Update (%v -> %v)", oldLoc.GetName(), newLoc.GetName()), Update: &rcpb.Record{Release: &pbgd.Release{InstanceId: req.GetInstanceId()}}})
+				_, err := s.bridge.updateRecord(ctx, &rcpb.UpdateRecordRequest{Reason: fmt.Sprintf("Org Move Update (%v -> %v)", oldLoc.GetName(), newLoc.GetName()), Update: &rcpb.Record{Release: &pbgd.Release{InstanceId: record.GetRelease().GetInstanceId()}}})
 				return &rcpb.ClientUpdateResponse{}, err
 			}
 		}
