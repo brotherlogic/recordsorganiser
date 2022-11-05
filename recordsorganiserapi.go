@@ -269,6 +269,7 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 	for _, loc := range org.GetLocations() {
 		for _, place := range loc.GetReleasesLocation() {
 			if place.GetInstanceId() == req.GetInstanceId() {
+				s.CtxLog(ctx, fmt.Sprintf("FOUND %v", loc))
 				oldLoc = loc
 			}
 		}
@@ -281,6 +282,7 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 	}
 
 	if oldLoc.GetName() != newLoc.GetName() {
+		s.CtxLog(ctx, fmt.Sprintf("%v -> %v to %v", oldLoc, newLoc))
 		if len(oldLoc.GetName()) > 0 {
 			_, err := s.organiseLocation(ctx, cache, oldLoc, org)
 			if err != nil {
