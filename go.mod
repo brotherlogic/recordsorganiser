@@ -6,7 +6,7 @@ require (
 	github.com/brotherlogic/godiscogs v0.0.0-20221025153630-9ad31d9fab21
 	github.com/brotherlogic/goserver v0.0.0-20221217002224-0ba5c0213be1
 	github.com/brotherlogic/keystore v0.0.0-20221218025925-612b2a89a337
-	github.com/brotherlogic/lock v0.0.0-20221218032010-bc171297cf57 // indirect
+	github.com/brotherlogic/lock v0.0.0-20221218033100-bd36d25fa713 // indirect
 	github.com/brotherlogic/recordcollection v0.0.0-20221211033323-f8affb90017d
 	github.com/fvbommel/sortorder v1.0.2
 	github.com/golang/protobuf v1.5.2
