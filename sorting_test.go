@@ -5,7 +5,7 @@ import (
 	"sort"
 	"testing"
 
-	pbd "github.com/brotherlogic/godiscogs"
+	pbd "github.com/brotherlogic/godiscogs/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 	"golang.org/x/net/context"

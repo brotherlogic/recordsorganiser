@@ -5,11 +5,11 @@ import (
 	"io/ioutil"
 	"testing"
 
-	dpb "github.com/brotherlogic/godiscogs"
+	dpb "github.com/brotherlogic/godiscogs/proto"
 	rcpb "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
-	"google.golang.org/protobuf/proto"
 	"golang.org/x/net/context"
+	"google.golang.org/protobuf/proto"
 )
 
 func loadTestRecord(iid int32) *rcpb.Record {
