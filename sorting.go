@@ -7,7 +7,9 @@ import (
 	"strings"
 	"unicode"
 
-	pb "github.com/brotherlogic/godiscogs"
+	"github.com/brotherlogic/godiscogs"
+
+	pb "github.com/brotherlogic/godiscogs/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 	"github.com/prometheus/client_golang/prometheus"
@@ -129,8 +131,8 @@ func sortByLabelCat(rel1, rel2 *pb.Release, extractors map[int32]string, logger 
 		return 1
 	}
 
-	label1 := pb.GetMainLabel(rel1.Labels)
-	label2 := pb.GetMainLabel(rel2.Labels)
+	label1 := godiscogs.GetMainLabel(rel1.Labels)
+	label2 := godiscogs.GetMainLabel(rel2.Labels)
 
 	labelSort := strings.Compare(strings.ToLower(label1.GetName()), strings.ToLower(label2.GetName()))
 	if labelSort != 0 {

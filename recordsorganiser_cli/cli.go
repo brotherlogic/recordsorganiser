@@ -14,7 +14,7 @@ import (
 	"github.com/brotherlogic/goserver/utils"
 	"google.golang.org/grpc"
 
-	pbgd "github.com/brotherlogic/godiscogs"
+	pbgd "github.com/brotherlogic/godiscogs/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	"github.com/brotherlogic/recordsorganiser/locator"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
@@ -221,8 +221,6 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 		}
 	}
 	sort.Float64s(widths)
-
-	fmt.Printf("Summary: %v [%v] %v/%v = %v / %v\n", locs.GetNumberProcessed(), total, twidth, tcount, twidth/tcount, widths[len(widths)/2])
 
 	if len(locs.GetLocations()) == 0 {
 		fmt.Printf("No Locations Found!\n")
