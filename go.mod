@@ -7,7 +7,7 @@ require (
 	github.com/brotherlogic/goserver v0.0.0-20230201210316-c2d059b39936
 	github.com/brotherlogic/keystore v0.0.0-20230203031455-4edff34793d7
 	github.com/brotherlogic/lock v0.0.0-20230205014350-8afe1ffcd46d // indirect
-	github.com/brotherlogic/recordcollection v0.0.0-20230204033042-6b704c8c888e
+	github.com/brotherlogic/recordcollection v0.0.0-20230205040621-5773f6b3f0e1
 	github.com/fvbommel/sortorder v1.0.2
 	github.com/golang/protobuf v1.5.2
 	github.com/prometheus/client_golang v1.14.0
