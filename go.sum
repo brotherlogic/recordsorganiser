@@ -1042,6 +1042,8 @@ github.com/brotherlogic/githubcard v0.0.0-20230201203006-0668c3fa233b/go.mod h1:
 github.com/brotherlogic/githubcard v0.0.0-20230204004849-4a4ddb1f39a8/go.mod h1:2ZivHJxIAKpSQogHEsY4EvV78WncLjJab9Lgde0sT3c=
 github.com/brotherlogic/githubcard v0.0.0-20230211011527-3b20138ef57d/go.mod h1:WlKBSW7egJcebMQ+ngricFrJGYYpEZtaoOBknk+2HIo=
 github.com/brotherlogic/githubcard v0.0.0-20230217215917-e6782e02de2a/go.mod h1:WlKBSW7egJcebMQ+ngricFrJGYYpEZtaoOBknk+2HIo=
+github.com/brotherlogic/githubcard v0.0.0-20230218032942-842af5585c65 h1:g6OIyhBKcVGd/Vo3VD6ugq7PW3EtucgW+fmDwRtvThY=
+github.com/brotherlogic/githubcard v0.0.0-20230218032942-842af5585c65/go.mod h1:WlKBSW7egJcebMQ+ngricFrJGYYpEZtaoOBknk+2HIo=
 github.com/brotherlogic/githubcard v0.0.0-20230218190813-992986fe5798 h1:mTMo5u8IhBDnu0doqT11QwPvcKbtbpMQ2iEea2stqP0=
 github.com/brotherlogic/githubcard v0.0.0-20230218190813-992986fe5798/go.mod h1:G4HuZCWfvWqYOB4wgruFi9tT26cLXnA11d4w1+RU3Nc=
 github.com/brotherlogic/gobuildslave v0.0.0-20201112143137-ce3a2e75a18e/go.mod h1:gnbI1PHvnu1JX1Omx7okU5jSejp3kC6k1ha6SjjAW+E=
