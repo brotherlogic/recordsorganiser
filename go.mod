@@ -3,6 +3,7 @@ module github.com/brotherlogic/recordsorganiser
 go 1.16
 
 require (
+	github.com/brotherlogic/discovery v0.0.0-20230221170523-56bd99b0456c // indirect
 	github.com/brotherlogic/dstore v0.0.0-20230221032905-85df71ec3bd3 // indirect
 	github.com/brotherlogic/godiscogs v0.0.0-20230205161711-6d59a74d9f35
 	github.com/brotherlogic/goserver v0.0.0-20230208171911-c95aab060a3f
