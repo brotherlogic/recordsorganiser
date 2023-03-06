@@ -271,6 +271,7 @@ func (s *Server) Split(ctx context.Context, loc string, releases []*pbrc.Record,
 			}
 		}
 		if found {
+			s.CtxLog(ctx, fmt.Sprintf("Found hard gap for %v", loc))
 			solution = append(solution, currentReleases)
 			currentReleases = make([]*pbrc.Record, 0)
 			currentValue = 0
