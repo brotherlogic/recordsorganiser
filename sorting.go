@@ -249,7 +249,7 @@ func (s *Server) Split(ctx context.Context, loc string, releases []*pbrc.Record,
 				if poss > maxw {
 					poss = maxw
 				}
-				counts = append(counts, poss)
+				counts = append(counts, maxw)
 				count = 0
 			}
 		}
