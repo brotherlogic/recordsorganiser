@@ -276,6 +276,9 @@ func (s *Server) Split(ctx context.Context, loc string, releases []*pbrc.Record,
 			currentValue = 0
 			version++
 		} else if currentValue+getFormatWidth(releases[i], bwidth) > counts[version] {
+
+			s.CtxLog(ctx, fmt.Sprintf("Flipping because %v + %v is greater than %v", currentValue, getFormatWidth(releases[i], bwidth), counts[version]))
+
 			if allowAdjust && i < len(releases)-1 && currentValue+getFormatWidth(releases[i+1], bwidth) < counts[version] {
 				releases[i], releases[i+1] = releases[i+1], releases[i]
 			} else if allowAdjust && i < len(releases)-2 && currentValue+getFormatWidth(releases[i+2], bwidth) < counts[version] {
