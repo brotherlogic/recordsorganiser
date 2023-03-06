@@ -372,6 +372,7 @@ func (s *Server) readOrg(ctx context.Context) (*pb.Organisation, error) {
 
 		if location.GetName() == "12 Inches" {
 			location.CombineSimilar = true
+			location.HardGap = make(map[int32]bool)
 		}
 	}
 
