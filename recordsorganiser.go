@@ -244,7 +244,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		fstart.With(prometheus.Labels{"location": c.GetName(), "folder": fmt.Sprintf("%v", folder)}).Set(float64(mi))
 	}
 
-	s.CtxLog(ctx, fmt.Sprintf("Org'd %v with total %v", c.GetName(), total))
+	s.CtxLog(ctx, fmt.Sprintf("Org'd %v with total %v from %v records", c.GetName(), total, len(c.ReleasesLocation)))
 
 	//Make any quota adjustments - we only do width ajdustments
 	if c.GetQuota().GetAbsoluteWidth() > 0 {
