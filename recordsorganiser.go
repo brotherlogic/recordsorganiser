@@ -218,9 +218,9 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 	awidth.With(prometheus.Labels{"location": c.GetName()}).Set(float64(fwidths[len(fwidths)/2]))
 	records := s.Split(ctx, c.GetName(), overall, float32(c.GetSlots()), float32(c.GetQuota().GetTotalWidth()), gaps, c.GetAllowAdjust(), fwidths[len(fwidths)/2])
 
+	total := float32(0)
 	c.ReleasesLocation = []*pb.ReleasePlacement{}
 	for slot, recs := range records {
-		total := float32(0)
 		for i, rinloc := range expand(recs, mapper) {
 			sl := slot + 1
 			if sl < mslot[rinloc.GetRelease().GetFolderId()] {
@@ -243,6 +243,8 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 	for folder, mi := range mslot {
 		fstart.With(prometheus.Labels{"location": c.GetName(), "folder": fmt.Sprintf("%v", folder)}).Set(float64(mi))
 	}
+
+	s.CtxLog(ctx, fmt.Sprintf("Org'd %v with total %v from %v records", c.GetName(), total, len(c.ReleasesLocation)))
 
 	//Make any quota adjustments - we only do width ajdustments
 	if c.GetQuota().GetAbsoluteWidth() > 0 {
