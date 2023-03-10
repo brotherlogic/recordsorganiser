@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"regexp"
 	"strconv"
@@ -248,7 +249,7 @@ func (s *Server) Split(ctx context.Context, loc string, releases []*pbrc.Record,
 				if poss > maxw {
 					poss = maxw
 				}
-				counts = append(counts, poss)
+				counts = append(counts, maxw)
 				count = 0
 			}
 		}
@@ -256,6 +257,8 @@ func (s *Server) Split(ctx context.Context, loc string, releases []*pbrc.Record,
 	}
 
 	counts = append(counts, maxw)
+
+	s.CtxLog(ctx, fmt.Sprintf("HERE %v: %v", loc, counts))
 
 	version := 0
 	currentValue := float32(0.0)
@@ -268,11 +271,15 @@ func (s *Server) Split(ctx context.Context, loc string, releases []*pbrc.Record,
 			}
 		}
 		if found {
+			s.CtxLog(ctx, fmt.Sprintf("Flipping Found hard gap for %v", loc))
 			solution = append(solution, currentReleases)
 			currentReleases = make([]*pbrc.Record, 0)
 			currentValue = 0
 			version++
 		} else if currentValue+getFormatWidth(releases[i], bwidth) > counts[version] {
+
+			s.CtxLog(ctx, fmt.Sprintf("Flipping %v @ %v / %v, because %v + %v is greater than %v -> %v", loc, len(solution), i, currentValue, getFormatWidth(releases[i], bwidth), counts[version], counts))
+
 			if allowAdjust && i < len(releases)-1 && currentValue+getFormatWidth(releases[i+1], bwidth) < counts[version] {
 				releases[i], releases[i+1] = releases[i+1], releases[i]
 			} else if allowAdjust && i < len(releases)-2 && currentValue+getFormatWidth(releases[i+2], bwidth) < counts[version] {

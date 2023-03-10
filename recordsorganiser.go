@@ -176,7 +176,6 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			sort.Sort(ByLabelCat{tfr, convert(org.GetExtractors()), s.CtxLog, cache})
 			sort.Sort(ByCachedLabelCat{tfr2, cache})
 
-			issue := false
 			count := 0
 			for i := range tfr {
 				if tfr[i].GetRelease().GetInstanceId() != tfr2[i] {
@@ -189,14 +188,6 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 					counts1 += fmt.Sprintf("%v vs %v\n", tfr[i].GetRelease().GetInstanceId(), tfr2[i])
 					if i+1 < len(tfr) {
 						counts1 += fmt.Sprintf("%v vs %v\n", tfr[i+1].GetRelease().GetInstanceId(), tfr2[i+1])
-					}
-
-					// Tele music has two records with the same catalogue number and we don't care about Sold
-					if !issue && tfr2[i] != 870564607 && tfr2[i] != 635886064 && c.GetName() != "Sold" {
-						if c.GetName() != "Limbo" {
-							s.RaiseIssue("Alignment Issue", counts1)
-							issue = true
-						}
 					}
 				}
 			}
@@ -381,6 +372,7 @@ func (s *Server) readOrg(ctx context.Context) (*pb.Organisation, error) {
 
 		if location.GetName() == "12 Inches" {
 			location.CombineSimilar = true
+			location.HardGap = make(map[int32]bool)
 		}
 	}
 
