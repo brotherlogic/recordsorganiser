@@ -269,7 +269,6 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 	for _, loc := range org.GetLocations() {
 		for _, place := range loc.GetReleasesLocation() {
 			if place.GetInstanceId() == record.GetRelease().GetInstanceId() {
-				s.CtxLog(ctx, fmt.Sprintf("FOUND %v", loc))
 				oldLoc = loc
 			}
 		}
