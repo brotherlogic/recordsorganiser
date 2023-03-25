@@ -3,7 +3,7 @@ module github.com/brotherlogic/recordsorganiser
 go 1.18
 
 require (
-	github.com/brotherlogic/godiscogs v0.0.0-20230205161711-6d59a74d9f35
+	github.com/brotherlogic/godiscogs v0.0.0-20230320190117-75d09ac07100
 	github.com/brotherlogic/goserver v0.0.0-20230309052710-27200cfe2365
 	github.com/brotherlogic/keystore v0.0.0-20230319014539-e7c4ab53847d
 	github.com/brotherlogic/recordcollection v0.0.0-20230319235047-96f1445dfc71
@@ -11,7 +11,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/prometheus/client_golang v1.14.0
 	golang.org/x/net v0.8.0
-	google.golang.org/grpc v1.53.0
+	google.golang.org/grpc v1.54.0
 	google.golang.org/protobuf v1.30.0
 )
 
@@ -42,5 +42,5 @@ require (
 	go.opentelemetry.io/otel/trace v1.14.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
-	google.golang.org/genproto v0.0.0-20230320184635-7606e756e683 // indirect
+	google.golang.org/genproto v0.0.0-20230323212658-478b75c54725 // indirect
 )
