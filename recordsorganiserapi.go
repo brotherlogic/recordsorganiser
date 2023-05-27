@@ -304,7 +304,7 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 			}
 		}
 
-		err := s.saveCache(ctx, cache)
+		err = s.saveCache(ctx, cache)
 		if err != nil {
 			return nil, err
 		}
