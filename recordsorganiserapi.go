@@ -258,12 +258,6 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 		return nil, err
 	}
 
-	// Update the cache
-	cache, err := s.updateCache(ctx, record)
-	if err != nil {
-		return nil, err
-	}
-
 	oldLoc := &pb.Location{}
 	newLoc := &pb.Location{}
 	for _, loc := range org.GetLocations() {
@@ -281,6 +275,12 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 	}
 
 	if oldLoc.GetName() != newLoc.GetName() {
+		// Update the cache
+		cache, err := s.updateCache(ctx, record)
+		if err != nil {
+			return nil, err
+		}
+
 		if len(oldLoc.GetName()) > 0 {
 			_, err := s.organiseLocation(ctx, cache, oldLoc, org)
 			if err != nil {
