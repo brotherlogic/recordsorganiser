@@ -151,6 +151,9 @@ message Location {
   bool allow_adjust = 22;
 
   bool combine_similar = 23;
+
+  repeated int32 slots_to_sort = 24;
+  int32 last_sort = 25;
 }
 
 message Organisation {
@@ -165,6 +168,7 @@ message Organisation {
 
   // A list of mappings for the releases
   repeated SortMapping sort_mappings = 4;
+
 }
 
 message AddLocationRequest {
