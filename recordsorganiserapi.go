@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"golang.org/x/net/context"
@@ -248,6 +249,36 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 	org, err := s.readOrg(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	// Post the reorgs
+	for _, loc := range org.GetLocations() {
+		if loc.GetName() == "12 Inches" {
+			cyear := time.Now().YearDay()
+			if cyear != int(loc.GetLastSort()) {
+				if len(loc.GetSlotsToSort()) == 0 {
+					slots := make(map[int32]bool)
+					for _, entry := range loc.GetReleasesLocation() {
+						slots[entry.GetSlot()] = true
+					}
+
+					for slotv := range slots {
+						loc.SlotsToSort = append(loc.SlotsToSort, slotv)
+					}
+
+					rand.Seed(time.Now().UnixNano())
+					rand.Shuffle(len(loc.SlotsToSort), func(i, j int) {
+						loc.SlotsToSort[i], loc.SlotsToSort[j] = loc.SlotsToSort[j], loc.SlotsToSort[i]
+					})
+				}
+
+				loc.LastSort = int32(cyear)
+				slot := loc.SlotsToSort[0]
+				s.RaiseIssue("Reorg 12 Inches", fmt.Sprintf("Slot %v needs a sort", slot))
+				loc.SlotsToSort = loc.SlotsToSort[1:]
+				s.saveOrg(ctx, org)
+			}
+		}
 	}
 
 	record, err := s.bridge.getRecord(ctx, req.GetInstanceId())
