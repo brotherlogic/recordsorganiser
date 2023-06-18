@@ -17,7 +17,7 @@ func (s *Server) labelMatch(ctx context.Context, r1, r2 *rcpb.Record, cache *rop
 				if getEntry(cache, r1.GetRelease().GetInstanceId()).GetMainLabel() != getEntry(cache, r2.GetRelease().GetInstanceId()).GetMainLabel() &&
 					getEntry(cache, r1.GetRelease().GetInstanceId()).GetMainLabel() != "" {
 					s.CtxLog(ctx, fmt.Sprintf("Raising because %v and %v", r1, r2))
-					s.RaiseIssue("Bad label collab", fmt.Sprintf("%v VS %v", getEntry(cache, r1.GetRelease().GetInstanceId()), getEntry(cache, r2.GetRelease().GetInstanceId())))
+					//s.RaiseIssue("Bad label collab", fmt.Sprintf("%v VS %v", getEntry(cache, r1.GetRelease().GetInstanceId()), getEntry(cache, r2.GetRelease().GetInstanceId())))
 				}
 				return true
 			}
