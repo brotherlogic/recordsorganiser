@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -10,9 +11,22 @@ import (
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 	"github.com/brotherlogic/recordsorganiser/sales"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+)
+
+var (
+	getTime = promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Name: "recordsorganiser_get_time",
+		Help: "Time take to organise a slot",
+	}, []string{"folder"})
 )
 
 func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*pbrc.Record {
+	t := time.Now()
+	defer func() {
+		getTime.With(prometheus.Labels{"folder": sloc.GetName()}).Observe(float64(time.Since(t).Milliseconds()))
+	}()
 	recs := []*pbrc.Record{}
 
 	ids, err := s.bridge.getReleases(ctx, sloc.FolderIds)
