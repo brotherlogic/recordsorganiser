@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/brotherlogic/goserver"
@@ -134,37 +135,44 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 
 		tfr := []*pbrc.Record{}
 		tfr2 := []int32{}
+		var funcErr error
+		wg := &sync.WaitGroup{}
+		wg.Add(1)
 		for _, id := range ids {
-			if getEntry(cache, id) == nil {
-				r, err := s.bridge.getRecord(ctx, id)
-				if err != nil {
-					return -1, err
+			wg.Add(1)
+			go func(iid int32) {
+				r, err := s.bridge.getRecord(ctx, iid)
+				if status.Convert(err).Code() != codes.OutOfRange {
+					if err != nil {
+						funcErr = err
+					}
 				}
-				appendCache(cache, r)
-			}
-
-			r, err := s.bridge.getRecord(ctx, id)
-			if status.Convert(err).Code() != codes.OutOfRange {
-				if err != nil {
-					return -1, err
-				}
-
-				entry := appendCache(cache, r)
-				//widths[r.GetRelease().GetInstanceId()] = float64(r.GetMetadata().GetRecordWidth())
-				widths[id] = entry.GetWidth()
-
-				if widths[id] > 0 {
-					fwidths = append(fwidths, widths[id])
-				}
-
-				//tw[id] = r.GetMetadata().GetFiledUnder().String()
-				tw[id] = entry.GetFilled()
-				//fw[id] = r.GetRelease().GetFolderId()
-				fw[id] = entry.GetFolder()
-
 				tfr = append(tfr, r)
-				tfr2 = append(tfr2, id)
+				wg.Done()
+			}(id)
+		}
+		wg.Done()
+		wg.Wait()
+
+		if funcErr != nil {
+			return -1, funcErr
+		}
+
+		for _, r := range tfr {
+			id := r.GetRelease().GetInstanceId()
+			entry := appendCache(cache, r)
+			widths[id] = entry.GetWidth()
+
+			if widths[id] > 0 {
+				fwidths = append(fwidths, widths[id])
 			}
+
+			//tw[id] = r.GetMetadata().GetFiledUnder().String()
+			tw[id] = entry.GetFilled()
+			//fw[id] = r.GetRelease().GetFolderId()
+			fw[id] = entry.GetFolder()
+
+			tfr2 = append(tfr2, id)
 		}
 
 		switch sorter {
