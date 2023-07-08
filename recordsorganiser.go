@@ -128,6 +128,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			gaps = append(gaps, len(noverall))
 		}
 
+		t1 := time.Now()
 		ids, err := s.bridge.getReleases(ctx, lfold)
 		if err != nil {
 			return -1, err
@@ -153,6 +154,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		}
 		wg.Done()
 		wg.Wait()
+		s.CtxLog(ctx, fmt.Sprintf("LOADTOOK %v", time.Since(t1)))
 
 		if funcErr != nil {
 			return -1, funcErr
