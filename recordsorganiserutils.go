@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sort"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -54,12 +55,29 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 	c.OverQuotaTime = 0
 
 	records := []*pbrc.Record{}
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	maxGoroutines := 100
+	guard := make(chan struct{}, maxGoroutines)
+	var ferr error
 	for _, rp := range c.ReleasesLocation {
-		rec, err := s.bridge.getRecord(ctx, rp.InstanceId)
-		if err != nil {
-			return err
-		}
-		records = append(records, rec)
+		guard <- struct{}{}
+		wg.Add(1)
+		go func(iid int32) {
+			r, err := s.bridge.getRecord(ctx, iid)
+			if err != nil {
+				ferr = err
+			} else {
+				records = append(records, r)
+			}
+			wg.Done()
+			<-guard
+		}(rp.GetInstanceId())
+	}
+	wg.Done()
+	wg.Wait()
+	if ferr != nil {
+		return ferr
 	}
 
 	// Sort the record
