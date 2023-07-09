@@ -139,7 +139,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		var funcErr error
 		wg := &sync.WaitGroup{}
 		wg.Add(1)
-		maxGoroutines := 10
+		maxGoroutines := 100
 		guard := make(chan struct{}, maxGoroutines)
 		for _, id := range ids {
 			guard <- struct{}{}
