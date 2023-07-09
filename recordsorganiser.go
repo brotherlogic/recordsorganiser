@@ -151,7 +151,9 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 						funcErr = err
 					}
 				}
-				tfr = append(tfr, r)
+				if err == nil {
+					tfr = append(tfr, r)
+				}
 				wg.Done()
 				<-guard
 			}(id)
