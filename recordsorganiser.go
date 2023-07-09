@@ -139,7 +139,10 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		var funcErr error
 		wg := &sync.WaitGroup{}
 		wg.Add(1)
+		maxGoroutines := 10
+		guard := make(chan struct{}, maxGoroutines)
 		for _, id := range ids {
+			guard <- struct{}{}
 			wg.Add(1)
 			go func(iid int32) {
 				r, err := s.bridge.getRecord(ctx, iid)
@@ -150,6 +153,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 				}
 				tfr = append(tfr, r)
 				wg.Done()
+				<-guard
 			}(id)
 		}
 		wg.Done()
