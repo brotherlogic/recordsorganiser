@@ -158,7 +158,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		}
 		wg.Done()
 		wg.Wait()
-		s.CtxLog(ctx, fmt.Sprintf("LOADTOOK %v", time.Since(t1)))
+		s.CtxLog(ctx, fmt.Sprintf("LOADTOOK (%v) %v", len(tfr), time.Since(t1)))
 
 		if funcErr != nil {
 			return -1, funcErr
