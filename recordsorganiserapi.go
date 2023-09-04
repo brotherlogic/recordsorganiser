@@ -273,8 +273,8 @@ func (s *Server) ClientUpdate(ctx context.Context, req *rcpb.ClientUpdateRequest
 				}
 
 				loc.LastSort = int32(cyear)
-				slot := loc.SlotsToSort[0]
-				s.RaiseIssue("Reorg 12 Inches", fmt.Sprintf("Slot %v needs a sort", slot))
+				//slot := loc.SlotsToSort[0]
+				//s.RaiseIssue("Reorg 12 Inches", fmt.Sprintf("Slot %v needs a sort", slot))
 				loc.SlotsToSort = loc.SlotsToSort[1:]
 				s.saveOrg(ctx, org)
 			}
