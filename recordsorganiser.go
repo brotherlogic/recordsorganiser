@@ -69,6 +69,11 @@ var (
 		Help: "Widthof slots",
 	}, []string{"location", "filed"})
 
+	gwidth = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorganiser_goal_width",
+		Help: "Widthof slots",
+	}, []string{"location"})
+
 	tcount = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "recordsorganiser_total_count",
 		Help: "Widthof slots",
