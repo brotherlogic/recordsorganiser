@@ -135,6 +135,49 @@ func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) 
 	return nil
 }
 
+func (s *Server) processSlotQuota(ctx context.Context, c *pb.Location) error {
+	mslot := int32(0)
+	for _, elem := range c.GetReleasesLocation() {
+		if elem.GetSlot() > mslot {
+			mslot = elem.GetSlot()
+		}
+	}
+
+	if mslot > c.GetQuota().GetSlots() {
+		records := []*pbrc.Record{}
+		for _, rp := range c.GetReleasesLocation() {
+			rec, err := s.bridge.getRecord(ctx, rp.GetInstanceId())
+			if err != nil {
+				return err
+			}
+			records = append(records, rec)
+		}
+
+		sort.Sort(sales.BySaleOrder(records))
+
+		// Find the first appropriate record
+		r := records[0]
+		for _, prec := range records {
+			if prec.GetMetadata().GetBoxState() == pbrc.ReleaseMetadata_BOX_UNKNOWN ||
+				prec.GetMetadata().GetBoxState() == pbrc.ReleaseMetadata_OUT_OF_BOX {
+				r = prec
+				break
+			}
+		}
+		s.CtxLog(ctx, fmt.Sprintf("Attempting to sell: %v", r.GetRelease().GetInstanceId()))
+
+		if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_IN_COLLECTION {
+			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
+			_, err := s.bridge.updateRecord(ctx, up)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func (s *Server) processWidthQuota(ctx context.Context, c *pb.Location) error {
 	for slot := 0; slot <= int(c.GetSlots()); slot++ {
 		totalWidth := float32(0)

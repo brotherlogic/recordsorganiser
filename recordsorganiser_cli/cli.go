@@ -512,8 +512,16 @@ func main() {
 		var gap = updateLocationFlags.Int("gap", -1, "Adds gaps")
 		var adjust = updateLocationFlags.Bool("adjust", false, "Do adjust")
 		var absWidth = updateLocationFlags.Float64("abs_width", -1, "Overall width")
+		var absSlots = updateLocationFlags.Int("abs_slots", -1, "Slots")
 
 		if err := updateLocationFlags.Parse(os.Args[2:]); err == nil {
+			if *absSlots > 0 {
+				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{
+					Location: *name,
+					Update:   &pb.Location{Quota: &pb.Quota{QuotaType: &pb.Quota_Slots{int32(*absSlots)}}},
+				})
+
+			}
 			if *absWidth > 0 {
 				client.UpdateLocation(ctx, &pb.UpdateLocationRequest{
 					Location: *name,
