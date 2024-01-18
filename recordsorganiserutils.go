@@ -149,6 +149,8 @@ func (s *Server) processSlotQuota(ctx context.Context, c *pb.Location) error {
 
 	foundSlots.With(prometheus.Labels{"org": c.GetName()}).Set(float64(mslot))
 
+	s.CtxLog(ctx, fmt.Sprintf("Found %v slots with a quota of %v for %v", mslot, c.GetQuota().GetSlots(), c.GetName()))
+
 	if mslot > c.GetQuota().GetSlots() {
 		records := []*pbrc.Record{}
 		for _, rp := range c.GetReleasesLocation() {
