@@ -21,6 +21,10 @@ var (
 		Name: "recordsorganiser_get_time",
 		Help: "Time take to organise a slot",
 	}, []string{"folder"})
+
+	foundSlots = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorganiser_found_slots",
+	}, []string{"org"})
 )
 
 func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*pbrc.Record {
@@ -142,6 +146,8 @@ func (s *Server) processSlotQuota(ctx context.Context, c *pb.Location) error {
 			mslot = elem.GetSlot()
 		}
 	}
+
+	foundSlots.With(prometheus.Labels{"org": c.GetName()}).Set(float64(mslot))
 
 	if mslot > c.GetQuota().GetSlots() {
 		records := []*pbrc.Record{}
