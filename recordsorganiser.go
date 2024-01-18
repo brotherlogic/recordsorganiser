@@ -43,6 +43,10 @@ func convert(exs []*pb.LabelExtractor) map[int32]string {
 }
 
 func (s *Server) markOverQuota(ctx context.Context, c *pb.Location) error {
+	if c.GetQuota().GetSlots() > 0 {
+		return s.processSlotQuota(ctx, c)
+	}
+
 	if c.GetQuota().GetAbsoluteWidth() > 0 {
 		return s.processAbsoluteWidthQuota(ctx, c)
 	}
@@ -268,7 +272,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 	s.CtxLog(ctx, fmt.Sprintf("Org'd %v with total %v from %v records", c.GetName(), total, len(c.ReleasesLocation)))
 
 	//Make any quota adjustments - we only do width ajdustments
-	if c.GetQuota().GetAbsoluteWidth() > 0 {
+	if c.GetQuota().GetAbsoluteWidth() > 0 || c.GetQuota().GetSlots() > 0 {
 		s.markOverQuota(ctx, c)
 	}
 
