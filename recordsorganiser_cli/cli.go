@@ -204,7 +204,7 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 						fmt.Printf("\n")
 						lastSlot = rloc.GetSlot()
 					}
-					fmt.Printf("%v [%v] %v [%v]\n", j, rloc.GetSlot(), getReleaseString(ctx, rloc, showSleeve), total)
+					fmt.Printf("%v [%v] %v %v [%v]\n", j, rloc.GetSlot(), rloc.GetInstanceId(), getReleaseString(ctx, rloc, showSleeve), total)
 					rec, err := getRecord(ctx, rloc.InstanceId)
 					if err != nil {
 						log.Fatalf("ARFH: %v", err)
