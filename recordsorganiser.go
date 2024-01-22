@@ -298,6 +298,16 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		fwidth.With(prometheus.Labels{"folder": fmt.Sprintf("%v", key)}).Set(val)
 	}
 
+	maxslot := int32(0)
+	for _, elem := range c.GetReleasesLocation() {
+		if elem.GetSlot() > maxslot {
+			maxslot = elem.GetSlot()
+		}
+	}
+
+	foundSlots.With(prometheus.Labels{"org": c.GetName()}).Set(float64(maxslot))
+
+
 	s.saveCache(ctx, cache)
 	return int32(len(overall)), s.saveOrg(ctx, org)
 }
