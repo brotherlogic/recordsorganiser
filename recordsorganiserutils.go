@@ -155,7 +155,7 @@ func (s *Server) processSlotQuota(ctx context.Context, c *pb.Location) error {
 		records := []*pbrc.Record{}
 		for _, rp := range c.GetReleasesLocation() {
 			rec, err := s.bridge.getRecord(ctx, rp.GetInstanceId())
-			if err != nil {
+			if err != nil {	
 				return err
 			}
 			records = append(records, rec)
@@ -172,7 +172,7 @@ func (s *Server) processSlotQuota(ctx context.Context, c *pb.Location) error {
 				break
 			}
 		}
-		s.CtxLog(ctx, fmt.Sprintf("Attempting to sell: %v", r.GetRelease().GetInstanceId()))
+		s.CtxLog(ctx, fmt.Sprintf("Attempting to sell (%v): %v", c.GetName(), r.GetRelease().GetInstanceId()))
 
 		if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_IN_COLLECTION {
 			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
