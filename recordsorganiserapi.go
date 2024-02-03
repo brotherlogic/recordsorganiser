@@ -162,6 +162,10 @@ func (s *Server) GetOrganisation(ctx context.Context, req *pb.GetOrganisationReq
 		}
 	}
 
+	if len(locations) == 0 {
+		return nil, status.Errorf(codes.NotFound, "Could not find locations: %v", req.GetLocations())
+	}
+
 	return &pb.GetOrganisationResponse{Locations: locations, NumberProcessed: num}, nil
 }
 
