@@ -100,6 +100,10 @@ var (
 		Name: "recordsorganiser_align_probs",
 		Help: "Time take to organise a slot",
 	}, []string{"location"})
+	keepPerc = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorganiser_keep_status",
+		Help: "Time take to organise a slot",
+	}, []string{"folder", "state"})
 )
 
 func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c *pb.Location, org *pb.Organisation) (int32, error) {
@@ -175,7 +179,10 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			return -1, funcErr
 		}
 
+		keepCount := make(map[string]int)
+
 		for _, r := range tfr {
+			keepCount[fmt.Sprintf("%v", r.GetMetadata().GetKeep())]++
 			id := r.GetRelease().GetInstanceId()
 			entry := appendCache(cache, r)
 			widths[id] = entry.GetWidth()
@@ -190,6 +197,10 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			fw[id] = entry.GetFolder()
 
 			tfr2 = append(tfr2, id)
+		}
+
+		for key, val := range keepCount {
+			keepPerc.With(prometheus.Labels{"folder": c.GetName(), "state": key}).Set(float64(val))
 		}
 
 		switch sorter {
@@ -306,7 +317,6 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 	}
 
 	foundSlots.With(prometheus.Labels{"org": c.GetName()}).Set(float64(maxslot))
-
 
 	s.saveCache(ctx, cache)
 	return int32(len(overall)), s.saveOrg(ctx, org)
