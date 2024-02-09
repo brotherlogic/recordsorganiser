@@ -64,7 +64,7 @@ var (
 	}, []string{"location"})
 
 	swidths = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "recordsorgainser_slot_widths",
+		Name: "recordsorganiser_slot_widths",
 		Help: "Widthof slots",
 	}, []string{"location", "slot"})
 
@@ -298,7 +298,6 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 
 	for slot, width := range slotWidths {
 		swidths.With(prometheus.Labels{"location": c.GetName(), "slot": fmt.Sprintf("%v", slot)}).Set(width)
-
 	}
 
 	for key, val := range twf {
