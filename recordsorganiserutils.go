@@ -155,13 +155,25 @@ func (s *Server) processSlotQuota(ctx context.Context, c *pb.Location) error {
 		records := []*pbrc.Record{}
 		for _, rp := range c.GetReleasesLocation() {
 			rec, err := s.bridge.getRecord(ctx, rp.GetInstanceId())
-			if err != nil {	
+			if err != nil {
 				return err
 			}
 			records = append(records, rec)
 		}
 
 		sort.Sort(sales.BySaleOrder(records))
+
+		// Validate scores
+		fscore := records[0].GetMetadata().GetOverallScore()
+		diff := false
+		for _, record := range records {
+			if record.GetMetadata().GetOverallScore() != fscore {
+				diff = true
+			}
+		}
+		if !diff {
+			s.RaiseIssue("Slot Stocked", fmt.Sprintf("%v is stocked", c.GetName()))
+		}
 
 		// Find the first appropriate record
 		r := records[0]
