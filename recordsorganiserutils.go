@@ -125,7 +125,7 @@ func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) 
 				break
 			}
 		}
-		s.CtxLog(ctx, fmt.Sprintf("Attempting to sell: %v", r.GetRelease().GetInstanceId()))
+		s.CtxLog(ctx, fmt.Sprintf("Attempting to force sell: %v", r.GetRelease().GetInstanceId()))
 
 		up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
 		_, err := s.bridge.updateRecord(ctx, up)
