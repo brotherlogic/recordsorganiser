@@ -127,12 +127,10 @@ func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) 
 		}
 		s.CtxLog(ctx, fmt.Sprintf("Attempting to sell: %v", r.GetRelease().GetInstanceId()))
 
-		if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_IN_COLLECTION {
-			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
-			_, err := s.bridge.updateRecord(ctx, up)
-			if err != nil {
-				return err
-			}
+		up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
+		_, err := s.bridge.updateRecord(ctx, up)
+		if err != nil {
+			return err
 		}
 	}
 

@@ -23,6 +23,20 @@ import (
 	_ "google.golang.org/grpc/encoding/gzip"
 )
 
+func isTenInch(release *pbgd.Release) bool {
+	for _, format := range release.GetFormats() {
+		if format.GetName() == "10\"" {
+			return true
+		}
+		for _, desc := range format.GetDescriptions() {
+			if desc == "10\"" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // ByReleaseDate sorts by the given release date
 // but puts matched records up front and keepers in the rear
 type ByReleaseDate []*pbrc.Record
@@ -78,17 +92,17 @@ func locateRelease(ctx context.Context, c pb.OrganiserServiceClient, id int32) {
 				if r.GetInstanceId() == id {
 					fmt.Printf("Slot %v\n", r.GetSlot())
 					if i > 0 {
-						fmt.Printf("%v. %v\n", i-1, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i-1], false))
+						fmt.Printf("%v. %v\n", i-1, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i-1], false, false))
 					}
-					fmt.Printf("%v. %v\n", i, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i], false))
-					fmt.Printf("%v. %v\n", i+1, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i+1], false))
+					fmt.Printf("%v. %v\n", i, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i], false, false))
+					fmt.Printf("%v. %v\n", i+1, getReleaseString(ctx, location.GetFoundLocation().GetReleasesLocation()[i+1], false, false))
 				}
 			}
 		}
 	}
 }
 
-func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement, showSleeve bool) string {
+func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement, showSleeve, simple bool) string {
 	rec, err := getRecord(ctx, loc.InstanceId)
 	if err != nil {
 		return fmt.Sprintf("%v", err)
@@ -96,15 +110,16 @@ func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement, showSleeve 
 	/*if rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD {
 		return ""
 	}*/
+
+	if simple {
+	return rec.GetRelease().GetTitle()
+	}
+
 	sleeve := ""
 	if showSleeve {
 		sleeve = fmt.Sprintf("%v", rec.GetMetadata().GetSleeve())
 	}
-<<<<<<< Updated upstream
-	return fmt.Sprintf("%v %v [%v]", rec.GetRelease().GetId(), rec.GetMetadata().GetWeightInGrams(), rec.GetMetadata().GetKeep()) + loc.Title + " " + fmt.Sprintf("%v", rec.GetMetadata().GetFiledUnder()) + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]" + sleeve
-=======
 	return fmt.Sprintf("%v (%v) %v ", rec.GetRelease().GetId(), rec.GetMetadata().GetKeep(), rec.GetMetadata().GetWeightInGrams()) + loc.Title + " " + fmt.Sprintf("%v", rec.GetMetadata().GetFiledUnder()) + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]" + sleeve
->>>>>>> Stashed changes
 }
 
 func getRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
@@ -183,7 +198,7 @@ func isSeven(ctx context.Context, instanceID int32) bool {
 	return false
 }
 
-func get(ctx context.Context, client pb.OrganiserServiceClient, name string, force bool, slot int32, twelves bool, reset bool, sevens, showSleeve bool) {
+func get(ctx context.Context, client pb.OrganiserServiceClient, name string, force bool, slot int32, twelves bool, reset bool, sevens, showSleeve bool, justTen bool, simple bool) {
 	locs, err := client.GetOrganisation(ctx, &pb.GetOrganisationRequest{OrgReset: reset, ForceReorg: force, Locations: []*pb.Location{&pb.Location{Name: name}}})
 	if err != nil {
 		log.Fatalf("Error reading locations: %v", err)
@@ -208,23 +223,28 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 						fmt.Printf("\n")
 						lastSlot = rloc.GetSlot()
 					}
-					fmt.Printf("%v [%v] %v %v [%v]\n", j, rloc.GetSlot(), rloc.GetInstanceId(), getReleaseString(ctx, rloc, showSleeve), total)
 					rec, err := getRecord(ctx, rloc.InstanceId)
 					if err != nil {
 						log.Fatalf("ARFH: %v", err)
 					}
-					total += rloc.GetDeterminedWidth()
-					if rec.GetMetadata().GetRecordWidth() > 0 {
-						twidth += rec.GetMetadata().GetRecordWidth()
-						tcount++
-						widths = append(widths, float64(rec.Metadata.GetRecordWidth()))
-					}
 
+					if !justTen || isTenInch(rec.GetRelease()) {
+
+						fmt.Printf("%v [%v] %v %v [%v]\n", j, rloc.GetSlot(), rloc.GetInstanceId(), getReleaseString(ctx, rloc, showSleeve, simple), total)
+						total += rloc.GetDeterminedWidth()
+						if rec.GetMetadata().GetRecordWidth() > 0 {
+							twidth += rec.GetMetadata().GetRecordWidth()
+							tcount++
+							widths = append(widths, float64(rec.Metadata.GetRecordWidth()))
+						}
+					}
 				}
 			}
 		}
 	}
 	sort.Float64s(widths)
+
+	fmt.Printf("Total Width: %v\n", twidth)
 
 	if len(locs.GetLocations()) == 0 {
 		fmt.Printf("No Locations Found!\n")
@@ -342,9 +362,11 @@ func main() {
 		var sevens = getLocationFlags.Bool("sevens", false, "Just 7 inches")
 		var reorg = getLocationFlags.Bool("reorg", false, "Do a full reorg")
 		var showSleeve = getLocationFlags.Bool("sleeves", false, "Show sleeve state")
+		var justTens = getLocationFlags.Bool("just_tens", false, "Just ten inches")
+		var simple = getLocationFlags.Bool("simple", false, "Simple display")
 
 		if err := getLocationFlags.Parse(os.Args[2:]); err == nil {
-			get(ctx, client, *name, *force, int32(*slot), *twelves, *reorg, *sevens, *showSleeve)
+			get(ctx, client, *name, *force, int32(*slot), *twelves, *reorg, *sevens, *showSleeve, *justTens, *simple)
 		}
 	case "add":
 		addLocationFlags := flag.NewFlagSet("AddLocation", flag.ExitOnError)
