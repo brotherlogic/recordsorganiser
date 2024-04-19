@@ -296,8 +296,16 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		fwf[fw[ent.GetInstanceId()]] += float64(ent.GetDeterminedWidth())
 	}
 
+	maxSlot := 0
 	for slot, width := range slotWidths {
 		swidths.With(prometheus.Labels{"location": c.GetName(), "slot": fmt.Sprintf("%v", slot)}).Set(width)
+		if slot > maxSlot {
+			maxSlot = slot
+		}
+	}
+	// Reset the other slots
+	for slot := maxSlot + 1; slot < 100; slot++ {
+		swidths.With(prometheus.Labels{"location": c.GetName(), "slot": fmt.Sprintf("%v", slot)}).Set(0)
 	}
 
 	for key, val := range twf {
