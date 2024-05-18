@@ -95,6 +95,7 @@ message Location {
     BY_FOLDER_THEN_DATE = 3;
     BY_MOVE_TIME = 4;
     BY_LAST_LISTEN = 5;
+    BY_IID = 6;
   }
   Sorting sort = 5;
 
