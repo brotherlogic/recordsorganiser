@@ -21,6 +21,15 @@ import (
 )
 
 // ByDateAdded allows sorting of releases by the date they were added
+type ByIID []*pbrc.Record
+
+func (a ByIID) Len() int      { return len(a) }
+func (a ByIID) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByIID) Less(i, j int) bool {
+	return a[i].GetRelease().GetInstanceId() < a[j].GetRelease().GetInstanceId()
+}
+
+// ByDateAdded allows sorting of releases by the date they were added
 type ByLastListen []*pbrc.Record
 
 func (a ByLastListen) Len() int      { return len(a) }
