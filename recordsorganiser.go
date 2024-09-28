@@ -433,10 +433,6 @@ func (s *Server) readOrg(ctx context.Context) (*pb.Organisation, error) {
 		}
 	}
 
-	if len(locations) > 0 {
-		s.RaiseIssue("Missing Play State", fmt.Sprintf("These locations: %v are missing play states", locations))
-	}
-
 	return org, nil
 }
 
