@@ -71,7 +71,7 @@ var (
 	twidth = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "recordsorganiser_total_width",
 		Help: "Widthof slots",
-	}, []string{"location", "filed"})
+	}, []string{"location", "state"})
 
 	gwidth = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "recordsorganiser_goal_width",
@@ -192,7 +192,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			}
 
 			//tw[id] = r.GetMetadata().GetFiledUnder().String()
-			tw[id] = entry.GetFilled()
+			tw[id] = entry.GetCategory()
 			//fw[id] = r.GetRelease().GetFolderId()
 			fw[id] = entry.GetFolder()
 
@@ -311,7 +311,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 	}
 
 	for key, val := range twf {
-		twidth.With(prometheus.Labels{"location": c.GetName(), "filed": key}).Set(val)
+		twidth.With(prometheus.Labels{"location": c.GetName(), "state": key}).Set(val)
 	}
 
 	for key, val := range fwf {
