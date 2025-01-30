@@ -124,6 +124,8 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			maxorder = ord
 		}
 	}
+
+	keepCount := make(map[string]int)
 	for order := int32(0); order <= maxorder; order++ {
 		var lfold []int32
 		var sorter pb.Location_Sorting
@@ -179,8 +181,6 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			return -1, funcErr
 		}
 
-		keepCount := make(map[string]int)
-
 		for _, r := range tfr {
 			keepCount[fmt.Sprintf("%v", r.GetMetadata().GetKeep())]++
 			id := r.GetRelease().GetInstanceId()
@@ -197,11 +197,6 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			fw[id] = entry.GetFolder()
 
 			tfr2 = append(tfr2, id)
-		}
-
-		for key, val := range keepCount {
-			s.CtxLog(ctx, fmt.Sprintf("%v -> %v, %v", c.GetName(), key, val))
-			keepPerc.With(prometheus.Labels{"folder": c.GetName(), "state": key}).Set(float64(val))
 		}
 
 		switch sorter {
@@ -239,6 +234,11 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		}
 
 		noverall = append(noverall, tfr...)
+	}
+
+	for key, val := range keepCount {
+		s.CtxLog(ctx, fmt.Sprintf("%v -> %v, %v", c.GetName(), key, val))
+		keepPerc.With(prometheus.Labels{"folder": c.GetName(), "state": key}).Set(float64(val))
 	}
 
 	sort.Float64s(fwidths)
