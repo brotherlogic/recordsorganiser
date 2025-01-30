@@ -200,6 +200,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		}
 
 		for key, val := range keepCount {
+			s.CtxLog(ctx, fmt.Sprintf("%v -> %v, %v", c.GetName(), key, val))
 			keepPerc.With(prometheus.Labels{"folder": c.GetName(), "state": key}).Set(float64(val))
 		}
 
