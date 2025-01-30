@@ -112,14 +112,14 @@ func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement, showSleeve,
 	}*/
 
 	if simple {
-	return rec.GetRelease().GetTitle()
+		return rec.GetRelease().GetTitle()
 	}
 
 	sleeve := ""
 	if showSleeve {
 		sleeve = fmt.Sprintf("%v", rec.GetMetadata().GetSleeve())
 	}
-	return fmt.Sprintf("%v (%v) %v ", rec.GetRelease().GetId(), rec.GetMetadata().GetKeep(), rec.GetMetadata().GetWeightInGrams()) + loc.Title + " " + fmt.Sprintf("%v", rec.GetMetadata().GetFiledUnder()) + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]" + sleeve
+	return fmt.Sprintf("%v (%v) %v ", rec.GetRelease().GetId(), rec.GetMetadata().GetKeep(), rec.GetMetadata().GetLastListenTime()) + loc.Title + " " + fmt.Sprintf("%v", rec.GetMetadata().GetFiledUnder()) + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]" + sleeve + fmt.Sprintf(" score%v", rec.Metadata.GetSetRating())
 }
 
 func getRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
