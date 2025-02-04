@@ -81,7 +81,7 @@ var (
 	tcount = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "recordsorganiser_total_count",
 		Help: "Widthof slots",
-	}, []string{"location"})
+	}, []string{"location", "state"})
 
 	fwidth = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "recordsorganiser_folder_width",
@@ -277,8 +277,6 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 
 	}
 
-	tcount.With(prometheus.Labels{"location": c.GetName()}).Set(float64(len(c.ReleasesLocation)))
-
 	for folder, mi := range mslot {
 		fstart.With(prometheus.Labels{"location": c.GetName(), "folder": fmt.Sprintf("%v", folder)}).Set(float64(mi))
 	}
@@ -293,10 +291,12 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 	slotWidths := make(map[int]float64)
 	twf := make(map[string]float64)
 	fwf := make(map[int32]float64)
+	tc := make(map[string]float64)
 	for _, ent := range c.GetReleasesLocation() {
 		slotWidths[int(ent.GetSlot())] += float64(ent.GetDeterminedWidth())
 		twf[tw[ent.GetInstanceId()]] += float64(ent.GetDeterminedWidth())
 		fwf[fw[ent.GetInstanceId()]] += float64(ent.GetDeterminedWidth())
+		tc[tw[ent.GetInstanceId()]]++
 	}
 
 	maxSlot := 0
@@ -309,6 +309,10 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 	// Reset the other slots
 	for slot := maxSlot + 1; slot < 100; slot++ {
 		swidths.With(prometheus.Labels{"location": c.GetName(), "slot": fmt.Sprintf("%v", slot)}).Set(0)
+	}
+
+	for key, val := range tc {
+		tcount.With(prometheus.Labels{"location": c.GetName(), "state": key}).Set(val)
 	}
 
 	for key, val := range twf {
