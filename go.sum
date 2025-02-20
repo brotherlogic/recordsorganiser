@@ -1,7 +1,7 @@
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
-github.com/brotherlogic/buildserver v0.0.0-20250220024440-c5c8a860bf47 h1:kiz1k1UKMp3KwZIjlBE9lRvorL5sOvnU5HgFZUXnXVY=
-github.com/brotherlogic/buildserver v0.0.0-20250220024440-c5c8a860bf47/go.mod h1:AeIcE2E+cVfrfxMCj9prqoRIEot1KNIf0Qf8jyvoh8c=
+github.com/brotherlogic/buildserver v0.0.0-20250220044329-ccb3e3422a83 h1:vXextBIvPdMpDQsbVcDoo6BPOP9hQFQY6k9cScrKWsY=
+github.com/brotherlogic/buildserver v0.0.0-20250220044329-ccb3e3422a83/go.mod h1:7pqFmNzhozON/zsSM41zjZAhDFrCQkZEhNAbPZaqqxY=
 github.com/brotherlogic/datastore v0.0.0-20250113225754-a9cab19c721e h1:+ObStHAWAC6w1QHdJvjJhiGj23SZ4vvrAvKbslMsLXw=
 github.com/brotherlogic/datastore v0.0.0-20250113225754-a9cab19c721e/go.mod h1:9q9KdpUQOEqifh2D1mDctq0de7pzh86xydybPu+l9tk=
 github.com/brotherlogic/discovery v0.0.0-20241109204028-02908558af09 h1:/G6RM6m/hLY/LbVw2mNcbeUxms5zNE2c0F72Z8ZI8HU=
@@ -12,8 +12,8 @@ github.com/brotherlogic/githubcard v0.0.0-20250220003702-7221a2a7f1ac h1:h9Zz+Dm
 github.com/brotherlogic/githubcard v0.0.0-20250220003702-7221a2a7f1ac/go.mod h1:O8t+G/9hH1J7d/uP32DyIjDaxMYy51gc36lIj92QG6c=
 github.com/brotherlogic/githubridge v0.2848.0 h1:WnTceh+IL+HKuitKTElpqSLZ6tBIRriQDCyEhc2lyJY=
 github.com/brotherlogic/githubridge v0.2848.0/go.mod h1:1Izl2qh17QzTwv4+0Waq/xAnbaywurJQHSN19/PlPvU=
-github.com/brotherlogic/gobuildslave v0.0.0-20250220030445-bab96face41f h1:CD8WiEbrBS+32/DRuisVPV7IvEgEDcenQ9PmIgR+9RM=
-github.com/brotherlogic/gobuildslave v0.0.0-20250220030445-bab96face41f/go.mod h1:RmcFPgC73rz+LTI1lcScXijrqTcT7dnOTIEU9i+Q8Zo=
+github.com/brotherlogic/gobuildslave v0.0.0-20250220045356-10a04f443794 h1:M/EA4t9T6Nq7zsNrkiapwjIUT49r5fsuMBJymUbl+fY=
+github.com/brotherlogic/gobuildslave v0.0.0-20250220045356-10a04f443794/go.mod h1:dvwWOmdqN/baQiO8bn7yaZBMwDFvSizVeQZ+6rI8FuU=
 github.com/brotherlogic/godiscogs v0.0.0-20250131163651-1e34c776a68e h1:ch6H5kW7A++ZIoQpPa+3dX1688W0dyWmZSNkxX8MzUE=
 github.com/brotherlogic/godiscogs v0.0.0-20250131163651-1e34c776a68e/go.mod h1:4wYe3uogEJqP77td2b2j69c+TLcSDrqgd5pqj7vlb6U=
 github.com/brotherlogic/goserver v0.0.0-20250123145056-95c6fbb2310a h1:rni9hUmBPIAdPCP3FsrgX570YIWTsagksIoPmKXo42Q=
