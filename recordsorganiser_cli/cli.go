@@ -119,7 +119,7 @@ func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement, showSleeve,
 	if showSleeve {
 		sleeve = fmt.Sprintf("%v", rec.GetMetadata().GetSleeve())
 	}
-	return fmt.Sprintf("%v (%v) %v ", rec.GetRelease().GetId(), rec.GetMetadata().GetKeep(), rec.GetMetadata().GetLastListenTime()) + loc.Title + " " + fmt.Sprintf("%v", rec.GetMetadata().GetFiledUnder()) + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]" + sleeve + fmt.Sprintf(" score%v", rec.Metadata.GetSetRating())
+	return fmt.Sprintf("%v (%v) %v ", rec.GetRelease().GetId(), rec.GetMetadata().GetRecordWidth(), rec.GetMetadata().GetLastListenTime()) + loc.Title + " " + fmt.Sprintf("%v", rec.GetMetadata().GetFiledUnder()) + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]" + sleeve + fmt.Sprintf(" score%v", rec.Metadata.GetSetRating())
 }
 
 func getRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
@@ -230,7 +230,7 @@ func get(ctx context.Context, client pb.OrganiserServiceClient, name string, for
 
 					if !justTen || isTenInch(rec.GetRelease()) {
 
-						fmt.Printf("%v [%v] %v %v [%v]\n", j, rloc.GetSlot(), rloc.GetInstanceId(), getReleaseString(ctx, rloc, showSleeve, simple), total)
+						fmt.Printf("%v [%v] %v %v [%v] \n", j, rloc.GetSlot(), rloc.GetInstanceId(), getReleaseString(ctx, rloc, showSleeve, simple), total)
 						total += rloc.GetDeterminedWidth()
 						if rec.GetMetadata().GetRecordWidth() > 0 {
 							twidth += rec.GetMetadata().GetRecordWidth()

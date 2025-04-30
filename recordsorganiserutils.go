@@ -72,7 +72,9 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 			if err != nil {
 				ferr = err
 			} else {
-				records = append(records, r)
+				if !r.GetMetadata().GetNeedsGramUpdate() {
+					records = append(records, r)
+				}
 			}
 			wg.Done()
 			<-guard
@@ -184,11 +186,11 @@ func (s *Server) processSlotQuota(ctx context.Context, c *pb.Location) error {
 		}
 		s.CtxLog(ctx, fmt.Sprintf("Attempting to sell (%v): %v", c.GetName(), r.GetRelease().GetInstanceId()))
 
-			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
-			_, err := s.bridge.updateRecord(ctx, up)
-			if err != nil {
-				return err
-			}
+		up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
+		_, err := s.bridge.updateRecord(ctx, up)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
