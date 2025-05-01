@@ -189,11 +189,21 @@ func (s *Server) processSlotQuota(ctx context.Context, c *pb.Location) error {
 		for _, prec := range records {
 			if prec.GetMetadata().GetBoxState() == pbrc.ReleaseMetadata_BOX_UNKNOWN ||
 				prec.GetMetadata().GetBoxState() == pbrc.ReleaseMetadata_OUT_OF_BOX {
-				r = prec
+				if !prec.GetMetadata().GetNeedsGramUpdate() {
+					found := false
+					for _, folder := range c.GetFolderIds() {
+						if folder == prec.GetRelease().GetFolderId() {
+							found = true
+						}
+					}
+					if found {
+						r = prec
+					}
+				}
 				break
 			}
 		}
-		s.CtxLog(ctx, fmt.Sprintf("Attempting to sell (%v): %v", c.GetName(), r.GetRelease().GetInstanceId()))
+		s.CtxLog(ctx, fmt.Sprintf("Attempting to sell (%v): %v -> %v", c.GetName(), r.GetRelease().GetInstanceId(), r))
 
 		up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
 		_, err := s.bridge.updateRecord(ctx, up)
