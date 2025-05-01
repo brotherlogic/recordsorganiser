@@ -73,7 +73,15 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 				ferr = err
 			} else {
 				if !r.GetMetadata().GetNeedsGramUpdate() {
-					records = append(records, r)
+					found := false
+					for _, folder := range c.GetFolderIds() {
+						if folder == r.GetRelease().GetFolderId() {
+							found = true
+						}
+					}
+					if found {
+						records = append(records, r)
+					}
 				}
 			}
 			wg.Done()
@@ -90,6 +98,7 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 	sort.Sort(sales.BySaleOrder(records))
 
 	for i := 0; i < existing-slots; i++ {
+		s.CtxLog(ctx, fmt.Sprintf("Attempting with %v", records[i]))
 		up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[i].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
 		s.bridge.updateRecord(ctx, up)
 	}
