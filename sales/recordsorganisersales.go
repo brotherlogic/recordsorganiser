@@ -7,7 +7,7 @@ import (
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 )
 
-//BySaleOrder - the order in which we sell things
+// BySaleOrder - the order in which we sell things
 type BySaleOrder []*pbrc.Record
 
 // Get The Score
@@ -37,7 +37,7 @@ func (a BySaleOrder) Less(i, j int) bool {
 		}
 	}
 
-	if a[i].GetRelease().Released != a[j].GetRelease().Released {
+	if a[i].GetRelease().GetReleased() != a[j].GetRelease().GetReleased() {
 
 		return a[i].GetRelease().Released > a[j].GetRelease().Released
 	}

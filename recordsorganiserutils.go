@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"sync"
 	"time"
@@ -25,6 +26,9 @@ var (
 	foundSlots = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "recordsorganiser_found_slots",
 	}, []string{"org"})
+	lastSoldTime = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorganiser_last_solve_time",
+	}, []string{"type"})
 )
 
 func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*pbrc.Record {
@@ -94,11 +98,13 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 		return ferr
 	}
 
+	log.Printf("HERE %v", len(records))
 	// Sort the record
 	sort.Sort(sales.BySaleOrder(records))
 
 	for i := 0; i < existing-slots; i++ {
 		s.CtxLog(ctx, fmt.Sprintf("Attempting with %v", records[i]))
+		lastSoldTime.With(prometheus.Labels{"type": fmt.Sprintf("%v", records[i].GetMetadata().GetFiledUnder())}).SetToCurrentTime()
 		up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[i].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
 		s.bridge.updateRecord(ctx, up)
 	}
@@ -138,7 +144,10 @@ func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) 
 		}
 		s.CtxLog(ctx, fmt.Sprintf("Attempting to force sell: %v", r.GetRelease().GetInstanceId()))
 
-		up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
+		lastSoldTime.With(prometheus.Labels{"type": fmt.Sprintf("%v", r.GetMetadata().GetFiledUnder())}).SetToCurrentTime()
+		
+		up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release
+			{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
 		_, err := s.bridge.updateRecord(ctx, up)
 		if err != nil {
 			return err
@@ -194,7 +203,8 @@ func (s *Server) processSlotQuota(ctx context.Context, c *pb.Location) error {
 			}
 		}
 		s.CtxLog(ctx, fmt.Sprintf("Attempting to sell (%v): %v", c.GetName(), r.GetRelease().GetInstanceId()))
-
+		lastSoldTime.With(prometheus.Labels{"type": fmt.Sprintf("%v", r.GetMetadata().GetFiledUnder())}).SetToCurrentTime()
+		
 		up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
 		_, err := s.bridge.updateRecord(ctx, up)
 		if err != nil {
@@ -224,6 +234,8 @@ func (s *Server) processWidthQuota(ctx context.Context, c *pb.Location) error {
 		sort.Sort(sales.BySaleOrder(records))
 		pointer := 0
 		for pointer < len(records) && totalWidth > c.GetQuota().GetTotalWidth() {
+			lastSoldTime.With(prometheus.Labels{"type": fmt.Sprintf("%v", records[pointer].GetMetadata().GetFiledUnder())}).SetToCurrentTime()
+		
 			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[pointer].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
 			s.bridge.updateRecord(ctx, up)
 			totalWidth -= records[pointer].GetMetadata().GetRecordWidth()
