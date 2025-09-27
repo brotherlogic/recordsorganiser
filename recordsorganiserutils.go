@@ -97,10 +97,12 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 	// Sort the record
 	sort.Sort(sales.BySaleOrder(records))
 
-	for i := 0; i < existing-slots; i++ {
-		s.CtxLog(ctx, fmt.Sprintf("Attempting with %v", records[i]))
-		up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[i].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
-		s.bridge.updateRecord(ctx, up)
+	if len(records) > 0 {
+		for i := 0; i < existing-slots; i++ {
+			s.CtxLog(ctx, fmt.Sprintf("Attempting with %v", records[i]))
+			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[i].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
+			s.bridge.updateRecord(ctx, up)
+		}
 	}
 	return nil
 }
