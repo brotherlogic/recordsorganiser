@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"sync"
 	"time"
@@ -104,6 +105,9 @@ var (
 		Name: "recordsorganiser_keep_status",
 		Help: "Time take to organise a slot",
 	}, []string{"folder", "state"})
+	oldestGauge = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorganiser_oldest",
+	}, []string{"location"})
 )
 
 func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c *pb.Location, org *pb.Organisation) (int32, error) {
@@ -156,11 +160,16 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		wg.Add(1)
 		maxGoroutines := 100
 		guard := make(chan struct{}, maxGoroutines)
+		oldest := int64(math.MaxInt64)
+
 		for _, id := range ids {
 			guard <- struct{}{}
 			wg.Add(1)
 			go func(iid int32) {
 				r, err := s.bridge.getRecord(ctx, iid)
+				if r.GetMetadata().GetLastListenTime() < oldest {
+					oldest = r.GetMetadata().GetLastListenTime()
+				}
 				if status.Convert(err).Code() != codes.OutOfRange {
 					if err != nil {
 						funcErr = err
@@ -175,6 +184,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		}
 		wg.Done()
 		wg.Wait()
+		oldestGauge.With(prometheus.Labels{"location": c.GetName()}).Set(float64(oldest))
 		s.CtxLog(ctx, fmt.Sprintf("LOADTOOK (%v) %v", len(tfr), time.Since(t1)))
 
 		if funcErr != nil {
