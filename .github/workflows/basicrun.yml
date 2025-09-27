@@ -2,33 +2,26 @@ name: RunBasic
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ main ]
-
+    branches: [main]
 
 jobs:
   checks:
     name: basic_assess
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@master
-     
-    - name: Setup Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: '1.22'
+      - name: Checkout
+        uses: actions/checkout@master
 
-    - name: Run build
-      run: go build github.com/${GITHUB_REPOSITORY}
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.22"
 
-    - name: Run test
-      run: go test github.com/${GITHUB_REPOSITORY} -coverprofile=profile.cov
-    
-    - name: Coveralls
-      uses: shogo82148/actions-goveralls@v1
-      with:
-        path-to-profile: profile.cov
-        ignore: adventserver.go
+      - name: Run build
+        run: go build github.com/${GITHUB_REPOSITORY}
+
+      - name: Run test
+        run: go test github.com/${GITHUB_REPOSITORY} -coverprofile=profile.cov
