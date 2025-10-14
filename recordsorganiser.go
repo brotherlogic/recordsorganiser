@@ -185,7 +185,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		wg.Done()
 		wg.Wait()
 		oldestGauge.With(prometheus.Labels{"location": c.GetName()}).Set(float64(oldest))
-		s.CtxLog(ctx, fmt.Sprintf("LOADTOOK (%v) %v", len(tfr), time.Since(t1)))
+		s.CtxLog(ctx, fmt.Sprintf("LOADTOOK (%v) %v -> %v", c.GetName(), time.Since(t1), oldest))
 
 		if funcErr != nil {
 			return -1, funcErr
