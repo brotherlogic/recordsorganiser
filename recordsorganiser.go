@@ -130,6 +130,8 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 	}
 
 	keepCount := make(map[string]int)
+	oldest := int64(math.MaxInt64)
+
 	for order := int32(0); order <= maxorder; order++ {
 		var lfold []int32
 		var sorter pb.Location_Sorting
@@ -160,7 +162,6 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		wg.Add(1)
 		maxGoroutines := 100
 		guard := make(chan struct{}, maxGoroutines)
-		oldest := int64(math.MaxInt64)
 
 		for _, id := range ids {
 			guard <- struct{}{}
