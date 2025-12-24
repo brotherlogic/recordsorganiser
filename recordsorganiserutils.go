@@ -25,6 +25,9 @@ var (
 	foundSlots = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "recordsorganiser_found_slots",
 	}, []string{"org"})
+	spill = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordsorganiser_spill",
+	}, []string{"location"})
 )
 
 func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*pbrc.Record {
@@ -152,13 +155,18 @@ func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) 
 
 func (s *Server) processSlotQuota(ctx context.Context, c *pb.Location) error {
 	mslot := int32(0)
+	cover := float64(0)
 	for _, elem := range c.GetReleasesLocation() {
 		if elem.GetSlot() > mslot {
 			mslot = elem.GetSlot()
 		}
+		if elem.GetSlot() > c.GetQuota().GetSlots() {
+			cover++
+		}
 	}
 
 	foundSlots.With(prometheus.Labels{"org": c.GetName()}).Set(float64(mslot))
+	spill.With(prometheus.Labels{"location": c.GetName()}).Set(cover)
 
 	s.CtxLog(ctx, fmt.Sprintf("Found %v slots with a quota of %v for %v", mslot, c.GetQuota().GetSlots(), c.GetName()))
 
