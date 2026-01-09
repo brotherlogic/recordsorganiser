@@ -170,6 +170,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 				r, err := s.bridge.getRecord(ctx, iid)
 				if r.GetMetadata().GetLastListenTime() < oldest {
 					oldest = r.GetMetadata().GetLastListenTime()
+					s.CtxLog(ctx, fmt.Sprintf("oldest: %v -> %v", iid, time.Since(time.Unix(oldest, 0))))
 				}
 				if status.Convert(err).Code() != codes.OutOfRange {
 					if err != nil {
