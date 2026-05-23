@@ -59,8 +59,8 @@ func (s *Server) adjust(width float32, mSleeve, dSleeve rcpb.ReleaseMetadata_Sle
 }
 
 // For now this just collapses similar records down to a simple map
-func (s *Server) collapse(ctx context.Context, records []*rcpb.Record, cache *ropb.SortingCache) ([]*rcpb.Record, map[int32][]*rcpb.Record) {
-	mapper := make(map[int32][]*rcpb.Record)
+func (s *Server) collapse(ctx context.Context, records []*rcpb.Record, cache *ropb.SortingCache) ([]*rcpb.Record, map[int64][]*rcpb.Record) {
+	mapper := make(map[int64][]*rcpb.Record)
 	var nrecords []*rcpb.Record
 	var trecord *rcpb.Record
 	inlabel := false
@@ -100,7 +100,7 @@ func (s *Server) collapse(ctx context.Context, records []*rcpb.Record, cache *ro
 	return nrecords, mapper
 }
 
-func expand(records []*rcpb.Record, mapper map[int32][]*rcpb.Record) []*rcpb.Record {
+func expand(records []*rcpb.Record, mapper map[int64][]*rcpb.Record) []*rcpb.Record {
 	var nrecords []*rcpb.Record
 
 	for _, r := range records {

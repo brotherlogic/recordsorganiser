@@ -193,7 +193,7 @@ func (s *Server) GetQuota(ctx context.Context, req *pb.QuotaRequest) (*pb.QuotaR
 	}
 
 	recs := s.getRecordsForFolder(ctx, loc)
-	instanceIDs := []int32{}
+	instanceIDs := []int64{}
 	for _, r := range recs {
 		instanceIDs = append(instanceIDs, r.GetRelease().InstanceId)
 	}

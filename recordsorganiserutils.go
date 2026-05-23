@@ -70,7 +70,7 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 	for _, rp := range c.ReleasesLocation {
 		guard <- struct{}{}
 		wg.Add(1)
-		go func(iid int32) {
+		go func(iid int64) {
 			r, err := s.bridge.getRecord(ctx, iid)
 			if err != nil {
 				ferr = err

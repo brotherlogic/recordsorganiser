@@ -81,7 +81,7 @@ func (a ByLabelCat) Less(i, j int) bool {
 
 // ByLabelCat allows sorting of releases by the date they were added
 type ByCachedLabelCat struct {
-	records []int32
+	records []int64
 	cache   *pbro.SortingCache
 }
 

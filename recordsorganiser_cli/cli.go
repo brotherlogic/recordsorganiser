@@ -122,7 +122,7 @@ func getReleaseString(ctx context.Context, loc *pb.ReleasePlacement, showSleeve,
 	return fmt.Sprintf("%v (%v) %v ", rec.GetRelease().GetId(), rec.GetMetadata().GetRecordWidth(), rec.GetMetadata().GetLastListenTime()) + loc.Title + " " + fmt.Sprintf("%v", rec.GetMetadata().GetFiledUnder()) + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]" + sleeve + fmt.Sprintf(" score%v", rec.Metadata.GetSetRating())
 }
 
-func getRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
+func getRecord(ctx context.Context, id int64) (*pbrc.Record, error) {
 	conn, err := utils.LFDialServer(ctx, "recordcollection")
 
 	if err != nil {
@@ -138,7 +138,7 @@ func getRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
 	return val.GetRecord(), err
 }
 
-func isTwelve(ctx context.Context, instanceID int32) bool {
+func isTwelve(ctx context.Context, instanceID int64) bool {
 	conn, err := utils.LFDialServer(ctx, "recordcollection")
 	defer conn.Close()
 
@@ -167,7 +167,7 @@ func isTwelve(ctx context.Context, instanceID int32) bool {
 	return false
 }
 
-func isSeven(ctx context.Context, instanceID int32) bool {
+func isSeven(ctx context.Context, instanceID int64) bool {
 	conn, err := utils.LFDialServer(ctx, "recordcollection")
 	defer conn.Close()
 
@@ -319,7 +319,7 @@ func main() {
 		var id = ilocateFlags.Int("id", -1, "The name of the location")
 
 		if err := ilocateFlags.Parse(os.Args[2:]); err == nil {
-			location, err := client2.ClientUpdate(ctx, &pbrc.ClientUpdateRequest{InstanceId: int32(*id)})
+			location, err := client2.ClientUpdate(ctx, &pbrc.ClientUpdateRequest{InstanceId: int64(*id)})
 			fmt.Printf("%v -> %v\n", location, err)
 		}
 	case "cache":
@@ -332,7 +332,7 @@ func main() {
 				log.Fatalf("Cannot read cache: %v", err)
 			}
 			for _, entry := range cache.GetCache().GetCache() {
-				if entry.GetInstanceId() == int32(*id) {
+				if entry.GetInstanceId() == int64(*id) {
 					fmt.Printf("%v\n", entry)
 				}
 			}
@@ -342,13 +342,13 @@ func main() {
 		var id = ilocateFlags.Int("id", -1, "The name of the location")
 
 		if err := ilocateFlags.Parse(os.Args[2:]); err == nil {
-			location, err := locator.ReadableLocation(ctx, utils.LFDialServer, int32(*id), true)
+			location, err := locator.ReadableLocation(ctx, utils.LFDialServer, int64(*id), true)
 			fmt.Printf("%v -> %v\n", location, err)
 		}
 	case "cupdate":
 		val, _ := strconv.ParseInt(os.Args[2], 10, 32)
 		client := pbrc.NewClientUpdateServiceClient(conn)
-		resp, err := client.ClientUpdate(ctx, &pbrc.ClientUpdateRequest{InstanceId: int32(val)})
+		resp, err := client.ClientUpdate(ctx, &pbrc.ClientUpdateRequest{InstanceId: int64(val)})
 
 		fmt.Printf("%v and %v\n", resp, err)
 	case "list":

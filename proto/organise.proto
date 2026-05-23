@@ -7,7 +7,7 @@ option go_package = "github.com/brotherlogic/recordsorganiser/proto";
 message Empty {}
 
 message SortMapping {
-  int32 instance_id = 1;
+  int64 instance_id = 1;
 
   int64 earliest_release_date = 2;
 
@@ -15,7 +15,7 @@ message SortMapping {
 }
 
 message CacheEntry {
-  int32 instance_id = 1;
+  int64 instance_id = 1;
   map<string, string> entry = 2;
   double width = 3;
   string filled = 4;
@@ -38,7 +38,7 @@ message LabelExtractor {
 
 message ReleasePlacement {
   // The id of the release
-  int32 instance_id = 1;
+  int64 instance_id = 1;
 
   // The index in the folder
   int32 index = 2;
@@ -197,7 +197,7 @@ message GetOrganisationResponse {
 }
 
 message LocateRequest {
-  int32 instance_id = 1;
+  int64 instance_id = 1;
   int32 folder_id = 2;
 }
 
@@ -215,7 +215,7 @@ message QuotaResponse {
   bool over_quota = 1;
   int32 spill_folder = 2;
   string location_name = 3;
-  repeated int32 instance_id = 4;
+  repeated int64 instance_id = 4;
   Quota quota = 5;
 }
 
