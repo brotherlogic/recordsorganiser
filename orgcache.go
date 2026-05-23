@@ -24,7 +24,7 @@ func (s *Server) updateCache(ctx context.Context, rec *rcpb.Record) (*pb.Sorting
 	return cache, s.saveCache(ctx, cache)
 }
 
-func getEntry(c *pb.SortingCache, iid int32) *pb.CacheEntry {
+func getEntry(c *pb.SortingCache, iid int64) *pb.CacheEntry {
 	for _, elem := range c.GetCache() {
 		if elem.GetInstanceId() == iid {
 			return elem

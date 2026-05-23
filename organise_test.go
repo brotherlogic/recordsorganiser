@@ -23,7 +23,7 @@ func (discogsBridge testBridge) GetIP(name string) (string, int) {
 	return "", -1
 }
 
-func (discogsBridge testBridge) getRecord(ctx context.Context, instanceID int32) (*pbrc.Record, error) {
+func (discogsBridge testBridge) getRecord(ctx context.Context, instanceID int64) (*pbrc.Record, error) {
 	if discogsBridge.failGetRecord {
 		return nil, fmt.Errorf("Built to fail")
 	}
@@ -42,13 +42,13 @@ func (discogsBridge testBridge) getRecord(ctx context.Context, instanceID int32)
 	return &pbrc.Record{Release: &pbd.Release{InstanceId: 12}, Metadata: metadata}, nil
 }
 
-func (discogsBridge testBridge) getReleases(ctx context.Context, folders []int32) ([]int32, error) {
+func (discogsBridge testBridge) getReleases(ctx context.Context, folders []int32) ([]int64, error) {
 	if discogsBridge.failGetReleases {
-		return []int32{}, fmt.Errorf("Built to fail")
+		return []int64{}, fmt.Errorf("Built to fail")
 	}
 
 	if len(folders) == 1 && folders[0] == 812802 {
-		return []int32{1, 2}, nil
+		return []int64{1, 2}, nil
 		/*		return []*pbrc.Record{
 				&pbrc.Record{
 					Release: &pbd.Release{
@@ -98,7 +98,7 @@ func (discogsBridge testBridge) getReleases(ctx context.Context, folders []int32
 		}
 	}
 
-	ids := []int32{}
+	ids := []int64{}
 	for _, r := range result {
 		ids = append(ids, r.GetRelease().InstanceId)
 	}

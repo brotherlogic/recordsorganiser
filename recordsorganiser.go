@@ -30,8 +30,8 @@ type Server struct {
 }
 
 type discogsBridge interface {
-	getReleases(ctx context.Context, folders []int32) ([]int32, error)
-	getRecord(ctx context.Context, instanceID int32) (*pbrc.Record, error)
+	getReleases(ctx context.Context, folders []int32) ([]int64, error)
+	getRecord(ctx context.Context, instanceID int64) (*pbrc.Record, error)
 	updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error)
 }
 
@@ -118,10 +118,10 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 
 	var noverall []*pbrc.Record
 	var gaps []int
-	widths := make(map[int32]float64)
+	widths := make(map[int64]float64)
 	fwidths := []float64{1}
-	tw := make(map[int32]string)
-	fw := make(map[int32]int32)
+	tw := make(map[int64]string)
+	fw := make(map[int64]int32)
 	maxorder := int32(0)
 	for _, ord := range c.GetFolderOrder() {
 		if ord > maxorder {
@@ -156,7 +156,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		}
 
 		tfr := []*pbrc.Record{}
-		tfr2 := []int32{}
+		tfr2 := []int64{}
 		var funcErr error
 		wg := &sync.WaitGroup{}
 		wg.Add(1)
@@ -166,7 +166,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		for _, id := range ids {
 			guard <- struct{}{}
 			wg.Add(1)
-			go func(iid int32) {
+			go func(iid int64) {
 				r, err := s.bridge.getRecord(ctx, iid)
 				if r.GetMetadata().GetLastListenTime() < oldest {
 					oldest = r.GetMetadata().GetLastListenTime()
@@ -261,7 +261,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 
 	//Before splitting let the org group records
 	overall := noverall
-	var mapper map[int32][]*rcpb.Record
+	var mapper map[int64][]*rcpb.Record
 	if c.CombineSimilar {
 		overall, mapper = s.collapse(ctx, noverall, cache)
 	}
@@ -457,7 +457,7 @@ func (s *Server) saveOrg(ctx context.Context, org *pb.Organisation) error {
 	return s.KSclient.Save(ctx, KEY, org)
 }
 
-func (discogsBridge prodBridge) getRecord(ctx context.Context, instanceID int32) (*pbrc.Record, error) {
+func (discogsBridge prodBridge) getRecord(ctx context.Context, instanceID int64) (*pbrc.Record, error) {
 	conn, err := discogsBridge.dial(ctx, "recordcollection")
 	if err != nil {
 		return nil, err
@@ -483,8 +483,8 @@ func (discogsBridge prodBridge) updateRecord(ctx context.Context, update *pbrc.U
 	return nil, fmt.Errorf("Unable to dial recordcollection: %v", err2)
 }
 
-func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32) ([]int32, error) {
-	var result []int32
+func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32) ([]int64, error) {
+	var result []int64
 
 	for _, id := range folders {
 		conn, err2 := discogsBridge.dial(ctx, "recordcollection")

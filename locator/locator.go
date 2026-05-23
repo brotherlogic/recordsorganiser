@@ -13,7 +13,7 @@ import (
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 )
 
-func getRecord(ctx context.Context, client pbrc.RecordCollectionServiceClient, id int32) (*pbrc.Record, error) {
+func getRecord(ctx context.Context, client pbrc.RecordCollectionServiceClient, id int64) (*pbrc.Record, error) {
 	val, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: id})
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func getReleaseString(ctx context.Context, client pbrc.RecordCollectionServiceCl
 	return fmt.Sprintf("%v. ", rec.GetRelease().GetId()) + loc.Title + " " + fmt.Sprintf("%v", rec.GetMetadata().GetFiledUnder()) + " [" + strconv.Itoa(int(loc.InstanceId)) + "] - " + fmt.Sprintf("%v", rec.GetMetadata().GetCategory()) + " {" + fmt.Sprintf("%v", loc.GetDeterminedWidth()) + "} + " + fmt.Sprintf("%v", rec.GetMetadata().GetLastMoveTime()) + " [" + fmt.Sprintf("%v", rec.GetRelease().GetLabels()) + "]" + sleeve
 }
 
-func ReadableLocation(ctx context.Context, dial func(ctx context.Context, name string) (*grpc.ClientConn, error), id int32, brief bool) (string, error) {
+func ReadableLocation(ctx context.Context, dial func(ctx context.Context, name string) (*grpc.ClientConn, error), id int64, brief bool) (string, error) {
 	conn, err := dial(ctx, "recordcollection")
 
 	if err != nil {
