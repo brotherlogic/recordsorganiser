@@ -11,7 +11,7 @@ import (
 
 func TestBadReleaseGet(t *testing.T) {
 	s := getTestServer(".testbadreleaseget")
-	s.bridge = testBridge{failGetReleases: true}
+	s.bridge = &testBridge{failGetReleases: true}
 
 	recs := s.getRecordsForFolder(context.Background(), &pb.Location{})
 
@@ -22,7 +22,7 @@ func TestBadReleaseGet(t *testing.T) {
 
 func TestBadRecordReleaseGet(t *testing.T) {
 	s := getTestServer(".testbadreleaseget")
-	s.bridge = testBridge{failGetRecord: true}
+	s.bridge = &testBridge{failGetRecord: true}
 
 	recs := s.getRecordsForFolder(context.Background(), &pb.Location{})
 
@@ -33,7 +33,7 @@ func TestBadRecordReleaseGet(t *testing.T) {
 
 func TestReleaseGet(t *testing.T) {
 	s := getTestServer(".testbadreleaseget")
-	s.bridge = testBridge{}
+	s.bridge = &testBridge{}
 
 	recs := s.getRecordsForFolder(context.Background(), &pb.Location{FolderIds: []int32{25}})
 

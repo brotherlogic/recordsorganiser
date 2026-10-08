@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"sync"
+	"testing"
 	"time"
 
 	"github.com/brotherlogic/goserver"
@@ -14,16 +16,18 @@ import (
 )
 
 type testBridge struct {
+	sync.Mutex
 	widthMissing    bool
 	failGetReleases bool
 	failGetRecord   bool
+	updates         []*pbrc.UpdateRecordRequest
 }
 
-func (discogsBridge testBridge) GetIP(name string) (string, int) {
+func (discogsBridge *testBridge) GetIP(name string) (string, int) {
 	return "", -1
 }
 
-func (discogsBridge testBridge) getRecord(ctx context.Context, instanceID int64) (*pbrc.Record, error) {
+func (discogsBridge *testBridge) getRecord(ctx context.Context, instanceID int64) (*pbrc.Record, error) {
 	if discogsBridge.failGetRecord {
 		return nil, fmt.Errorf("Built to fail")
 	}
@@ -42,7 +46,7 @@ func (discogsBridge testBridge) getRecord(ctx context.Context, instanceID int64)
 	return &pbrc.Record{Release: &pbd.Release{InstanceId: 12}, Metadata: metadata}, nil
 }
 
-func (discogsBridge testBridge) getReleases(ctx context.Context, folders []int32) ([]int64, error) {
+func (discogsBridge *testBridge) getReleases(ctx context.Context, folders []int32) ([]int64, error) {
 	if discogsBridge.failGetReleases {
 		return []int64{}, fmt.Errorf("Built to fail")
 	}
@@ -106,7 +110,7 @@ func (discogsBridge testBridge) getReleases(ctx context.Context, folders []int32
 	return ids, nil
 }
 
-func (discogsBridge testBridge) getReleasesWithGoal(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
+func (discogsBridge *testBridge) getReleasesWithGoal(ctx context.Context, folders []int32) ([]*pbrc.Record, error) {
 	if discogsBridge.failGetReleases {
 		return []*pbrc.Record{}, fmt.Errorf("Built to fail")
 	}
@@ -171,19 +175,36 @@ func (discogsBridge testBridge) getReleasesWithGoal(ctx context.Context, folders
 	return result, nil
 }
 
-func (discogsBridge testBridge) getRelease(ID int32) (*pbd.Release, error) {
+func (discogsBridge *testBridge) getRelease(ID int32) (*pbd.Release, error) {
 	if ID < 3 {
 		return &pbd.Release{Id: ID, Formats: []*pbd.Format{&pbd.Format{Descriptions: []string{"12"}}}, Labels: []*pbd.Label{&pbd.Label{Name: "SomethingElse"}}}, nil
 	}
 	return &pbd.Release{Id: ID, Formats: []*pbd.Format{&pbd.Format{Descriptions: []string{"CD"}}}, Labels: []*pbd.Label{&pbd.Label{Name: "Numero"}}}, nil
 }
 
-func (discogsBridge testBridge) updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
+func (discogsBridge *testBridge) updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error) {
+	discogsBridge.Lock()
+	defer discogsBridge.Unlock()
+	discogsBridge.updates = append(discogsBridge.updates, req)
 	return &pbrc.UpdateRecordsResponse{}, nil
 }
 
+func (discogsBridge *testBridge) getUpdates() []*pbrc.UpdateRecordRequest {
+	discogsBridge.Lock()
+	defer discogsBridge.Unlock()
+	copied := make([]*pbrc.UpdateRecordRequest, len(discogsBridge.updates))
+	copy(copied, discogsBridge.updates)
+	return copied
+}
+
+func (discogsBridge *testBridge) resetUpdates() {
+	discogsBridge.Lock()
+	defer discogsBridge.Unlock()
+	discogsBridge.updates = nil
+}
+
 func getTestServer(dir string) *Server {
-	testServer := &Server{GoServer: &goserver.GoServer{}, bridge: testBridge{}}
+	testServer := &Server{GoServer: &goserver.GoServer{}, bridge: &testBridge{}}
 	testServer.Register = testServer
 	testServer.GoServer.KSclient = *keystoreclient.GetTestClient(dir)
 	testServer.SkipLog = true
@@ -192,4 +213,37 @@ func getTestServer(dir string) *Server {
 	org.Extractors = append(org.Extractors, &pb.LabelExtractor{LabelId: 123, Extractor: "\\d\\d"})
 	testServer.GoServer.KSclient.Save(context.Background(), KEY, org)
 	return testServer
+}
+
+func TestTestBridgeUpdateRecord(t *testing.T) {
+	tb := &testBridge{}
+	ctx := context.Background()
+
+	req := &pbrc.UpdateRecordRequest{
+		Reason: "Test Reason",
+		Update: &pbrc.Record{
+			Release: &pbd.Release{InstanceId: 12345},
+		},
+	}
+
+	res, err := tb.updateRecord(ctx, req)
+	if err != nil {
+		t.Fatalf("unexpected error from updateRecord: %v", err)
+	}
+	if res == nil {
+		t.Fatalf("expected non-nil response from updateRecord")
+	}
+
+	updates := tb.getUpdates()
+	if len(updates) != 1 {
+		t.Fatalf("expected 1 recorded update, got %d", len(updates))
+	}
+	if updates[0].GetReason() != "Test Reason" {
+		t.Errorf("unexpected recorded update reason: got %v, want %v", updates[0].GetReason(), "Test Reason")
+	}
+
+	tb.resetUpdates()
+	if len(tb.getUpdates()) != 0 {
+		t.Errorf("expected 0 recorded updates after reset, got %d", len(tb.getUpdates()))
+	}
 }
