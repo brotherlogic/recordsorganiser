@@ -154,45 +154,6 @@ func (s *Server) processSlotQuota(ctx context.Context, c *pb.Location) error {
 		}
 
 		sort.Sort(sales.BySaleOrder(records))
-
-		// Validate scores
-		fscore := records[0].GetMetadata().GetOverallScore()
-		diff := false
-		for _, record := range records {
-			if record.GetMetadata().GetOverallScore() != fscore {
-				diff = true
-			}
-		}
-		if !diff {
-			s.RaiseIssue("Slot Stocked", fmt.Sprintf("%v is stocked", c.GetName()))
-		}
-
-		// Find the first appropriate record
-		r := records[0]
-		for _, prec := range records {
-			if prec.GetMetadata().GetBoxState() == pbrc.ReleaseMetadata_BOX_UNKNOWN ||
-				prec.GetMetadata().GetBoxState() == pbrc.ReleaseMetadata_OUT_OF_BOX {
-				if !prec.GetMetadata().GetNeedsGramUpdate() {
-					found := false
-					for _, folder := range c.GetFolderIds() {
-						if folder == prec.GetRelease().GetFolderId() {
-							found = true
-						}
-					}
-					if found {
-						r = prec
-					}
-				}
-				break
-			}
-		}
-		s.CtxLog(ctx, fmt.Sprintf("Attempting to sell (%v): %v -> %v", c.GetName(), r.GetRelease().GetInstanceId(), r))
-
-		up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: r.GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
-		_, err := s.bridge.updateRecord(ctx, up)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
