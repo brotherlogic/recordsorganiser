@@ -330,9 +330,9 @@ func (m *mockGramophileServer) GetRecord(ctx context.Context, req *pbgr.GetRecor
 }
 
 func TestProdBridgeGetSaleCandidate(t *testing.T) {
-	// 1. Dial failure
+	// 1. Dial failure via dialGramophile
 	pbFail := prodBridge{
-		dial: func(ctx context.Context, server string) (*grpc.ClientConn, error) {
+		dialGramophile: func(ctx context.Context) (*grpc.ClientConn, error) {
 			return nil, fmt.Errorf("dial failed")
 		},
 	}
@@ -362,7 +362,7 @@ func TestProdBridgeGetSaleCandidate(t *testing.T) {
 	defer srv.Stop()
 
 	pb := prodBridge{
-		dial: func(ctx context.Context, server string) (*grpc.ClientConn, error) {
+		dialGramophile: func(ctx context.Context) (*grpc.ClientConn, error) {
 			return grpc.Dial(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 		},
 	}
@@ -392,7 +392,27 @@ func TestProdBridgeGetSaleCandidate(t *testing.T) {
 		t.Errorf("expected org '12 Inches', got %q", mock.receivedOrg)
 	}
 
-	// 3. Empty records returns codes.NotFound
+	// 3. Direct dial fallback: verify that when dialGramophile is nil, it dials gramophileEndpoint directly
+	// and does NOT invoke discogsBridge.dial (which would fail if called)
+	origEndpoint := gramophileEndpoint
+	defer func() { gramophileEndpoint = origEndpoint }()
+	gramophileEndpoint = lis.Addr().String()
+
+	pbDirect := prodBridge{
+		dial: func(ctx context.Context, server string) (*grpc.ClientConn, error) {
+			t.Fatalf("discogsBridge.dial should not be called for gramophile")
+			return nil, fmt.Errorf("should not be called")
+		},
+	}
+	candDirect, err := pbDirect.getSaleCandidate(context.Background(), "12 Inches")
+	if err != nil {
+		t.Fatalf("unexpected error from direct endpoint dial: %v", err)
+	}
+	if candDirect.GetRecord().GetRelease().GetInstanceId() != 456 {
+		t.Errorf("got instance id %v, want 456", candDirect.GetRecord().GetRelease().GetInstanceId())
+	}
+
+	// 4. Empty records returns codes.NotFound
 	mock.resp = &pbgr.GetRecordResponse{
 		Records: []*pbgr.RecordResponse{},
 	}
@@ -401,11 +421,12 @@ func TestProdBridgeGetSaleCandidate(t *testing.T) {
 		t.Errorf("expected NotFound error, got %v", err)
 	}
 
-	// 4. Server returns gRPC error
+	// 5. Server returns gRPC error
 	mock.err = status.Errorf(codes.Unavailable, "service unavailable")
 	_, err = pb.getSaleCandidate(context.Background(), "12 Inches")
 	if status.Code(err) != codes.Unavailable {
 		t.Errorf("expected Unavailable error, got %v", err)
 	}
 }
+
 
