@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"os"
 	"sort"
 	"sync"
 	"time"
@@ -14,10 +15,13 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 
 	pbgs "github.com/brotherlogic/goserver/proto"
+	pbgr "github.com/brotherlogic/gramophile/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	rcpb "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
@@ -33,6 +37,7 @@ type discogsBridge interface {
 	getReleases(ctx context.Context, folders []int32) ([]int64, error)
 	getRecord(ctx context.Context, instanceID int64) (*pbrc.Record, error)
 	updateRecord(ctx context.Context, req *pbrc.UpdateRecordRequest) (*pbrc.UpdateRecordsResponse, error)
+	getSaleCandidate(ctx context.Context, orgName string) (*pbgr.RecordResponse, error)
 }
 
 func convert(exs []*pb.LabelExtractor) map[int32]string {
@@ -503,6 +508,48 @@ func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32
 	}
 
 	return result, nil
+}
+
+func (discogsBridge prodBridge) getSaleCandidate(ctx context.Context, orgName string) (*pbgr.RecordResponse, error) {
+	conn, err := discogsBridge.dial(ctx, "gramophile")
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	client := pbgr.NewGramophileEServiceClient(conn)
+
+	reqCtx := ctx
+	dirname, err := os.UserHomeDir()
+	if err == nil {
+		text, err := os.ReadFile(fmt.Sprintf("%v/.gramophile", dirname))
+		if err == nil {
+			auth := &pbgr.GramophileAuth{}
+			if prototext.Unmarshal(text, auth) == nil && auth.GetToken() != "" {
+				reqCtx = metadata.AppendToOutgoingContext(ctx, "auth-token", auth.GetToken())
+			}
+		}
+	}
+
+	tCtx, cancel := context.WithTimeout(reqCtx, 5*time.Second)
+	defer cancel()
+
+	resp, err := client.GetRecord(tCtx, &pbgr.GetRecordRequest{
+		Request: &pbgr.GetRecordRequest_GetSaleCandidate{
+			GetSaleCandidate: &pbgr.GetSaleCandidate{
+				OrgName: orgName,
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.GetRecords()) == 0 {
+		return nil, status.Errorf(codes.NotFound, "no sale candidate returned for %v", orgName)
+	}
+
+	return resp.GetRecords()[0], nil
 }
 
 // DoRegister does RPC registration
