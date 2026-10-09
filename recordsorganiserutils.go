@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
@@ -27,7 +29,21 @@ var (
 	spill = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "recordsorganiser_spill",
 	}, []string{"location"})
+
+	darkSaleCandidates = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "recordsorganiser_dark_sale_candidates_total",
+		Help: "Count of successful dark launch sale candidate queries",
+	}, []string{"location"})
+
+	darkSaleCandidateErrors = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "recordsorganiser_dark_sale_candidate_errors_total",
+		Help: "Count of failed dark launch sale candidate queries",
+	}, []string{"location"})
 )
+
+var locationToGramophileOrg = map[string]string{
+	"12 Inches": "12 Inches",
+}
 
 func (s *Server) getRecordsForFolder(ctx context.Context, sloc *pb.Location) []*pbrc.Record {
 	t := time.Now()
@@ -180,3 +196,31 @@ func (s *Server) processWidthQuota(ctx context.Context, c *pb.Location) error {
 
 	return nil
 }
+
+func (s *Server) evaluateDarkSaleCandidate(ctx context.Context, c *pb.Location) {
+	orgName, ok := locationToGramophileOrg[c.GetName()]
+	if !ok {
+		return
+	}
+
+	candidate, err := s.bridge.getSaleCandidate(ctx, orgName)
+	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			s.CtxLog(ctx, fmt.Sprintf("No dark sale candidate found for %v (org: %v)", c.GetName(), orgName))
+			return
+		}
+		s.CtxLog(ctx, fmt.Sprintf("Error evaluating dark sale candidate for %v (org: %v): %v", c.GetName(), orgName, err))
+		darkSaleCandidateErrors.With(prometheus.Labels{"location": c.GetName()}).Inc()
+		return
+	}
+
+	s.CtxLog(ctx, fmt.Sprintf("Dark sale candidate for %v: instance_id=%v, title=%v, score=%v, median_price=%v",
+		c.GetName(),
+		candidate.GetRecord().GetRelease().GetInstanceId(),
+		candidate.GetRecord().GetRelease().GetTitle(),
+		candidate.GetRecord().GetPackageScore(),
+		candidate.GetRecord().GetMedianPrice(),
+	))
+	darkSaleCandidates.With(prometheus.Labels{"location": c.GetName()}).Inc()
+}
+
