@@ -15,6 +15,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/prototext"
@@ -353,10 +354,13 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 	return int32(len(overall)), s.saveOrg(ctx, org)
 }
 
+var gramophileEndpoint = "gramophile-grpc.brotherlogic-backend.com:80"
+
 // Bridge that accesses discogs syncer server
 type prodBridge struct {
-	dial func(ctx context.Context, server string) (*grpc.ClientConn, error)
-	log  func(context.Context, string)
+	dial           func(ctx context.Context, server string) (*grpc.ClientConn, error)
+	dialGramophile func(ctx context.Context) (*grpc.ClientConn, error)
+	log            func(context.Context, string)
 }
 
 var (
@@ -511,7 +515,13 @@ func (discogsBridge prodBridge) getReleases(ctx context.Context, folders []int32
 }
 
 func (discogsBridge prodBridge) getSaleCandidate(ctx context.Context, orgName string) (*pbgr.RecordResponse, error) {
-	conn, err := discogsBridge.dial(ctx, "gramophile")
+	var conn *grpc.ClientConn
+	var err error
+	if discogsBridge.dialGramophile != nil {
+		conn, err = discogsBridge.dialGramophile(ctx)
+	} else {
+		conn, err = grpc.Dial(gramophileEndpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -594,7 +604,13 @@ func main() {
 	server := InitServer()
 	server.PrepServer("recordsorganiser")
 
-	server.bridge = &prodBridge{dial: server.FDialServer, log: server.CtxLog}
+	server.bridge = &prodBridge{
+		dial: server.FDialServer,
+		dialGramophile: func(ctx context.Context) (*grpc.ClientConn, error) {
+			return grpc.Dial(gramophileEndpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		},
+		log: server.CtxLog,
+	}
 	server.Register = server
 
 	err := server.RegisterServerV2(false)
