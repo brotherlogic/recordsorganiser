@@ -159,6 +159,7 @@ func (s *Server) processSlotQuota(ctx context.Context, c *pb.Location) error {
 	s.CtxLog(ctx, fmt.Sprintf("Found %v slots with a quota of %v for %v", mslot, c.GetQuota().GetSlots(), c.GetName()))
 
 	if mslot > c.GetQuota().GetSlots() {
+		s.evaluateDarkSaleCandidate(ctx, c)
 		records := []*pbrc.Record{}
 		for _, rp := range c.GetReleasesLocation() {
 			rec, err := s.bridge.getRecord(ctx, rp.GetInstanceId())
