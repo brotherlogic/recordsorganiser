@@ -116,3 +116,42 @@ func TestProcessAbsoluteWidthQuota_NoSale(t *testing.T) {
 		t.Errorf("expected zero calls to updateRecord when total width exceeds absolute width quota, got %d", len(tb.getUpdates()))
 	}
 }
+
+func TestProcessSlotQuota_NoSaleAndNoAlert(t *testing.T) {
+	testLocation := &pb.Location{
+		Name:      "test_slot_quota_location",
+		FolderIds: []int32{0},
+		Quota: &pb.Quota{
+			QuotaType: &pb.Quota_Slots{Slots: 1},
+		},
+		ReleasesLocation: []*pb.ReleasePlacement{
+			&pb.ReleasePlacement{InstanceId: 1, Slot: 1},
+			&pb.ReleasePlacement{InstanceId: 2, Slot: 2},
+		},
+	}
+	s := getTestServer(".testprocessslotquota_nosaleandnoalert")
+	err := s.processSlotQuota(context.Background(), testLocation)
+	if err != nil {
+		t.Fatalf("unexpected error running processSlotQuota: %v", err)
+	}
+
+	foundSlotsVal := testutil.ToFloat64(foundSlots.With(prometheus.Labels{"org": testLocation.GetName()}))
+	if foundSlotsVal != 2 {
+		t.Errorf("expected foundSlots gauge to be 2, got %v", foundSlotsVal)
+	}
+
+	spillVal := testutil.ToFloat64(spill.With(prometheus.Labels{"location": testLocation.GetName()}))
+	if spillVal != 1 {
+		t.Errorf("expected spill gauge to be 1, got %v", spillVal)
+	}
+
+	tb := s.bridge.(*testBridge)
+	if len(tb.getUpdates()) != 0 {
+		t.Errorf("expected zero calls to updateRecord when slots exceed quota, got %d", len(tb.getUpdates()))
+	}
+
+	if s.IssueCount != 0 {
+		t.Errorf("expected zero alerts/issues raised, got %d", s.IssueCount)
+	}
+}
+
