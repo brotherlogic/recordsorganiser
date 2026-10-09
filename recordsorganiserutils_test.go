@@ -6,6 +6,9 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/testutil"
+
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 )
 
@@ -83,5 +86,33 @@ func TestFailRecordPull(t *testing.T) {
 	log.Printf("Boing %v", err)
 	if err == nil {
 		t.Errorf("Test Did not fail")
+	}
+}
+
+func TestProcessAbsoluteWidthQuota_NoSale(t *testing.T) {
+	testLocation := &pb.Location{
+		Name: "test_absolute_width_location",
+		Quota: &pb.Quota{
+			QuotaType: &pb.Quota_AbsoluteWidth{AbsoluteWidth: 10},
+		},
+		ReleasesLocation: []*pb.ReleasePlacement{
+			&pb.ReleasePlacement{InstanceId: 1, DeterminedWidth: 8},
+			&pb.ReleasePlacement{InstanceId: 2, DeterminedWidth: 8},
+		},
+	}
+	s := getTestServer(".testprocessabsolutewidthquota_nosale")
+	err := s.processAbsoluteWidthQuota(context.Background(), testLocation)
+	if err != nil {
+		t.Fatalf("unexpected error running processAbsoluteWidthQuota: %v", err)
+	}
+
+	gaugeVal := testutil.ToFloat64(gwidth.With(prometheus.Labels{"location": testLocation.GetName()}))
+	if gaugeVal != 10 {
+		t.Errorf("expected gwidth gauge to be 10, got %v", gaugeVal)
+	}
+
+	tb := s.bridge.(*testBridge)
+	if len(tb.getUpdates()) != 0 {
+		t.Errorf("expected zero calls to updateRecord when total width exceeds absolute width quota, got %d", len(tb.getUpdates()))
 	}
 }
