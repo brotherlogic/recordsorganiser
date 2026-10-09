@@ -120,6 +120,65 @@ func TestProcessAbsoluteWidthQuota_NoSale(t *testing.T) {
 	}
 }
 
+func TestProcessAbsoluteWidthQuota_TriggersDarkSaleCandidate(t *testing.T) {
+	testLocation := &pb.Location{
+		Name: "12 Inches",
+		Quota: &pb.Quota{
+			QuotaType: &pb.Quota_AbsoluteWidth{AbsoluteWidth: 10},
+		},
+		ReleasesLocation: []*pb.ReleasePlacement{
+			&pb.ReleasePlacement{InstanceId: 1, DeterminedWidth: 6},
+			&pb.ReleasePlacement{InstanceId: 2, DeterminedWidth: 6},
+		},
+	}
+	s := getTestServer(".testprocessabsolutewidthquota_triggersdarksalecandidate")
+	tb := &testBridge{
+		candidateResp: &pbgr.RecordResponse{
+			Record: &pbgr.Record{
+				Release: &pbdg.Release{
+					InstanceId: 12345,
+					Title:      "Dark Launch Test",
+				},
+			},
+		},
+	}
+	s.bridge = tb
+
+	err := s.processAbsoluteWidthQuota(context.Background(), testLocation)
+	if err != nil {
+		t.Fatalf("unexpected error running processAbsoluteWidthQuota: %v", err)
+	}
+
+	if len(tb.saleCandidateCalls) != 1 || tb.saleCandidateCalls[0] != "12 Inches" {
+		t.Errorf("expected 1 sale candidate call for '12 Inches', got %v", tb.saleCandidateCalls)
+	}
+}
+
+func TestProcessAbsoluteWidthQuota_UnderQuota_NoDarkSaleCandidate(t *testing.T) {
+	testLocation := &pb.Location{
+		Name: "12 Inches",
+		Quota: &pb.Quota{
+			QuotaType: &pb.Quota_AbsoluteWidth{AbsoluteWidth: 15},
+		},
+		ReleasesLocation: []*pb.ReleasePlacement{
+			&pb.ReleasePlacement{InstanceId: 1, DeterminedWidth: 6},
+			&pb.ReleasePlacement{InstanceId: 2, DeterminedWidth: 6},
+		},
+	}
+	s := getTestServer(".testprocessabsolutewidthquota_underquota")
+	tb := &testBridge{}
+	s.bridge = tb
+
+	err := s.processAbsoluteWidthQuota(context.Background(), testLocation)
+	if err != nil {
+		t.Fatalf("unexpected error running processAbsoluteWidthQuota: %v", err)
+	}
+
+	if len(tb.saleCandidateCalls) != 0 {
+		t.Errorf("expected 0 sale candidate calls when under or equal to absolute width quota, got %v", tb.saleCandidateCalls)
+	}
+}
+
 func TestProcessSlotQuota_NoSaleAndNoAlert(t *testing.T) {
 	testLocation := &pb.Location{
 		Name:      "test_slot_quota_location",
