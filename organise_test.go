@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"net"
+	"os"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
@@ -10,18 +13,29 @@ import (
 	keystoreclient "github.com/brotherlogic/keystore/client"
 	"golang.org/x/net/context"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+
+	pbdg "github.com/brotherlogic/discogs/proto"
 	pbd "github.com/brotherlogic/godiscogs/proto"
+	pbgr "github.com/brotherlogic/gramophile/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 )
 
 type testBridge struct {
 	sync.Mutex
-	widthMissing    bool
-	failGetReleases bool
-	failGetRecord   bool
-	recordWidth     float32
-	updates         []*pbrc.UpdateRecordRequest
+	widthMissing       bool
+	failGetReleases    bool
+	failGetRecord      bool
+	recordWidth        float32
+	updates            []*pbrc.UpdateRecordRequest
+	candidateResp      *pbgr.RecordResponse
+	candidateErr       error
+	saleCandidateCalls []string
 }
 
 func (discogsBridge *testBridge) GetIP(name string) (string, int) {
@@ -251,3 +265,147 @@ func TestTestBridgeUpdateRecord(t *testing.T) {
 		t.Errorf("expected 0 recorded updates after reset, got %d", len(tb.getUpdates()))
 	}
 }
+
+func (discogsBridge *testBridge) getSaleCandidate(ctx context.Context, orgName string) (*pbgr.RecordResponse, error) {
+	discogsBridge.Lock()
+	defer discogsBridge.Unlock()
+	discogsBridge.saleCandidateCalls = append(discogsBridge.saleCandidateCalls, orgName)
+	if discogsBridge.candidateErr != nil {
+		return nil, discogsBridge.candidateErr
+	}
+	return discogsBridge.candidateResp, nil
+}
+
+func TestTestBridgeGetSaleCandidate(t *testing.T) {
+	tb := &testBridge{}
+	ctx := context.Background()
+
+	expected := &pbgr.RecordResponse{
+		Record: &pbgr.Record{
+			Release: &pbdg.Release{InstanceId: 999, Title: "Test Album"},
+		},
+	}
+	tb.candidateResp = expected
+	resp, err := tb.getSaleCandidate(ctx, "12 Inches")
+	if err != nil {
+		t.Fatalf("unexpected error from getSaleCandidate: %v", err)
+	}
+	if resp == nil || resp.GetRecord() == nil || resp.GetRecord().GetRelease() == nil || resp.GetRecord().GetRelease().GetInstanceId() != 999 {
+		t.Errorf("unexpected candidate response: %v", resp)
+	}
+	if len(tb.saleCandidateCalls) != 1 || tb.saleCandidateCalls[0] != "12 Inches" {
+		t.Errorf("expected 1 call with '12 Inches', got %v", tb.saleCandidateCalls)
+	}
+
+	tb.candidateErr = status.Errorf(codes.NotFound, "not found")
+	_, err = tb.getSaleCandidate(ctx, "12 Inches")
+	if status.Code(err) != codes.NotFound {
+		t.Errorf("expected NotFound error code, got %v", err)
+	}
+}
+
+type mockGramophileServer struct {
+	pbgr.UnimplementedGramophileEServiceServer
+	resp         *pbgr.GetRecordResponse
+	err          error
+	receivedAuth string
+	receivedOrg  string
+}
+
+func (m *mockGramophileServer) GetRecord(ctx context.Context, req *pbgr.GetRecordRequest) (*pbgr.GetRecordResponse, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		tokens := md.Get("auth-token")
+		if len(tokens) > 0 {
+			m.receivedAuth = tokens[0]
+		}
+	}
+	if req.GetGetSaleCandidate() != nil {
+		m.receivedOrg = req.GetGetSaleCandidate().GetOrgName()
+	}
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.resp, nil
+}
+
+func TestProdBridgeGetSaleCandidate(t *testing.T) {
+	// 1. Dial failure
+	pbFail := prodBridge{
+		dial: func(ctx context.Context, server string) (*grpc.ClientConn, error) {
+			return nil, fmt.Errorf("dial failed")
+		},
+	}
+	_, err := pbFail.getSaleCandidate(context.Background(), "12 Inches")
+	if err == nil || err.Error() != "dial failed" {
+		t.Fatalf("expected dial failed error, got %v", err)
+	}
+
+	// Set up temporary HOME directory with .gramophile
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+	err = os.WriteFile(filepath.Join(tmpDir, ".gramophile"), []byte("token: \"test-token-123\"\n"), 0644)
+	if err != nil {
+		t.Fatalf("failed to write test .gramophile file: %v", err)
+	}
+
+	mock := &mockGramophileServer{}
+	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to listen: %v", err)
+	}
+	defer lis.Close()
+
+	srv := grpc.NewServer()
+	pbgr.RegisterGramophileEServiceServer(srv, mock)
+	go srv.Serve(lis)
+	defer srv.Stop()
+
+	pb := prodBridge{
+		dial: func(ctx context.Context, server string) (*grpc.ClientConn, error) {
+			return grpc.Dial(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+		},
+	}
+
+	// 2. Success case
+	expectedCandidate := &pbgr.RecordResponse{
+		Record: &pbgr.Record{
+			Release: &pbdg.Release{InstanceId: 456},
+		},
+	}
+	mock.resp = &pbgr.GetRecordResponse{
+		Records: []*pbgr.RecordResponse{expectedCandidate},
+	}
+	mock.err = nil
+
+	cand, err := pb.getSaleCandidate(context.Background(), "12 Inches")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cand.GetRecord().GetRelease().GetInstanceId() != 456 {
+		t.Errorf("got instance id %v, want 456", cand.GetRecord().GetRelease().GetInstanceId())
+	}
+	if mock.receivedAuth != "test-token-123" {
+		t.Errorf("expected auth-token 'test-token-123', got %q", mock.receivedAuth)
+	}
+	if mock.receivedOrg != "12 Inches" {
+		t.Errorf("expected org '12 Inches', got %q", mock.receivedOrg)
+	}
+
+	// 3. Empty records returns codes.NotFound
+	mock.resp = &pbgr.GetRecordResponse{
+		Records: []*pbgr.RecordResponse{},
+	}
+	_, err = pb.getSaleCandidate(context.Background(), "12 Inches")
+	if status.Code(err) != codes.NotFound {
+		t.Errorf("expected NotFound error, got %v", err)
+	}
+
+	// 4. Server returns gRPC error
+	mock.err = status.Errorf(codes.Unavailable, "service unavailable")
+	_, err = pb.getSaleCandidate(context.Background(), "12 Inches")
+	if status.Code(err) != codes.Unavailable {
+		t.Errorf("expected Unavailable error, got %v", err)
+	}
+}
+
