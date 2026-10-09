@@ -158,6 +158,67 @@ func TestProcessSlotQuota_NoSaleAndNoAlert(t *testing.T) {
 	}
 }
 
+func TestProcessSlotQuota_TriggersDarkSaleCandidate(t *testing.T) {
+	testLocation := &pb.Location{
+		Name:      "12 Inches",
+		FolderIds: []int32{0},
+		Quota: &pb.Quota{
+			QuotaType: &pb.Quota_Slots{Slots: 1},
+		},
+		ReleasesLocation: []*pb.ReleasePlacement{
+			&pb.ReleasePlacement{InstanceId: 1, Slot: 1},
+			&pb.ReleasePlacement{InstanceId: 2, Slot: 2},
+		},
+	}
+	s := getTestServer(".testprocessslotquota_triggersdarksalecandidate")
+	tb := &testBridge{
+		candidateResp: &pbgr.RecordResponse{
+			Record: &pbgr.Record{
+				Release: &pbdg.Release{
+					InstanceId: 12345,
+					Title:      "Dark Launch Test",
+				},
+			},
+		},
+	}
+	s.bridge = tb
+
+	err := s.processSlotQuota(context.Background(), testLocation)
+	if err != nil {
+		t.Fatalf("unexpected error running processSlotQuota: %v", err)
+	}
+
+	if len(tb.saleCandidateCalls) != 1 || tb.saleCandidateCalls[0] != "12 Inches" {
+		t.Errorf("expected 1 sale candidate call for '12 Inches', got %v", tb.saleCandidateCalls)
+	}
+}
+
+func TestProcessSlotQuota_UnderQuota_NoDarkSaleCandidate(t *testing.T) {
+	testLocation := &pb.Location{
+		Name:      "12 Inches",
+		FolderIds: []int32{0},
+		Quota: &pb.Quota{
+			QuotaType: &pb.Quota_Slots{Slots: 2},
+		},
+		ReleasesLocation: []*pb.ReleasePlacement{
+			&pb.ReleasePlacement{InstanceId: 1, Slot: 1},
+			&pb.ReleasePlacement{InstanceId: 2, Slot: 2},
+		},
+	}
+	s := getTestServer(".testprocessslotquota_underquota")
+	tb := &testBridge{}
+	s.bridge = tb
+
+	err := s.processSlotQuota(context.Background(), testLocation)
+	if err != nil {
+		t.Fatalf("unexpected error running processSlotQuota: %v", err)
+	}
+
+	if len(tb.saleCandidateCalls) != 0 {
+		t.Errorf("expected 0 sale candidate calls when under or equal to slot quota, got %v", tb.saleCandidateCalls)
+	}
+}
+
 func TestProcessWidthQuota_NoSale(t *testing.T) {
 	testLocation := &pb.Location{
 		Name:  "test_width_quota_location",
