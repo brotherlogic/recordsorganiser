@@ -44,16 +44,26 @@ func TestReleaseGet(t *testing.T) {
 
 func TestSaleQuota(t *testing.T) {
 	testLocation := &pb.Location{
-		Name: "testing",
+		Name:      "testing",
+		FolderIds: []int32{0},
 		Quota: &pb.Quota{
 			NumOfSlots: 1,
 		},
 		ReleasesLocation: []*pb.ReleasePlacement{
-			&pb.ReleasePlacement{},
-			&pb.ReleasePlacement{},
-		}}
+			&pb.ReleasePlacement{InstanceId: 1},
+			&pb.ReleasePlacement{InstanceId: 2},
+		},
+	}
 	s := getTestServer(".testsalequota")
-	s.processQuota(context.Background(), testLocation)
+	err := s.processQuota(context.Background(), testLocation)
+	if err != nil {
+		t.Fatalf("unexpected error running processQuota: %v", err)
+	}
+
+	tb := s.bridge.(*testBridge)
+	if len(tb.getUpdates()) != 0 {
+		t.Errorf("expected zero calls to updateRecord when over quota, got %d", len(tb.getUpdates()))
+	}
 }
 
 func TestFailRecordPull(t *testing.T) {
