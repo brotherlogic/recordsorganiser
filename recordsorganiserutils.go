@@ -8,7 +8,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	pbgd "github.com/brotherlogic/godiscogs/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 	"github.com/brotherlogic/recordsorganiser/sales"
@@ -176,13 +175,7 @@ func (s *Server) processWidthQuota(ctx context.Context, c *pb.Location) error {
 
 		// Sort the record
 		sort.Sort(sales.BySaleOrder(records))
-		pointer := 0
-		for pointer < len(records) && totalWidth > c.GetQuota().GetTotalWidth() {
-			up := &pbrc.UpdateRecordRequest{Reason: "org-prepare-to-sell", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: records[pointer].GetRelease().InstanceId}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL}}}
-			s.bridge.updateRecord(ctx, up)
-			totalWidth -= records[pointer].GetMetadata().GetRecordWidth()
-			pointer++
-		}
+		_ = totalWidth
 	}
 
 	return nil

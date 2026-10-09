@@ -155,3 +155,28 @@ func TestProcessSlotQuota_NoSaleAndNoAlert(t *testing.T) {
 	}
 }
 
+func TestProcessWidthQuota_NoSale(t *testing.T) {
+	testLocation := &pb.Location{
+		Name:  "test_width_quota_location",
+		Slots: 1,
+		Quota: &pb.Quota{
+			TotalWidth: 5,
+		},
+		ReleasesLocation: []*pb.ReleasePlacement{
+			&pb.ReleasePlacement{InstanceId: 1, Slot: 0},
+			&pb.ReleasePlacement{InstanceId: 2, Slot: 0},
+		},
+	}
+	s := getTestServer(".testprocesswidthquota_nosale")
+	s.bridge = &testBridge{recordWidth: 10}
+	err := s.processWidthQuota(context.Background(), testLocation)
+	if err != nil {
+		t.Fatalf("unexpected error running processWidthQuota: %v", err)
+	}
+
+	tb := s.bridge.(*testBridge)
+	if len(tb.getUpdates()) != 0 {
+		t.Errorf("expected zero calls to updateRecord when slot width exceeds quota, got %d", len(tb.getUpdates()))
+	}
+}
+
