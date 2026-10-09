@@ -20,6 +20,7 @@ type testBridge struct {
 	widthMissing    bool
 	failGetReleases bool
 	failGetRecord   bool
+	recordWidth     float32
 	updates         []*pbrc.UpdateRecordRequest
 }
 
@@ -34,6 +35,9 @@ func (discogsBridge *testBridge) getRecord(ctx context.Context, instanceID int64
 	metadata := &pbrc.ReleaseMetadata{GoalFolder: 25, SpineWidth: 1}
 	if discogsBridge.widthMissing {
 		metadata.SpineWidth = 0
+	}
+	if discogsBridge.recordWidth > 0 {
+		metadata.RecordWidth = discogsBridge.recordWidth
 	}
 	switch instanceID {
 	case 1:
