@@ -541,10 +541,14 @@ func (discogsBridge prodBridge) getSaleCandidate(ctx context.Context, orgName st
 		}
 	}
 
-	tCtx, cancel := context.WithTimeout(reqCtx, 5*time.Second)
-	defer cancel()
+	callCtx := reqCtx
+	if _, ok := reqCtx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		callCtx, cancel = context.WithTimeout(reqCtx, time.Minute)
+		defer cancel()
+	}
 
-	resp, err := client.GetRecord(tCtx, &pbgr.GetRecordRequest{
+	resp, err := client.GetRecord(callCtx, &pbgr.GetRecordRequest{
 		Request: &pbgr.GetRecordRequest_GetSaleCandidate{
 			GetSaleCandidate: &pbgr.GetSaleCandidate{
 				OrgName: orgName,
