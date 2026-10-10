@@ -306,10 +306,11 @@ func TestTestBridgeGetSaleCandidate(t *testing.T) {
 
 type mockGramophileServer struct {
 	pbgr.UnimplementedGramophileEServiceServer
-	resp         *pbgr.GetRecordResponse
-	err          error
-	receivedAuth string
-	receivedOrg  string
+	resp             *pbgr.GetRecordResponse
+	err              error
+	receivedAuth     string
+	receivedOrg      string
+	receivedDeadline time.Time
 }
 
 func (m *mockGramophileServer) GetRecord(ctx context.Context, req *pbgr.GetRecordRequest) (*pbgr.GetRecordResponse, error) {
@@ -322,6 +323,9 @@ func (m *mockGramophileServer) GetRecord(ctx context.Context, req *pbgr.GetRecor
 	}
 	if req.GetGetSaleCandidate() != nil {
 		m.receivedOrg = req.GetGetSaleCandidate().GetOrgName()
+	}
+	if d, ok := ctx.Deadline(); ok {
+		m.receivedDeadline = d
 	}
 	if m.err != nil {
 		return nil, m.err
@@ -426,6 +430,30 @@ func TestProdBridgeGetSaleCandidate(t *testing.T) {
 	_, err = pb.getSaleCandidate(context.Background(), "12 Inches")
 	if status.Code(err) != codes.Unavailable {
 		t.Errorf("expected Unavailable error, got %v", err)
+	}
+
+	// 6. Context propagation: verify parent context deadline (> 5s) propagates to RPC
+	ctxTimeout, cancelTimeout := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancelTimeout()
+	mock.err = nil
+	mock.resp = &pbgr.GetRecordResponse{
+		Records: []*pbgr.RecordResponse{expectedCandidate},
+	}
+	_, err = pb.getSaleCandidate(ctxTimeout, "12 Inches")
+	if err != nil {
+		t.Fatalf("unexpected error with 20s context: %v", err)
+	}
+	remaining := time.Until(mock.receivedDeadline)
+	if remaining <= 10*time.Second {
+		t.Errorf("expected inherited deadline > 10s, got remaining %v", remaining)
+	}
+
+	// 7. Context propagation: verify context cancellation propagates immediately
+	ctxCanceled, cancelFunc := context.WithCancel(context.Background())
+	cancelFunc()
+	_, err = pb.getSaleCandidate(ctxCanceled, "12 Inches")
+	if err == nil {
+		t.Fatalf("expected error from canceled context, got nil")
 	}
 }
 
