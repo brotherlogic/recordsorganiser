@@ -127,7 +127,9 @@ func (s *Server) processAbsoluteWidthQuota(ctx context.Context, c *pb.Location) 
 
 	s.CtxLog(ctx, fmt.Sprintf("%v has Total width %v vs quota of %v", c.GetName(), twidth, c.GetQuota().GetAbsoluteWidth()))
 	if twidth > c.GetQuota().GetAbsoluteWidth() {
-		s.evaluateDarkSaleCandidate(ctx, c)
+		if err := s.processSaleCandidate(ctx, c); err != nil {
+			return err
+		}
 		records := []*pbrc.Record{}
 		for _, rp := range c.GetReleasesLocation() {
 			rec, err := s.bridge.getRecord(ctx, rp.GetInstanceId())
@@ -248,7 +250,5 @@ func (s *Server) processSaleCandidate(ctx context.Context, c *pb.Location) error
 	return nil
 }
 
-func (s *Server) evaluateDarkSaleCandidate(ctx context.Context, c *pb.Location) {
-	_ = s.processSaleCandidate(ctx, c)
-}
+
 
