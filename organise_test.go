@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -33,6 +34,7 @@ type testBridge struct {
 	failGetRecord      bool
 	recordWidth        float32
 	updates            []*pbrc.UpdateRecordRequest
+	updateRecordErr    error
 	candidateResp      *pbgr.RecordResponse
 	candidateErr       error
 	saleCandidateCalls []string
@@ -204,6 +206,9 @@ func (discogsBridge *testBridge) updateRecord(ctx context.Context, req *pbrc.Upd
 	discogsBridge.Lock()
 	defer discogsBridge.Unlock()
 	discogsBridge.updates = append(discogsBridge.updates, req)
+	if discogsBridge.updateRecordErr != nil {
+		return nil, discogsBridge.updateRecordErr
+	}
 	return &pbrc.UpdateRecordsResponse{}, nil
 }
 
@@ -263,6 +268,29 @@ func TestTestBridgeUpdateRecord(t *testing.T) {
 	tb.resetUpdates()
 	if len(tb.getUpdates()) != 0 {
 		t.Errorf("expected 0 recorded updates after reset, got %d", len(tb.getUpdates()))
+	}
+}
+
+func TestTestBridgeUpdateRecord_Error(t *testing.T) {
+	expectedErr := fmt.Errorf("simulated update error")
+	tb := &testBridge{
+		updateRecordErr: expectedErr,
+	}
+	ctx := context.Background()
+
+	req := &pbrc.UpdateRecordRequest{
+		Reason: "Test Reason",
+		Update: &pbrc.Record{
+			Release: &pbd.Release{InstanceId: 12345},
+		},
+	}
+
+	res, err := tb.updateRecord(ctx, req)
+	if !errors.Is(err, expectedErr) {
+		t.Fatalf("expected error %v, got %v", expectedErr, err)
+	}
+	if res != nil {
+		t.Fatalf("expected nil response on error, got %v", res)
 	}
 }
 
