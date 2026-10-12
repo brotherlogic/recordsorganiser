@@ -122,7 +122,7 @@ func TestProcessAbsoluteWidthQuota_NoSale(t *testing.T) {
 	}
 }
 
-func TestProcessAbsoluteWidthQuota_TriggersDarkSaleCandidate(t *testing.T) {
+func TestProcessAbsoluteWidthQuota_ExecutesSaleCandidate_UpdatesRecord(t *testing.T) {
 	testLocation := &pb.Location{
 		Name: "12 Inches",
 		Quota: &pb.Quota{
@@ -133,13 +133,18 @@ func TestProcessAbsoluteWidthQuota_TriggersDarkSaleCandidate(t *testing.T) {
 			&pb.ReleasePlacement{InstanceId: 2, DeterminedWidth: 6},
 		},
 	}
-	s := getTestServer(".testprocessabsolutewidthquota_triggersdarksalecandidate")
+	s := getTestServer(".testprocessabsolutewidthquota_executessalecandidate")
 	tb := &testBridge{
 		candidateResp: &pbgr.RecordResponse{
 			Record: &pbgr.Record{
 				Release: &pbdg.Release{
 					InstanceId: 12345,
-					Title:      "Dark Launch Test",
+					Title:      "Absolute Width Quota Sale Test",
+				},
+				PackageScore: 90,
+				MedianPrice: &pbdg.Price{
+					Currency: "USD",
+					Value:    2000,
 				},
 			},
 		},
@@ -154,9 +159,81 @@ func TestProcessAbsoluteWidthQuota_TriggersDarkSaleCandidate(t *testing.T) {
 	if len(tb.saleCandidateCalls) != 1 || tb.saleCandidateCalls[0] != "12 Inches" {
 		t.Errorf("expected 1 sale candidate call for '12 Inches', got %v", tb.saleCandidateCalls)
 	}
+
+	updates := tb.getUpdates()
+	if len(updates) != 1 {
+		t.Fatalf("expected 1 update to record, got %d", len(updates))
+	}
+
+	if updates[0].GetUpdate().GetRelease().GetInstanceId() != 12345 {
+		t.Errorf("expected updated release instanceId 12345, got %v", updates[0].GetUpdate().GetRelease().GetInstanceId())
+	}
+
+	if updates[0].GetUpdate().GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PREPARE_TO_SELL {
+		t.Errorf("expected category PREPARE_TO_SELL, got %v", updates[0].GetUpdate().GetMetadata().GetCategory())
+	}
+
+	expectedReason := "Organiser Sale: 12 Inches over quota"
+	if updates[0].GetReason() != expectedReason {
+		t.Errorf("expected reason %q, got %q", expectedReason, updates[0].GetReason())
+	}
 }
 
-func TestProcessAbsoluteWidthQuota_UnderQuota_NoDarkSaleCandidate(t *testing.T) {
+func TestProcessAbsoluteWidthQuota_CandidateError_FailsClosed(t *testing.T) {
+	testLocation := &pb.Location{
+		Name: "12 Inches",
+		Quota: &pb.Quota{
+			QuotaType: &pb.Quota_AbsoluteWidth{AbsoluteWidth: 10},
+		},
+		ReleasesLocation: []*pb.ReleasePlacement{
+			&pb.ReleasePlacement{InstanceId: 1, DeterminedWidth: 6},
+			&pb.ReleasePlacement{InstanceId: 2, DeterminedWidth: 6},
+		},
+	}
+	s := getTestServer(".testprocessabsolutewidthquota_candidateerror")
+	tb := &testBridge{
+		candidateErr: fmt.Errorf("simulated candidate retrieval error"),
+	}
+	s.bridge = tb
+
+	err := s.processAbsoluteWidthQuota(context.Background(), testLocation)
+	if err == nil {
+		t.Fatalf("expected non-nil error when sale candidate retrieval fails, got nil")
+	}
+}
+
+func TestProcessAbsoluteWidthQuota_UpdateRecordError_FailsClosed(t *testing.T) {
+	testLocation := &pb.Location{
+		Name: "12 Inches",
+		Quota: &pb.Quota{
+			QuotaType: &pb.Quota_AbsoluteWidth{AbsoluteWidth: 10},
+		},
+		ReleasesLocation: []*pb.ReleasePlacement{
+			&pb.ReleasePlacement{InstanceId: 1, DeterminedWidth: 6},
+			&pb.ReleasePlacement{InstanceId: 2, DeterminedWidth: 6},
+		},
+	}
+	s := getTestServer(".testprocessabsolutewidthquota_updateerror")
+	tb := &testBridge{
+		candidateResp: &pbgr.RecordResponse{
+			Record: &pbgr.Record{
+				Release: &pbdg.Release{
+					InstanceId: 12345,
+					Title:      "Absolute Width Quota Sale Test",
+				},
+			},
+		},
+		updateRecordErr: fmt.Errorf("simulated updateRecord error"),
+	}
+	s.bridge = tb
+
+	err := s.processAbsoluteWidthQuota(context.Background(), testLocation)
+	if err == nil {
+		t.Fatalf("expected non-nil error when updateRecord fails, got nil")
+	}
+}
+
+func TestProcessAbsoluteWidthQuota_WithinQuota_NoSaleCandidate(t *testing.T) {
 	testLocation := &pb.Location{
 		Name: "12 Inches",
 		Quota: &pb.Quota{
@@ -167,7 +244,7 @@ func TestProcessAbsoluteWidthQuota_UnderQuota_NoDarkSaleCandidate(t *testing.T) 
 			&pb.ReleasePlacement{InstanceId: 2, DeterminedWidth: 6},
 		},
 	}
-	s := getTestServer(".testprocessabsolutewidthquota_underquota")
+	s := getTestServer(".testprocessabsolutewidthquota_withinquota")
 	tb := &testBridge{}
 	s.bridge = tb
 
