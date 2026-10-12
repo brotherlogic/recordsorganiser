@@ -10,6 +10,7 @@ import (
 
 	pbdg "github.com/brotherlogic/discogs/proto"
 	pbgr "github.com/brotherlogic/gramophile/proto"
+	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
@@ -303,14 +304,14 @@ func TestProcessWidthQuota_NoSale(t *testing.T) {
 	}
 }
 
-func TestDarkSaleCandidate_Success(t *testing.T) {
-	s := getTestServer(".testdarksalecandidate_success")
+func TestSaleCandidate_Success(t *testing.T) {
+	s := getTestServer(".testsalecandidate_success")
 	tb := &testBridge{
 		candidateResp: &pbgr.RecordResponse{
 			Record: &pbgr.Record{
 				Release: &pbdg.Release{
 					InstanceId: 12345,
-					Title:      "Dark Launch Test Release",
+					Title:      "Sale Candidate Test Release",
 				},
 				PackageScore: 95,
 				MedianPrice: &pbdg.Price{
@@ -322,75 +323,146 @@ func TestDarkSaleCandidate_Success(t *testing.T) {
 	}
 	s.bridge = tb
 
-	initSuccessCount := testutil.ToFloat64(darkSaleCandidates.With(prometheus.Labels{"location": "12 Inches"}))
+	initSalesCount := testutil.ToFloat64(salesTotal.With(prometheus.Labels{"location": "12 Inches"}))
 
 	loc := &pb.Location{Name: "12 Inches"}
-	s.evaluateDarkSaleCandidate(context.Background(), loc)
+	err := s.processSaleCandidate(context.Background(), loc)
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
 
 	if len(tb.saleCandidateCalls) != 1 || tb.saleCandidateCalls[0] != "12 Inches" {
 		t.Errorf("expected 1 call with '12 Inches', got %v", tb.saleCandidateCalls)
 	}
 
-	newSuccessCount := testutil.ToFloat64(darkSaleCandidates.With(prometheus.Labels{"location": "12 Inches"}))
-	if newSuccessCount != initSuccessCount+1 {
-		t.Errorf("expected darkSaleCandidates count to increase by 1, got from %v to %v", initSuccessCount, newSuccessCount)
+	updates := tb.getUpdates()
+	if len(updates) != 1 {
+		t.Fatalf("expected 1 update, got %d", len(updates))
+	}
+
+	expectedReason := "Organiser Sale: 12 Inches over quota"
+	if updates[0].GetReason() != expectedReason {
+		t.Errorf("expected reason %q, got %q", expectedReason, updates[0].GetReason())
+	}
+
+	if updates[0].GetUpdate().GetRelease().GetInstanceId() != 12345 {
+		t.Errorf("expected release instanceId 12345, got %v", updates[0].GetUpdate().GetRelease().GetInstanceId())
+	}
+
+	if updates[0].GetUpdate().GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PREPARE_TO_SELL {
+		t.Errorf("expected category PREPARE_TO_SELL, got %v", updates[0].GetUpdate().GetMetadata().GetCategory())
+	}
+
+	newSalesCount := testutil.ToFloat64(salesTotal.With(prometheus.Labels{"location": "12 Inches"}))
+	if newSalesCount != initSalesCount+1 {
+		t.Errorf("expected salesTotal to increase by 1, got from %v to %v", initSalesCount, newSalesCount)
 	}
 }
 
-func TestDarkSaleCandidate_NotFound(t *testing.T) {
-	s := getTestServer(".testdarksalecandidate_notfound")
+func TestSaleCandidate_NotFound_Continues(t *testing.T) {
+	s := getTestServer(".testsalecandidate_notfound")
 	tb := &testBridge{
 		candidateErr: status.Errorf(codes.NotFound, "no sale candidate found"),
 	}
 	s.bridge = tb
 
-	initErrCount := testutil.ToFloat64(darkSaleCandidateErrors.With(prometheus.Labels{"location": "12 Inches"}))
+	initErrCount := testutil.ToFloat64(saleErrorsTotal.With(prometheus.Labels{"location": "12 Inches"}))
 
 	loc := &pb.Location{Name: "12 Inches"}
-	s.evaluateDarkSaleCandidate(context.Background(), loc)
+	err := s.processSaleCandidate(context.Background(), loc)
+	if err != nil {
+		t.Fatalf("expected nil error on NotFound, got %v", err)
+	}
 
 	if len(tb.saleCandidateCalls) != 1 || tb.saleCandidateCalls[0] != "12 Inches" {
 		t.Errorf("expected 1 call with '12 Inches', got %v", tb.saleCandidateCalls)
 	}
 
-	newErrCount := testutil.ToFloat64(darkSaleCandidateErrors.With(prometheus.Labels{"location": "12 Inches"}))
+	if len(tb.getUpdates()) != 0 {
+		t.Errorf("expected 0 updates on NotFound, got %d", len(tb.getUpdates()))
+	}
+
+	newErrCount := testutil.ToFloat64(saleErrorsTotal.With(prometheus.Labels{"location": "12 Inches"}))
 	if newErrCount != initErrCount {
-		t.Errorf("expected darkSaleCandidateErrors count to remain %v on NotFound, got %v", initErrCount, newErrCount)
+		t.Errorf("expected saleErrorsTotal count to remain %v on NotFound, got %v", initErrCount, newErrCount)
 	}
 }
 
-func TestDarkSaleCandidate_RPCFailure(t *testing.T) {
-	s := getTestServer(".testdarksalecandidate_rpcfailure")
+func TestSaleCandidate_CandidateRPCError_FailsClosed(t *testing.T) {
+	s := getTestServer(".testsalecandidate_candidaterpcerror")
 	tb := &testBridge{
 		candidateErr: status.Errorf(codes.Unavailable, "service unavailable"),
 	}
 	s.bridge = tb
 
-	initErrCount := testutil.ToFloat64(darkSaleCandidateErrors.With(prometheus.Labels{"location": "12 Inches"}))
+	initErrCount := testutil.ToFloat64(saleErrorsTotal.With(prometheus.Labels{"location": "12 Inches"}))
 
 	loc := &pb.Location{Name: "12 Inches"}
-	s.evaluateDarkSaleCandidate(context.Background(), loc)
+	err := s.processSaleCandidate(context.Background(), loc)
+	if err == nil {
+		t.Fatal("expected non-nil error on candidate RPC failure, got nil")
+	}
 
 	if len(tb.saleCandidateCalls) != 1 || tb.saleCandidateCalls[0] != "12 Inches" {
 		t.Errorf("expected 1 call with '12 Inches', got %v", tb.saleCandidateCalls)
 	}
 
-	newErrCount := testutil.ToFloat64(darkSaleCandidateErrors.With(prometheus.Labels{"location": "12 Inches"}))
+	if len(tb.getUpdates()) != 0 {
+		t.Errorf("expected 0 updates on candidate RPC failure, got %d", len(tb.getUpdates()))
+	}
+
+	newErrCount := testutil.ToFloat64(saleErrorsTotal.With(prometheus.Labels{"location": "12 Inches"}))
 	if newErrCount != initErrCount+1 {
-		t.Errorf("expected darkSaleCandidateErrors count to increase by 1 on RPC error, got from %v to %v", initErrCount, newErrCount)
+		t.Errorf("expected saleErrorsTotal count to increase by 1 on RPC error, got from %v to %v", initErrCount, newErrCount)
 	}
 }
 
-func TestDarkSaleCandidate_UnmappedLocation(t *testing.T) {
-	s := getTestServer(".testdarksalecandidate_unmapped")
+func TestSaleCandidate_UpdateRecordRPCError_FailsClosed(t *testing.T) {
+	s := getTestServer(".testsalecandidate_updaterecordrpcerror")
+	tb := &testBridge{
+		candidateResp: &pbgr.RecordResponse{
+			Record: &pbgr.Record{
+				Release: &pbdg.Release{
+					InstanceId: 12345,
+					Title:      "Sale Candidate Test Release",
+				},
+				PackageScore: 95,
+			},
+		},
+		updateRecordErr: status.Errorf(codes.Internal, "update failed"),
+	}
+	s.bridge = tb
+
+	initErrCount := testutil.ToFloat64(saleErrorsTotal.With(prometheus.Labels{"location": "12 Inches"}))
+
+	loc := &pb.Location{Name: "12 Inches"}
+	err := s.processSaleCandidate(context.Background(), loc)
+	if err == nil {
+		t.Fatal("expected non-nil error on updateRecord RPC failure, got nil")
+	}
+
+	newErrCount := testutil.ToFloat64(saleErrorsTotal.With(prometheus.Labels{"location": "12 Inches"}))
+	if newErrCount != initErrCount+1 {
+		t.Errorf("expected saleErrorsTotal count to increase by 1 on updateRecord error, got from %v to %v", initErrCount, newErrCount)
+	}
+}
+
+func TestSaleCandidate_UnmappedLocation_Skips(t *testing.T) {
+	s := getTestServer(".testsalecandidate_unmapped")
 	tb := &testBridge{}
 	s.bridge = tb
 
 	loc := &pb.Location{Name: "Unmapped Location"}
-	s.evaluateDarkSaleCandidate(context.Background(), loc)
+	err := s.processSaleCandidate(context.Background(), loc)
+	if err != nil {
+		t.Fatalf("expected nil error on unmapped location, got %v", err)
+	}
 
 	if len(tb.saleCandidateCalls) != 0 {
 		t.Errorf("expected 0 calls for unmapped location, got %v", tb.saleCandidateCalls)
+	}
+	if len(tb.getUpdates()) != 0 {
+		t.Errorf("expected 0 updates for unmapped location, got %v", len(tb.getUpdates()))
 	}
 }
 
