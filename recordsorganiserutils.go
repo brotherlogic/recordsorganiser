@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	pbd "github.com/brotherlogic/godiscogs/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordsorganiser/proto"
 	"github.com/brotherlogic/recordsorganiser/sales"
@@ -30,14 +31,14 @@ var (
 		Name: "recordsorganiser_spill",
 	}, []string{"location"})
 
-	darkSaleCandidates = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "recordsorganiser_dark_sale_candidates_total",
-		Help: "Count of successful dark launch sale candidate queries",
+	salesTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "recordsorganiser_sales_total",
+		Help: "Count of records marked for sale",
 	}, []string{"location"})
 
-	darkSaleCandidateErrors = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "recordsorganiser_dark_sale_candidate_errors_total",
-		Help: "Count of failed dark launch sale candidate queries",
+	saleErrorsTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "recordsorganiser_sale_errors_total",
+		Help: "Count of errors encountered when preparing records for sale",
 	}, []string{"location"})
 )
 
@@ -199,30 +200,53 @@ func (s *Server) processWidthQuota(ctx context.Context, c *pb.Location) error {
 	return nil
 }
 
-func (s *Server) evaluateDarkSaleCandidate(ctx context.Context, c *pb.Location) {
+func (s *Server) processSaleCandidate(ctx context.Context, c *pb.Location) error {
 	orgName, ok := locationToGramophileOrg[c.GetName()]
 	if !ok {
-		return
+		return nil
 	}
 
 	candidate, err := s.bridge.getSaleCandidate(ctx, orgName)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
-			s.CtxLog(ctx, fmt.Sprintf("No dark sale candidate found for %v (org: %v)", c.GetName(), orgName))
-			return
+			s.CtxLog(ctx, fmt.Sprintf("No sale candidate found for %v (org: %v)", c.GetName(), orgName))
+			return nil
 		}
-		s.CtxLog(ctx, fmt.Sprintf("Error evaluating dark sale candidate for %v (org: %v): %v", c.GetName(), orgName, err))
-		darkSaleCandidateErrors.With(prometheus.Labels{"location": c.GetName()}).Inc()
-		return
+		s.CtxLog(ctx, fmt.Sprintf("Error retrieving sale candidate for %v (org: %v): %v", c.GetName(), orgName, err))
+		saleErrorsTotal.With(prometheus.Labels{"location": c.GetName()}).Inc()
+		return fmt.Errorf("failed to retrieve sale candidate for %v: %w", c.GetName(), err)
 	}
 
-	s.CtxLog(ctx, fmt.Sprintf("Dark sale candidate for %v: instance_id=%v, title=%v, score=%v, median_price=%v",
+	updateReq := &pbrc.UpdateRecordRequest{
+		Reason: fmt.Sprintf("Organiser Sale: %v over quota", c.GetName()),
+		Update: &pbrc.Record{
+			Release: &pbd.Release{
+				InstanceId: candidate.GetRecord().GetRelease().GetInstanceId(),
+			},
+			Metadata: &pbrc.ReleaseMetadata{
+				Category: pbrc.ReleaseMetadata_PREPARE_TO_SELL,
+			},
+		},
+	}
+
+	_, err = s.bridge.updateRecord(ctx, updateReq)
+	if err != nil {
+		s.CtxLog(ctx, fmt.Sprintf("Error updating record %v to PREPARE_TO_SELL for %v: %v", candidate.GetRecord().GetRelease().GetInstanceId(), c.GetName(), err))
+		saleErrorsTotal.With(prometheus.Labels{"location": c.GetName()}).Inc()
+		return fmt.Errorf("failed to update record %v to PREPARE_TO_SELL: %w", candidate.GetRecord().GetRelease().GetInstanceId(), err)
+	}
+
+	s.CtxLog(ctx, fmt.Sprintf("Sale candidate prepared for %v: instance_id=%v, score=%v, median_price=%v",
 		c.GetName(),
 		candidate.GetRecord().GetRelease().GetInstanceId(),
-		candidate.GetRecord().GetRelease().GetTitle(),
 		candidate.GetRecord().GetPackageScore(),
 		candidate.GetRecord().GetMedianPrice(),
 	))
-	darkSaleCandidates.With(prometheus.Labels{"location": c.GetName()}).Inc()
+	salesTotal.With(prometheus.Labels{"location": c.GetName()}).Inc()
+	return nil
+}
+
+func (s *Server) evaluateDarkSaleCandidate(ctx context.Context, c *pb.Location) {
+	_ = s.processSaleCandidate(ctx, c)
 }
 
