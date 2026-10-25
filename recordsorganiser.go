@@ -164,6 +164,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 		tfr := []*pbrc.Record{}
 		tfr2 := []int64{}
 		var funcErr error
+		var mu sync.Mutex
 		wg := &sync.WaitGroup{}
 		wg.Add(1)
 		maxGoroutines := 100
@@ -174,6 +175,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 			wg.Add(1)
 			go func(iid int64) {
 				r, err := s.bridge.getRecord(ctx, iid)
+				mu.Lock()
 				if r.GetMetadata().GetLastListenTime() < oldest {
 					oldest = r.GetMetadata().GetLastListenTime()
 					s.CtxLog(ctx, fmt.Sprintf("oldest: %v -> %v", iid, time.Since(time.Unix(oldest, 0))))
@@ -186,6 +188,7 @@ func (s *Server) organiseLocation(ctx context.Context, cache *pb.SortingCache, c
 				if err == nil {
 					tfr = append(tfr, r)
 				}
+				mu.Unlock()
 				wg.Done()
 				<-guard
 			}(id)
@@ -403,6 +406,9 @@ func (s *Server) loadCache(ctx context.Context) (*pb.SortingCache, error) {
 }
 
 func (s *Server) saveCache(ctx context.Context, config *pb.SortingCache) error {
+	if s.SkipLog {
+		return nil
+	}
 	data, err := proto.Marshal(config)
 	if err != nil {
 		return err

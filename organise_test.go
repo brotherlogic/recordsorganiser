@@ -33,6 +33,7 @@ type testBridge struct {
 	failGetReleases    bool
 	failGetRecord      bool
 	recordWidth        float32
+	customIDs          []int64
 	updates            []*pbrc.UpdateRecordRequest
 	updateRecordErr    error
 	candidateResp      *pbgr.RecordResponse
@@ -63,12 +64,20 @@ func (discogsBridge *testBridge) getRecord(ctx context.Context, instanceID int64
 	case 3:
 		metadata.DateAdded = time.Now().Unix() + 100
 	}
-	return &pbrc.Record{Release: &pbd.Release{InstanceId: 12}, Metadata: metadata}, nil
+	instID := int64(12)
+	if len(discogsBridge.customIDs) > 0 {
+		instID = instanceID
+		metadata.LastListenTime = instanceID
+	}
+	return &pbrc.Record{Release: &pbd.Release{InstanceId: instID, FolderId: 100, Title: fmt.Sprintf("Record %d", instID)}, Metadata: metadata}, nil
 }
 
 func (discogsBridge *testBridge) getReleases(ctx context.Context, folders []int32) ([]int64, error) {
 	if discogsBridge.failGetReleases {
 		return []int64{}, fmt.Errorf("Built to fail")
+	}
+	if len(discogsBridge.customIDs) > 0 {
+		return discogsBridge.customIDs, nil
 	}
 
 	if len(folders) == 1 && folders[0] == 812802 {
@@ -332,6 +341,43 @@ func TestTestBridgeGetSaleCandidate(t *testing.T) {
 	}
 }
 
+func TestOrganiseLocation_ConcurrentNoDroppedRecords(t *testing.T) {
+	const numRecords = 200
+	ids := make([]int64, numRecords)
+	for i := 0; i < numRecords; i++ {
+		ids[i] = int64(i + 1)
+	}
+
+	s := getTestServer(t.TempDir())
+	s.bridge = &testBridge{
+		customIDs:   ids,
+		recordWidth: 1,
+	}
+
+	loc := &pb.Location{
+		Name:        "ConcurrentLocation",
+		Slots:       2,
+		FolderIds:   []int32{100},
+		FolderOrder: map[int32]int32{100: 0},
+		FolderSort:  map[int32]pb.Location_Sorting{100: pb.Location_BY_IID},
+	}
+	org := &pb.Organisation{
+		Locations: []*pb.Location{loc},
+	}
+	cache := &pb.SortingCache{}
+
+	n, err := s.organiseLocation(context.Background(), cache, loc, org)
+	if err != nil {
+		t.Fatalf("unexpected error from organiseLocation: %v", err)
+	}
+	if int(n) != numRecords {
+		t.Errorf("expected %d processed records, got %d", numRecords, n)
+	}
+	if len(loc.GetReleasesLocation()) != numRecords {
+		t.Errorf("expected %d records in ReleasesLocation, got %d", numRecords, len(loc.GetReleasesLocation()))
+	}
+}
+
 type mockGramophileServer struct {
 	pbgr.UnimplementedGramophileEServiceServer
 	resp             *pbgr.GetRecordResponse
@@ -484,5 +530,7 @@ func TestProdBridgeGetSaleCandidate(t *testing.T) {
 		t.Fatalf("expected error from canceled context, got nil")
 	}
 }
+
+
 
 
