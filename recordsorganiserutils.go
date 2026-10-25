@@ -75,6 +75,7 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 	c.OverQuotaTime = 0
 
 	records := []*pbrc.Record{}
+	var mu sync.Mutex
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	maxGoroutines := 100
@@ -85,6 +86,7 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 		wg.Add(1)
 		go func(iid int64) {
 			r, err := s.bridge.getRecord(ctx, iid)
+			mu.Lock()
 			if err != nil {
 				ferr = err
 			} else {
@@ -100,6 +102,7 @@ func (s *Server) processQuota(ctx context.Context, c *pb.Location) error {
 					}
 				}
 			}
+			mu.Unlock()
 			wg.Done()
 			<-guard
 		}(rp.GetInstanceId())

@@ -74,6 +74,28 @@ func TestSaleQuota(t *testing.T) {
 	}
 }
 
+func TestSaleQuota_Concurrent(t *testing.T) {
+	const numRecords = 200
+	placements := make([]*pb.ReleasePlacement, numRecords)
+	ids := make([]int64, numRecords)
+	for i := 0; i < numRecords; i++ {
+		id := int64(i + 1)
+		ids[i] = id
+		placements[i] = &pb.ReleasePlacement{InstanceId: id}
+	}
+	testLocation := &pb.Location{
+		Name:             "testing_concurrent",
+		FolderIds:        []int32{100},
+		Quota:            &pb.Quota{NumOfSlots: 1},
+		ReleasesLocation: placements,
+	}
+	s := getTestServer(t.TempDir())
+	s.bridge = &testBridge{customIDs: ids}
+	if err := s.processQuota(context.Background(), testLocation); err != nil {
+		t.Fatalf("unexpected error running concurrent processQuota: %v", err)
+	}
+}
+
 func TestFailRecordPull(t *testing.T) {
 	testLocation := &pb.Location{
 		Name: "testing",
